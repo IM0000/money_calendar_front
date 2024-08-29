@@ -1,0 +1,138 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import googleLogo from '../assets/google/google-g-2015-logo-png-transparent.png';
+import kakaoLogo from '../assets/kakao/kakao_logo.webp';
+import appleLogo from '../assets/apple/apple-logo-bg.png'; // 애플 로고 경로
+import discordLogo from '../assets/discord/discord_logo.png'; // 디스코드 로고 경로
+import OAuthLoginButton from '../components/OAuthLoginButton';
+import Logo from '../components/Logo';
+
+export default function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+  };
+
+  const handleEmailLogin = () => {
+    if (email) {
+      setShowPassword(true);
+    }
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+  };
+
+  const handleGoogleLogin = () => {
+    // 구글 로그인 로직
+  };
+
+  const handleKakaoLogin = () => {
+    // 카카오 로그인 로직
+  };
+
+  const handleAppleLogin = () => {
+    // 애플 로그인 로직
+  };
+
+  const handleDiscordLogin = () => {
+    // 디스코드 로그인 로직
+  };
+
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-white p-6">
+      <Logo
+        width="44px"
+        height="44px"
+        divClassName="mb-6 text-black"
+        spanClassName="text-4xl font-jua font-bold pt-2"
+      />
+      <div className="mb-8 flex w-64 flex-col items-center space-y-4">
+        <input
+          type="email"
+          placeholder="이메일 주소"
+          value={email}
+          onChange={handleEmailChange}
+          className="w-full rounded border border-gray-300 p-2"
+        />
+        {!showPassword && (
+          <button
+            onClick={handleEmailLogin}
+            className="w-full rounded bg-blue-400 px-4 py-2 text-white hover:bg-blue-500"
+          >
+            이메일로 시작하기
+          </button>
+        )}
+        {showPassword && (
+          <>
+            <input
+              type="password"
+              placeholder="비밀번호"
+              value={password}
+              onChange={handlePasswordChange}
+              className="w-full rounded border border-gray-300 p-2"
+            />
+            <div className="flex w-full justify-between text-sm">
+              <div className="flex items-center">
+                <input type="checkbox" id="remember-me" className="mr-1" />
+                <label htmlFor="remember-me">로그인 상태 유지</label>
+              </div>
+              <Link
+                to="/forgot-password"
+                className="text-blue-400 hover:underline"
+              >
+                비밀번호 찾기
+              </Link>
+            </div>
+            <button
+              onClick={() => {
+                /* 로그인 로직 */
+              }}
+              className="mt-2 w-full rounded bg-blue-400 px-4 py-2 text-white hover:bg-blue-500"
+            >
+              로그인
+            </button>
+          </>
+        )}
+      </div>
+      <div className="my-4 flex w-64 items-center">
+        <hr className="flex-grow border-gray-300" />
+        <span className="mx-2 text-gray-500">OR</span>
+        <hr className="flex-grow border-gray-300" />
+      </div>
+      <div className="mb-8 flex w-64 justify-around">
+        <OAuthLoginButton
+          provider="애플"
+          logo={appleLogo}
+          onClick={handleAppleLogin}
+        />
+        <OAuthLoginButton
+          provider="구글"
+          logo={googleLogo}
+          onClick={handleGoogleLogin}
+        />
+        <OAuthLoginButton
+          provider="카카오"
+          logo={kakaoLogo}
+          onClick={handleKakaoLogin}
+        />
+        <OAuthLoginButton
+          provider="디스코드"
+          logo={discordLogo}
+          onClick={handleDiscordLogin}
+        />
+      </div>
+      <div className="mt-4 flex space-x-4">
+        <Link to="/" className="px-4 py-2 text-blue-400 hover:underline">
+          비회원으로 이용하기
+        </Link>
+        <Link to="/signup" className="px-4 py-2 text-blue-400 hover:underline">
+          회원가입
+        </Link>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pretendard&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+
+  header,
+  footer {
+    @apply font-jua;
+  }
+
+  body {
+    @apply font-sans;
+  }
+}
