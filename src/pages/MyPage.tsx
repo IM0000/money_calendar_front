@@ -17,6 +17,8 @@ import googleLogo from '../assets/google/google-g-2015-logo-png-transparent.png'
 import kakaoLogo from '../assets/kakao/kakao_logo.webp';
 import appleLogo from '../assets/apple/apple-logo-bg.png';
 import discordLogo from '../assets/discord/discord_logo.png';
+import { useAuthStore } from '../zustand/useAuthStore';
+import { UserDto } from '../types/UsersTypes';
 
 type availableSNS = 'google' | 'apple' | 'kakao' | 'discord';
 
@@ -29,34 +31,35 @@ type LinkedAccounts = {
   [key in availableSNS]: LinkedAccount;
 };
 
-const BasicInfo = () => (
-  <div className="mb-4 w-full rounded-lg bg-white p-4 shadow">
-    <h3 className="mb-4 text-xl font-semibold">기본정보</h3>
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700">이메일</label>
-      <div className="mt-1 flex items-center justify-between rounded-md border-gray-300 p-2 shadow-sm">
-        <div>example@example.com</div>
-        <button className="ml-2 text-blue-500 hover:text-blue-700">수정</button>
+const BasicInfo = ({ user }: { user: UserDto | null }) => (
+  <div className="mb-6 w-full rounded-lg bg-white p-6 shadow-md">
+    <div className="mb-4 border-b border-gray-300 pb-4">
+      <label className="block text-sm font-medium text-gray-600">이메일</label>
+      <div className="mt-2 flex items-center justify-between">
+        <div className="font-semibold text-gray-800">
+          {user?.email || '이메일 없음'}
+        </div>
       </div>
     </div>
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700">
-        비밀번호
-      </label>
-      <div className="mt-1 flex items-center justify-between rounded-md border-gray-300 p-2 shadow-sm">
-        <div>********</div>
-        <button className="ml-2 text-blue-500 hover:text-blue-700">수정</button>
+    <div className="mb-4 border-b border-gray-300 pb-4">
+      <label className="block text-sm font-medium text-gray-600">닉네임</label>
+      <div className="mt-2 flex items-center justify-between">
+        <div className="font-semibold text-gray-800">
+          {user?.nickname || '닉네임 없음'}
+        </div>
+        <button className="text-sm font-semibold text-blue-500 transition hover:text-blue-700">
+          수정
+        </button>
       </div>
     </div>
     <div>
-      <label className="block text-sm font-medium text-gray-700">닉네임</label>
-      <div className="mt-1 flex items-center justify-between rounded-md border-gray-300 p-2 shadow-sm">
-        <div>닉네임</div>
-        <button className="ml-2 text-blue-500 hover:text-blue-700">수정</button>
-      </div>
+      <button className="mt-4 w-full rounded-md bg-blue-500 px-4 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:bg-blue-600">
+        비밀번호 변경하기
+      </button>
     </div>
   </div>
 );
+
 const SNSAccountLink = () => {
   const [linkedAccounts, setLinkedAccounts] = useState<LinkedAccounts>({
     google: { linked: true, email: 'imsang0000@gmail.com' },
@@ -141,6 +144,7 @@ const DeleteAccount = () => (
 );
 
 export default function MyPage() {
+  const { user } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [economicResults, setEconomicResults] = useState<EconomicResult[]>([
     {
@@ -269,7 +273,7 @@ export default function MyPage() {
       <div className="container mx-auto flex flex-wrap items-start p-8">
         <div className="w-full pr-8 lg:w-1/3">
           <h2 className="mb-4 text-2xl font-bold">내 계정</h2>
-          <BasicInfo />
+          <BasicInfo user={user} />
           <SNSAccountLink />
           <DeleteAccount />
         </div>

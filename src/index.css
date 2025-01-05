@@ -6,13 +6,12 @@
 @tailwind utilities;
 
 @layer base {
-
   header,
   footer {
     @apply font-jua;
   }
 
   body {
-    @apply font-sans;
+    @apply font-jua;
   }
 }

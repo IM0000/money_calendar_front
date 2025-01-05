@@ -8,6 +8,38 @@ export default defineConfig({
     hmr: {
       overlay: true,
     },
+    proxy: {
+      '/auth': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log(
+              `Proxying request: ${req.method} ${req.url} -> ${options.target}${req.url}`,
+            );
+          });
+          proxy.on('error', (err, req, res) => {
+            console.error('Proxy error:', err);
+          });
+        },
+      },
+      '/users': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log(
+              `Proxying request: ${req.method} ${req.url} -> ${options.target}${req.url}`,
+            );
+          });
+          proxy.on('error', (err, req, res) => {
+            console.error('Proxy error:', err);
+          });
+        },
+      },
+    },
   },
   plugins: [react(), WindiCSS()],
 });

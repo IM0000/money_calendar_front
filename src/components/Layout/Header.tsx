@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaUser } from 'react-icons/fa';
 import Logo from '../Logo';
+import { useAuthStore } from '../../zustand/useAuthStore';
 
 export default function Header() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
+  const { isAuthenticated, logout, checkAuth } = useAuthStore(); // AuthStore 상태와 메서드 사용
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -13,18 +15,12 @@ export default function Header() {
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    // 로그아웃 로직 추가
+    setDropdownOpen(false);
+    logout(); // 로그아웃 메서드 호출
+    navigate('/');
   };
 
   useEffect(() => {
-    localStorage.setItem('isLoggedIn', 'true');
-    // 로그인 여부 확인
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (isLoggedIn) {
-      setIsLoggedIn(true);
-    }
-
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
@@ -39,6 +35,11 @@ export default function Header() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // 초기 로그인 상태 확인
+  useEffect(() => {
+    checkAuth(); // AuthStore에서 로그인 상태 확인
+  }, [checkAuth]);
 
   return (
     <header className="fixed top-0 z-50 flex h-16 w-full justify-between bg-white bg-opacity-90 p-4 text-white shadow-md">
@@ -55,7 +56,7 @@ export default function Header() {
           </ul>
         </div>
         <div className="flex items-center pl-24">
-          {isLoggedIn ? (
+          {isAuthenticated ? (
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={handleDropdownToggle}
@@ -87,7 +88,7 @@ export default function Header() {
                   로그인
                 </button>
               </Link>
-              <Link to="/signup">
+              <Link to="/sign-up">
                 <button className="m-2 rounded-lg bg-blue-400 p-2 text-white hover:bg-blue-500">
                   회원가입
                 </button>

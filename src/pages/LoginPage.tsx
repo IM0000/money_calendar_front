@@ -1,22 +1,31 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import googleLogo from '../assets/google/google-g-2015-logo-png-transparent.png';
 import kakaoLogo from '../assets/kakao/kakao_logo.webp';
 import appleLogo from '../assets/apple/apple-logo-bg.png'; // 애플 로고 경로
 import discordLogo from '../assets/discord/discord_logo.png'; // 디스코드 로고 경로
 import OAuthLoginButton from '../components/OAuthLoginButton';
 import Logo from '../components/Logo';
+import { AxiosError } from 'axios';
+import { useAuthStore } from '../zustand/useAuthStore';
+import { login } from '../api/services/AuthService';
+import { ErrorCodes } from '../types/ErrorCodes';
+
+const { VITE_BACKEND_URL } = import.meta.env;
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const { login: authStoreLogin } = useAuthStore();
+  const [error, setError] = useState(''); // 에러 메시지 상태 추가
+  const navigate = useNavigate();
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
   };
 
-  const handleEmailLogin = () => {
+  const handleStartEmail = () => {
     if (email) {
       setShowPassword(true);
     }
@@ -26,20 +35,29 @@ export default function LoginPage() {
     setPassword(e.target.value);
   };
 
-  const handleGoogleLogin = () => {
-    // 구글 로그인 로직
-  };
+  const handleLogin = async () => {
+    try {
+      const res = await login({ email, password });
+      console.log(res);
 
-  const handleKakaoLogin = () => {
-    // 카카오 로그인 로직
-  };
-
-  const handleAppleLogin = () => {
-    // 애플 로그인 로직
-  };
-
-  const handleDiscordLogin = () => {
-    // 디스코드 로그인 로직
+      if (res.statusCode === 201 && res.data) {
+        authStoreLogin(res.data.user, res.data.accessToken);
+        navigate('/');
+      }
+    } catch (error: unknown) {
+      if (error instanceof AxiosError && error.response?.data) {
+        const { errorCode, errorMessage, data } = error.response.data;
+        if (errorCode && errorMessage) {
+          if (errorCode === ErrorCodes.ACCOUNT_001) {
+            alert(errorMessage);
+            navigate('/users/password', {
+              state: { email: data?.email },
+            });
+          }
+          setError(errorMessage);
+        }
+      }
+    }
   };
 
   return (
@@ -47,10 +65,10 @@ export default function LoginPage() {
       <Logo
         width="44px"
         height="44px"
-        divClassName="mb-6 text-black"
+        divClassName="mb-8 text-black"
         spanClassName="text-4xl font-jua font-bold pt-2"
       />
-      <div className="mb-8 flex w-64 flex-col items-center space-y-4">
+      <div className="mb-8 flex w-80 flex-col items-center space-y-4">
         <input
           type="email"
           placeholder="이메일 주소"
@@ -60,7 +78,7 @@ export default function LoginPage() {
         />
         {!showPassword && (
           <button
-            onClick={handleEmailLogin}
+            onClick={handleStartEmail}
             className="w-full rounded bg-blue-400 px-4 py-2 text-white hover:bg-blue-500"
           >
             이메일로 시작하기
@@ -75,11 +93,14 @@ export default function LoginPage() {
               onChange={handlePasswordChange}
               className="w-full rounded border border-gray-300 p-2"
             />
+            {error && (
+              <div className="mt-2 w-full text-sm text-red-500">{error}</div>
+            )}
             <div className="flex w-full justify-between text-sm">
-              <div className="flex items-center">
+              {/* <div className="flex items-center">
                 <input type="checkbox" id="remember-me" className="mr-1" />
                 <label htmlFor="remember-me">로그인 상태 유지</label>
-              </div>
+              </div> */}
               <Link
                 to="/forgot-password"
                 className="text-blue-400 hover:underline"
@@ -88,9 +109,7 @@ export default function LoginPage() {
               </Link>
             </div>
             <button
-              onClick={() => {
-                /* 로그인 로직 */
-              }}
+              onClick={handleLogin}
               className="mt-2 w-full rounded bg-blue-400 px-4 py-2 text-white hover:bg-blue-500"
             >
               로그인
@@ -129,10 +148,27 @@ export default function LoginPage() {
         <Link to="/" className="px-4 py-2 text-blue-400 hover:underline">
           비회원으로 이용하기
         </Link>
-        <Link to="/signup" className="px-4 py-2 text-blue-400 hover:underline">
+        <Link to="/sign-up" className="px-4 py-2 text-blue-400 hover:underline">
           회원가입
         </Link>
       </div>
     </div>
   );
 }
+
+export const handleGoogleLogin = () => {
+  // 구글 로그인 로직
+  window.location.href = `${VITE_BACKEND_URL}/auth/google`;
+};
+
+export const handleKakaoLogin = () => {
+  // 카카오 로그인 로직
+};
+
+export const handleAppleLogin = () => {
+  // 애플 로그인 로직
+};
+
+export const handleDiscordLogin = () => {
+  // 디스코드 로그인 로직
+};
