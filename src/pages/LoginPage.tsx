@@ -158,7 +158,7 @@ export default function LoginPage() {
 
 export const handleGoogleLogin = () => {
   // 구글 로그인 로직
-  window.location.href = `${VITE_BACKEND_URL}/auth/google`;
+  window.location.href = `${VITE_BACKEND_URL}/auth/oauth/google`;
 };
 
 export const handleKakaoLogin = () => {

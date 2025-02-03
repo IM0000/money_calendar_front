@@ -6,11 +6,13 @@ export interface CalendarState {
   selectedDate: Date;
   selectedDates: Date[];
   selectedMonth: Date;
+  subSelectedDates: Date[];
   setDate: (date: Date) => void;
   setDateList: (dateList: Date[]) => void;
   setSelectedDate: (date: Date) => void;
   setSelectedDates: (date: Date | Date[]) => void;
   setSelectedMonth: (date: Date) => void;
+  setSubSelectedDates: (date: Date) => void;
 }
 
 const useCalendarStore = create<CalendarState>((set) => {
@@ -24,6 +26,7 @@ const useCalendarStore = create<CalendarState>((set) => {
     selectedDate: today,
     selectedDates: [today],
     selectedMonth: selectedMonth,
+    subSelectedDates: getWeekDates(today),
     setDate: (date: Date) =>
       set(() => {
         const monthDates = getMonthDates(date.getFullYear(), date.getMonth());
@@ -37,7 +40,8 @@ const useCalendarStore = create<CalendarState>((set) => {
         };
       }),
     setDateList: (dateList: Date[]) => set({ dateList }),
-    setSelectedDate: (selectedDate: Date) => set({ selectedDate }),
+    setSelectedDate: (selectedDate: Date) =>
+      set({ selectedDate, subSelectedDates: getWeekDates(selectedDate) }),
     setSelectedDates: (date) =>
       set((state) => {
         if (Array.isArray(date)) {
@@ -58,8 +62,30 @@ const useCalendarStore = create<CalendarState>((set) => {
           selectedMonth: date,
         };
       }),
+    setSubSelectedDates: (date) =>
+      set(() => ({
+        subSelectedDates: getWeekDates(date),
+      })),
   };
 });
+
+/**
+ * 선택한 날짜가 포함된 일주일 (일요일~토요일) 날짜 배열을 반환
+ */
+function getWeekDates(date: Date): Date[] {
+  const weekDates: Date[] = [];
+  const selectedDate = new Date(date);
+  const sunday = new Date(selectedDate);
+  sunday.setDate(selectedDate.getDate() - selectedDate.getDay()); // 일요일 찾기
+
+  for (let i = 0; i < 7; i++) {
+    const weekDay = new Date(sunday);
+    weekDay.setDate(sunday.getDate() + i);
+    weekDates.push(weekDay);
+  }
+
+  return weekDates;
+}
 
 function getMonthDates(year: number, month: number) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -79,9 +105,5 @@ function getMonthDates(year: number, month: number) {
 
   return monthDates;
 }
-
-// 테스트 예시
-const dates = getMonthDates(2024, 5); // 2024년 6월의 5주치 날짜를 가져옴
-console.log(dates);
 
 export default useCalendarStore;

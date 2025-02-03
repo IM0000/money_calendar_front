@@ -65,16 +65,8 @@ export default function SideCalendar() {
 
   return (
     <div className="w-full max-w-md lg:flex lg:w-auto lg:flex-col lg:items-center lg:justify-start">
-      <div className="w-full rounded-md border border-gray-200 bg-white shadow-md">
-        <Calendar
-          dateList={dateList}
-          selectedDate={selectedDate}
-          selectedDates={selectedDates}
-          selectedMonth={selectedMonth}
-          setSelectedDate={setSelectedDate}
-          setSelectedDates={setSelectedDates}
-          setSelectedMonth={setSelectedMonth}
-        />
+      <div className="w-full bg-white border border-gray-200 rounded-md shadow-md">
+        <Calendar />
         <Filter
           showResetButton={showResetButton}
           resetFilters={resetFilters}

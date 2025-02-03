@@ -44,8 +44,9 @@ type Dividend = {
 type EventData = EconomicIndicator | Performance | Dividend;
 
 export function CalendarTable() {
-  const { selectedDate } = useCalendarStore(({ selectedDate }) => ({
-    selectedDate,
+  const { selectedDate, subSelectedDate } = useCalendarStore((state) => ({
+    selectedDate: state.selectedDate,
+    subSelectedDate: state.subSelectedDate,
   }));
   const { selectedImportances, selectedEventTypes } = useFilterInfoStore(
     (state) => ({
@@ -75,7 +76,7 @@ export function CalendarTable() {
 
   return (
     <div className="container mx-auto">
-      <div className="flex flex-col rounded-md border border-gray-200 shadow-lg">
+      <div className="flex flex-col border border-gray-200 rounded-md shadow-lg">
         <div className="inline-block min-w-full align-middle">
           <div className="min-w-full border-gray-200 shadow-sm dark:border-gray-700">
             <div className="divide-y divide-gray-300">
@@ -139,7 +140,7 @@ function groupEventsByDate(data: EventData[]): Record<string, EventData[]> {
 function DateSection({ date, events }: { date: string; events: EventData[] }) {
   return (
     <div>
-      <div className="flex h-10 bg-gray-200 py-4">
+      <div className="flex h-10 py-4 bg-gray-200">
         <div className="flex-1 pl-4 text-sm text-gray-500">{date}</div>
       </div>
       {events.map(renderEventRow)}
@@ -225,7 +226,7 @@ function renderEventRow(event: EventData) {
 
 function EconomicIndicatorRow({ event }: { event: EconomicIndicator }) {
   return (
-    <div className="grid h-16 grid-cols-9 items-center">
+    <div className="grid items-center h-16 grid-cols-9">
       <div className="col-span-1 py-3.5 text-center text-sm font-normal text-gray-500">
         <div className="text-center">
           <span>
@@ -262,7 +263,7 @@ function EconomicIndicatorRow({ event }: { event: EconomicIndicator }) {
 
 function PerformanceRow({ event }: { event: Performance }) {
   return (
-    <div className="grid h-16 grid-cols-9 items-center">
+    <div className="grid items-center h-16 grid-cols-9">
       <div className="col-span-1 py-3.5 text-center text-sm font-normal text-gray-500">
         <div className="text-center">
           <span>{formatDate(event.announcementDate)}</span>
@@ -299,7 +300,7 @@ function PerformanceRow({ event }: { event: Performance }) {
 
 function DividendRow({ event }: { event: Dividend }) {
   return (
-    <div className="grid h-16 grid-cols-9 items-center">
+    <div className="grid items-center h-16 grid-cols-9">
       <div className="col-span-1 py-3.5 text-center text-sm font-normal text-gray-500">
         <div className="text-center">
           <span>{formatDate(event.exDividendDate)}</span>

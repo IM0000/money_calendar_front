@@ -27,8 +27,12 @@ export default function EmailVerifyPage() {
             setEmail(response.data.email);
           }
         } catch (err: unknown) {
-          alert('이메일을 가져오는 데 실패했습니다.');
-          navigate('/sign-up');
+          if (err instanceof AxiosError && err.response?.status === 401) {
+            alert('토큰이 유효하지 않습니다. 다시 로그인해주세요.');
+            navigate('/sign-up');
+          } else {
+            alert('네트워크 오류가 발생했습니다. 다시 시도해주세요.');
+          }
         }
       } else {
         alert('유효한 토큰이 없습니다.');
@@ -78,9 +82,11 @@ export default function EmailVerifyPage() {
               navigate('/users/password', {
                 state: { email: data?.email },
               });
-            } else {
+            } else if (data?.email) {
               alert('이미 등록된 이메일입니다. 로그인해주세요.');
               navigate('/login');
+            } else {
+              alert('서버 응답을 처리할 수 없습니다.');
             }
           }
         }
@@ -126,9 +132,8 @@ export default function EmailVerifyPage() {
         </p>
         <div className="mt-6">
           <input
-            type="email"
+            type="text"
             value={email}
-            onChange={() => {}}
             className="w-full p-2 text-black border border-gray-300 rounded"
             disabled
           />

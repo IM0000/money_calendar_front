@@ -6,7 +6,11 @@ import { filterData } from '../../../utils/filterData';
 import { groupEventsByDate } from '../../../utils/groupEventsByDate';
 import { DateSection } from './DataSection';
 
-export function CalendarTable() {
+export function CalendarTable({
+  isAuthenticated,
+}: {
+  isAuthenticated: boolean;
+}) {
   const { selectedDate } = useCalendarStore(({ selectedDate }) => ({
     selectedDate,
   }));
@@ -57,12 +61,16 @@ export function CalendarTable() {
 
   return (
     <div className="container mx-auto">
-      <div className="flex flex-col rounded-md border border-gray-200 shadow-lg">
+      <div className="flex flex-col border border-gray-200 rounded-md shadow-lg">
         <div className="inline-block min-w-full align-middle">
           <div className="min-w-full border-gray-200 shadow-sm dark:border-gray-700">
             <div className="divide-y divide-gray-300">
               <div className="grid min-w-[768px] grid-cols-8 bg-gray-50">
-                {renderTableHeaders(handleScheduleSwitchChange, showMySchedule)}
+                {renderTableHeaders(
+                  handleScheduleSwitchChange,
+                  showMySchedule,
+                  isAuthenticated,
+                )}
               </div>
               <div className="min-w-[768px] divide-y divide-gray-200 bg-white">
                 {Object.entries(groupedData).map(([date, events], index) => (
@@ -96,6 +104,7 @@ function renderTableHeaders(
     event: React.ChangeEvent<HTMLInputElement>,
   ) => void,
   showMySchedule: boolean,
+  isAuthenticated: boolean,
 ) {
   const headers = [
     {
@@ -134,14 +143,25 @@ function renderTableHeaders(
           <span className="mr-2 text-sm font-normal text-gray-500">
             내 일정
           </span>
-          <label className="relative inline-flex cursor-pointer items-center">
+          <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"
-              className="peer sr-only"
+              className="sr-only peer"
               checked={showMySchedule}
               onChange={handleScheduleSwitchChange}
+              disabled={!isAuthenticated}
             />
-            <div className="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:bg-gray-700 dark:peer-focus:ring-blue-800"></div>
+            <div
+              className={`peer h-6 w-11 rounded-full ${
+                isAuthenticated
+                  ? 'bg-gray-200 peer-checked:bg-blue-600'
+                  : 'cursor-not-allowed bg-gray-400'
+              } after:absolute after:left-[2px] after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[""] ${
+                isAuthenticated
+                  ? 'peer-checked:after:translate-x-full peer-checked:after:border-white'
+                  : ''
+              }`}
+            ></div>
           </label>
         </div>
       ),

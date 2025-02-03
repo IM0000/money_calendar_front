@@ -42,16 +42,19 @@ export default function Header() {
   }, [checkAuth]);
 
   return (
-    <header className="fixed top-0 z-50 flex h-16 w-full justify-between bg-white bg-opacity-90 p-4 text-white shadow-md">
-      <div className="flex w-full items-center justify-between pl-16 pr-16">
+    <header className="fixed top-0 z-50 flex justify-between w-full h-16 p-4 text-white bg-white shadow-md bg-opacity-90">
+      <div className="flex items-center justify-between w-full pl-16 pr-16">
         <Logo divClassName="text-black mt-1" width="30px" height="30px" />
         <div className="">
-          <ul className="flex cursor-pointer flex-row space-x-6 text-black">
+          <ul className="flex flex-row space-x-6 text-black cursor-pointer">
             <Link to="/search">
-              <li className="hover:text-gray-500">이벤트 검색</li>
+              <li className="hover:text-gray-500">경제지표</li>
             </Link>
             <Link to="/search">
-              <li className="hover:text-gray-500">시장</li>
+              <li className="hover:text-gray-500">실적</li>
+            </Link>
+            <Link to="/search">
+              <li className="hover:text-gray-500">배당</li>
             </Link>
           </ul>
         </div>
@@ -60,12 +63,12 @@ export default function Header() {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={handleDropdownToggle}
-                className="m-2 rounded-full p-2 text-black hover:bg-gray-200"
+                className="p-2 m-2 text-black rounded-full hover:bg-gray-200"
               >
                 <FaUser size={20} />
               </button>
               {dropdownOpen && (
-                <div className="absolute left-1/2 right-0 mt-2 w-32 -translate-x-1/2 transform rounded-lg bg-white py-2 shadow-lg">
+                <div className="absolute right-0 w-32 py-2 mt-2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg left-1/2">
                   <Link
                     to="/mypage"
                     className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
@@ -84,12 +87,12 @@ export default function Header() {
           ) : (
             <>
               <Link to="/login">
-                <button className="m-2 rounded-lg border bg-white p-2 text-black hover:bg-gray-200">
+                <button className="p-2 m-2 text-black bg-white border rounded-lg hover:bg-gray-200">
                   로그인
                 </button>
               </Link>
               <Link to="/sign-up">
-                <button className="m-2 rounded-lg bg-blue-400 p-2 text-white hover:bg-blue-500">
+                <button className="p-2 m-2 text-white bg-blue-400 rounded-lg hover:bg-blue-500">
                   회원가입
                 </button>
               </Link>

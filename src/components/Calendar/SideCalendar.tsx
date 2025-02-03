@@ -131,7 +131,7 @@ export default function SideCalendar() {
         onClick={() => handleDateClick(date)}
         className={`${getDateClass(date)} items-center justify-center`}
       >
-        <div className="scursor-pointer flex w-full items-center justify-center">
+        <div className="flex items-center justify-center w-full scursor-pointer">
           <div
             className={`flex h-9 w-9 items-center justify-center hover:rounded-full hover:border-2 hover:border-gray-300`}
           >
@@ -148,7 +148,7 @@ export default function SideCalendar() {
 
   return (
     <div className="w-full max-w-md lg:flex lg:w-auto lg:flex-col lg:items-center lg:justify-start">
-      <div className="w-full rounded-md border border-gray-200 bg-white p-4 shadow-md">
+      <div className="w-full p-4 bg-white border border-gray-200 rounded-md shadow-md">
         <div className="flex items-center justify-between px-4">
           <span className="text-base font-bold text-gray-800 focus:outline-none">
             {selectedMonth.getFullYear() + '.' + (selectedMonth.getMonth() + 1)}
@@ -202,8 +202,8 @@ export default function SideCalendar() {
               <tr>
                 {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
                   <th key={day}>
-                    <div className="flex w-full justify-center">
-                      <p className="text-center text-base font-medium text-gray-800">
+                    <div className="flex justify-center w-full">
+                      <p className="text-base font-medium text-center text-gray-800">
                         {day}
                       </p>
                     </div>
@@ -220,24 +220,24 @@ export default function SideCalendar() {
             </tbody>
           </table>
         </div>
-        <div className="flex justify-between bg-gray-100 p-4 text-xl">
+        <div className="flex justify-between p-4 text-xl bg-gray-100">
           <div className="p-1">필터</div>
           {showResetButton && (
             <button
               onClick={resetFilters}
-              className="rounded-sm bg-white px-2 py-1 text-sm font-medium text-blue-500 hover:bg-gray-200 focus:outline-none"
+              className="px-2 py-1 text-sm font-medium text-blue-500 bg-white rounded-sm hover:bg-gray-200 focus:outline-none"
             >
               초기화
             </button>
           )}
         </div>
-        <div className="min-h-full rounded-b bg-white">
+        <div className="min-h-full bg-white rounded-b">
           <div className="px-4">
             <div className="mb-6">
-              <div className="my-4 p-2 text-sm font-bold text-gray-800">
+              <div className="p-2 my-4 text-sm font-bold text-gray-800">
                 이벤트 유형
               </div>
-              <div className="flex justify-start space-x-4 pl-2">
+              <div className="flex justify-start pl-2 space-x-4">
                 {['경제지표', '실적', '배당'].map((type) => (
                   <button
                     key={type}
@@ -260,10 +260,10 @@ export default function SideCalendar() {
               </div>
               {selectedEventTypes.includes('경제지표') && (
                 <div className="mb-6">
-                  <div className="my-4 p-2 text-sm font-bold text-gray-800">
+                  <div className="p-2 my-4 text-sm font-bold text-gray-800">
                     경제지표 중요도
                   </div>
-                  <div className="flex justify-start space-x-4 pl-2">
+                  <div className="flex justify-start pl-2 space-x-4">
                     {['낮음', '중간', '높음'].map((level) => (
                       <button
                         key={level}
