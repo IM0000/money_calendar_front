@@ -1,4 +1,4 @@
-import { EventData } from '../components/Calendar/CalendarTable/EventRowRenderer';
+import { EventData } from '../components/CalendarTable/EventRowRenderer';
 
 export function groupEventsByDate(
   data: EventData[],

@@ -1,4 +1,4 @@
-import { formatDateTime } from '../../../utils/formatDateTime';
+import { formatDateTime } from '../../utils/formatDateTime';
 import DetailButtons from './DetailButtons';
 
 export type EconomicIndicator = {

@@ -14,7 +14,7 @@ export const updateUserPassword = async (payload: {
   password: string;
 }): Promise<ApiResponse<{ message: string }>> => {
   const response = await apiClient.put<ApiResponse<{ message: string }>>(
-    '/users/password',
+    '/api/v1/users/password',
     payload,
   );
   return response.data;
@@ -29,7 +29,7 @@ export const getUserByEmail = async (
   email: string,
 ): Promise<ApiResponse<{ user: UserDto | null }>> => {
   const response = await apiClient.post<ApiResponse<{ user: UserDto | null }>>(
-    '/users',
+    '/api/v1/users',
     { email },
   );
   return response.data;

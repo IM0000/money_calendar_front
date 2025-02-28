@@ -12,14 +12,18 @@
   "dependencies": {
     "@tippyjs/react": "^4.2.6",
     "axios": "^1.7.7",
+    "class-variance-authority": "^0.7.1",
     "classnames": "^2.5.1",
+    "clsx": "^2.1.1",
     "headless": "link:@tippyjs/react/headless",
+    "lucide-react": "^0.474.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.2.1",
     "react-icos": "^2.2.2",
     "react-router-dom": "^6.22.3",
     "react-tooltip": "^5.27.0",
+    "tailwind-merge": "^3.0.1",
     "tippy.js": "^6.3.7",
     "zustand": "^4.5.2"
   },
@@ -40,8 +44,8 @@
     "prettier": "^3.2.5",
     "prettier-plugin-tailwindcss": "^0.5.14",
     "tailwindcss": "^3.4.3",
+    "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.2.2",
-    "vite": "^5.2.0",
-    "vite-plugin-windicss": "^1.9.3"
+    "vite": "^5.2.0"
   }
 }

@@ -32,18 +32,18 @@ type LinkedAccounts = {
 };
 
 const BasicInfo = ({ user }: { user: UserDto | null }) => (
-  <div className="mb-6 w-full rounded-lg bg-white p-6 shadow-md">
-    <div className="mb-4 border-b border-gray-300 pb-4">
+  <div className="w-full p-6 mb-6 bg-white rounded-lg shadow-md">
+    <div className="pb-4 mb-4 border-b border-gray-300">
       <label className="block text-sm font-medium text-gray-600">이메일</label>
-      <div className="mt-2 flex items-center justify-between">
+      <div className="flex items-center justify-between mt-2">
         <div className="font-semibold text-gray-800">
           {user?.email || '이메일 없음'}
         </div>
       </div>
     </div>
-    <div className="mb-4 border-b border-gray-300 pb-4">
+    <div className="pb-4 mb-4 border-b border-gray-300">
       <label className="block text-sm font-medium text-gray-600">닉네임</label>
-      <div className="mt-2 flex items-center justify-between">
+      <div className="flex items-center justify-between mt-2">
         <div className="font-semibold text-gray-800">
           {user?.nickname || '닉네임 없음'}
         </div>
@@ -53,7 +53,7 @@ const BasicInfo = ({ user }: { user: UserDto | null }) => (
       </div>
     </div>
     <div>
-      <button className="mt-4 w-full rounded-md bg-blue-500 px-4 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:bg-blue-600">
+      <button className="w-full px-4 py-3 mt-4 text-sm font-semibold text-center text-white transition bg-blue-500 rounded-md shadow-md hover:bg-blue-600">
         비밀번호 변경하기
       </button>
     </div>
@@ -79,13 +79,13 @@ const SNSAccountLink = () => {
   };
 
   return (
-    <div className="mb-4 w-full rounded-lg bg-white p-4 shadow">
+    <div className="w-full p-4 mb-4 bg-white rounded-lg shadow">
       <h3 className="mb-4 text-xl font-semibold">SNS 계정 연동하기</h3>
       <div className="space-y-4">
         {Object.keys(linkedAccounts).map((provider) => (
           <div
             key={provider}
-            className="flex items-center justify-between rounded-lg bg-gray-50 p-4 shadow-sm"
+            className="flex items-center justify-between p-4 rounded-lg shadow-sm bg-gray-50"
           >
             <div className="flex items-center">
               <img
@@ -99,7 +99,7 @@ const SNSAccountLink = () => {
                         : discordLogo
                 }
                 alt={provider}
-                className="h-6 w-6"
+                className="w-6 h-6"
               />
               <span className="ml-3">
                 {provider.charAt(0).toUpperCase() + provider.slice(1)}
@@ -133,10 +133,10 @@ const SNSAccountLink = () => {
 };
 
 const DeleteAccount = () => (
-  <div className="mb-4 w-full rounded-lg bg-white p-4 shadow">
+  <div className="w-full p-4 mb-4 bg-white rounded-lg shadow">
     <div className="flex items-center justify-between">
       <h3 className="text-xl font-semibold">계정 삭제하기</h3>
-      <button className="text-gray rounded border border-gray-200 px-2 py-1 text-sm font-semibold hover:bg-gray-200">
+      <button className="px-2 py-1 text-sm font-semibold border border-gray-200 rounded text-gray hover:bg-gray-200">
         회원 탈퇴
       </button>
     </div>
@@ -270,7 +270,7 @@ export default function MyPage() {
 
   return (
     <Layout>
-      <div className="container mx-auto flex flex-wrap items-start p-8">
+      <div className="container flex flex-wrap items-start p-8 mx-auto">
         <div className="w-full pr-8 lg:w-1/3">
           <h2 className="mb-4 text-2xl font-bold">내 계정</h2>
           <BasicInfo user={user} />
@@ -278,19 +278,19 @@ export default function MyPage() {
           <DeleteAccount />
         </div>
 
-        <div className="w-full border-gray-300 pl-8 lg:w-2/3 lg:border-l">
+        <div className="w-full pl-8 border-gray-300 lg:w-2/3 lg:border-l">
           <div className="w-full">
             <h3 className="mb-4 text-2xl font-bold">내 이벤트</h3>
-            <div className="mb-4 w-full max-w-4xl">
+            <div className="w-full max-w-4xl mb-4">
               <SearchInput
                 searchQuery={searchQuery}
                 onSearchChange={handleSearchChange}
                 onSearchSubmit={handleSearchSubmit}
               />
             </div>
-            <div className="flex w-full max-w-4xl flex-col space-y-4">
-              <div className="w-full overflow-y-auto rounded-lg border border-gray-300 p-4 shadow-md">
-                <h3 className="mb-2 rounded bg-gray-200 p-2 text-lg font-semibold">
+            <div className="flex flex-col w-full max-w-4xl space-y-4">
+              <div className="w-full p-4 overflow-y-auto border border-gray-300 rounded-lg shadow-md">
+                <h3 className="p-2 mb-2 text-lg font-semibold bg-gray-200 rounded">
                   경제지표
                 </h3>
                 {economicResults.map((result, index) => (
@@ -307,8 +307,8 @@ export default function MyPage() {
                   </EconomicResultItem>
                 ))}
               </div>
-              <div className="w-full overflow-y-auto rounded-lg border border-gray-300 p-4 shadow-md">
-                <h3 className="mb-2 rounded bg-gray-200 p-2 text-lg font-semibold">
+              <div className="w-full p-4 overflow-y-auto border border-gray-300 rounded-lg shadow-md">
+                <h3 className="p-2 mb-2 text-lg font-semibold bg-gray-200 rounded">
                   기업
                 </h3>
                 {companyResults.map((result, index) => (

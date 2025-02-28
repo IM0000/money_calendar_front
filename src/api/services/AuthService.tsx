@@ -20,7 +20,7 @@ export const register = async (
 ): Promise<ApiResponse<{ token: string; message: string }>> => {
   const response = await apiClient.post<
     ApiResponse<{ token: string; message: string }>
-  >('/auth/register', registerDto);
+  >('/api/v1/auth/register', registerDto);
   return response.data;
 };
 
@@ -33,7 +33,7 @@ export const verify = async (
   verifyDto: VerifyDto,
 ): Promise<ApiResponse<UserDto>> => {
   const response = await apiClient.post<ApiResponse<UserDto>>(
-    '/auth/verify',
+    '/api/v1/auth/verify',
     verifyDto,
   );
 
@@ -49,7 +49,7 @@ export const getEmailFromToken = async (
   token: string,
 ): Promise<ApiResponse<{ email: string }>> => {
   const response = await apiClient.get(
-    `/auth/email-verification?token=${encodeURIComponent(token)}`,
+    `/api/v1/auth/email-verification?token=${encodeURIComponent(token)}`,
   );
   return response.data;
 };
@@ -63,7 +63,7 @@ export const login = async (
   loginDto: LoginDto,
 ): Promise<ApiResponse<LoginResponse>> => {
   const response = await apiClient.post<ApiResponse<LoginResponse>>(
-    '/auth/login',
+    '/api/v1/auth/login',
     loginDto,
   );
   return response.data;
@@ -74,7 +74,7 @@ export const login = async (
  * @param provider OAuth 제공자 이름 (예: 'google', 'facebook')
  */
 export const oauthLogin = (provider: string): void => {
-  window.location.href = `${apiClient.defaults.baseURL}/auth/oauth/${provider}`;
+  window.location.href = `${apiClient.defaults.baseURL}/api/v1/auth/oauth/${provider}`;
 };
 
 /**

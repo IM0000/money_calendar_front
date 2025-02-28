@@ -1,0 +1,270 @@
+import { useState, useRef, useEffect } from 'react';
+import { Card, CardHeader, CardContent } from '@/components/UI/card';
+import {
+  IoIosArrowBack,
+  IoIosArrowForward,
+  IoIosArrowUp,
+  IoIosArrowDown,
+  IoIosCalendar,
+} from 'react-icons/io';
+import Calendar from '@/components/FilterPanel/Calendar'; // 달력 컴포넌트 import
+import useCalendarStore from '@/zustand/useCalendarDateStore';
+
+export default function CalendarPanel() {
+  const currentTableTopDate = useCalendarStore(
+    (state) => state.currentTableTopDate,
+  );
+
+  // Zustand 스토어에서 날짜 관련 상태와 setter들을 가져옵니다.
+  const { selectedDate, subSelectedDates, setSelectedDate } =
+    useCalendarStore();
+
+  // 카드 섹션 토글 상태 등 기존 UI 관련 상태
+  const [showCards, setShowCards] = useState(true);
+  const toggleCards = () => setShowCards((prev) => !prev);
+
+  // 달력 팝오버 토글 상태
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const toggleCalendar = () => setIsCalendarOpen((prev) => !prev);
+
+  // "오늘" 버튼: 오늘 날짜를 스토어에 업데이트 (subSelectedDates도 자동 업데이트)
+  const goToToday = () => {
+    const today = new Date();
+    setSelectedDate(today);
+  };
+
+  // 지난주 버튼: 현재 선택된 날짜에서 7일 이전 날짜를 스토어에 업데이트
+  const goToPreviousWeek = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() - 7);
+    setSelectedDate(newDate);
+  };
+
+  // 다음주 버튼: 현재 선택된 날짜에서 7일 이후 날짜를 스토어에 업데이트
+  const goToNextWeek = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() + 7);
+    setSelectedDate(newDate);
+  };
+
+  // 날짜를 "YYYY년 M월 D일" 형식으로 포맷하는 헬퍼 함수
+  const formatDate = (date: Date): string =>
+    `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
+
+  // 일주일 범위(일요일~토요일)가 준비되었다면 헤더에 표시할 텍스트 생성
+  let dateRangeText = '';
+  if (subSelectedDates.length === 7) {
+    const start = subSelectedDates[0];
+    const end = subSelectedDates[6];
+    // 같은 연도, 같은 월이면 시작 날짜만 연도, 월을 표시하고 끝 날짜는 일(day)만 표시
+    if (
+      start.getFullYear() === end.getFullYear() &&
+      start.getMonth() === end.getMonth()
+    ) {
+      dateRangeText = `${start.getFullYear()}년 ${start.getMonth() + 1}월 ${start.getDate()}일 - ${end.getDate()}일`;
+    } else {
+      dateRangeText = `${formatDate(start)} - ${formatDate(end)}`;
+    }
+  }
+
+  // (이전 코드와 동일한) 스크롤 관련 로직
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showScrollButtons, setShowScrollButtons] = useState(false);
+  const calendarContainerRef = useRef<HTMLDivElement>(null);
+
+  // 달력 팝오버 외부 클릭 시 닫힘
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        calendarContainerRef.current &&
+        !calendarContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsCalendarOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const updateScrollButtons = () => {
+    if (scrollRef.current) {
+      const { scrollWidth, clientWidth } = scrollRef.current;
+      setShowScrollButtons(scrollWidth > clientWidth);
+    }
+  };
+
+  useEffect(() => {
+    updateScrollButtons();
+    window.addEventListener('resize', updateScrollButtons);
+    return () => window.removeEventListener('resize', updateScrollButtons);
+  }, []);
+
+  const scrollLeft = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+    }
+  };
+
+  const dayKorean = ['일', '월', '화', '수', '목', '금', '토'];
+  const events = subSelectedDates.map((date) => ({
+    rawDate: date,
+    date: `${dayKorean[date.getDay()]} ${date.getDate()}일`,
+    econ: 33,
+    earning: 44,
+    dividend: 111,
+    event: null,
+  }));
+
+  const isToday = (date: Date) => {
+    const today = new Date();
+    return (
+      date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate()
+    );
+  };
+
+  return (
+    <div className="w-screen max-w-full">
+      {/* 헤더 섹션: 토글 버튼, 오늘 버튼, 달력 버튼 및 주간 화살표, 날짜 범위 */}
+      <div className="flex items-center gap-2 mb-2">
+        {/* 카드 섹션 표시/숨기기 토글 */}
+        <button
+          className="p-2 bg-gray-200 rounded-full shadow-md"
+          onClick={toggleCards}
+        >
+          {showCards ? (
+            <IoIosArrowUp size={20} />
+          ) : (
+            <IoIosArrowDown size={20} />
+          )}
+        </button>
+        {/* 오늘 버튼: 오늘 날짜로 업데이트 */}
+        <button
+          onClick={goToToday}
+          className="px-2 py-1 text-gray-700 bg-white border border-gray-300 rounded text-md hover:bg-gray-200"
+        >
+          오늘
+        </button>
+        {/* 달력 버튼 및 주간 이동 버튼 */}
+        <div className="flex items-center gap-1">
+          {/* 달력 버튼 및 팝오버 */}
+          <div className="relative" ref={calendarContainerRef}>
+            <button
+              onClick={toggleCalendar}
+              className="p-2 bg-white border border-gray-300 rounded-full hover:bg-gray-200"
+            >
+              <IoIosCalendar size={20} />
+            </button>
+            {isCalendarOpen && (
+              <div className="absolute left-0 z-50 mt-2 top-full">
+                <div className="p-2 bg-white rounded shadow-lg">
+                  <Calendar />
+                </div>
+              </div>
+            )}
+          </div>
+          {/* 지난주 버튼 */}
+          <button
+            onClick={goToPreviousWeek}
+            title="지난주"
+            className="p-2 bg-white border border-gray-300 rounded-full hover:bg-gray-200"
+          >
+            <IoIosArrowBack size={20} />
+          </button>
+          {/* 다음주 버튼 */}
+          <button
+            onClick={goToNextWeek}
+            title="다음주"
+            className="p-2 bg-white border border-gray-300 rounded-full hover:bg-gray-200"
+          >
+            <IoIosArrowForward size={20} />
+          </button>
+        </div>
+        {/* 선택된 일주일 범위를 표시 */}
+        <span className="text-sm font-medium">{dateRangeText}</span>
+      </div>
+
+      {/* 카드 섹션 (이벤트 목록) */}
+      {showCards && (
+        <div className="relative">
+          {/* 좌측 스크롤 버튼 (필요할 때만) */}
+          {showScrollButtons && (
+            <button
+              className="absolute left-0 z-10 p-2 transform -translate-y-1/2 bg-gray-200 rounded-full shadow-md top-1/2"
+              onClick={scrollLeft}
+            >
+              <IoIosArrowBack size={24} />
+            </button>
+          )}
+
+          {/* 카드들을 감싸는 래퍼 */}
+          <div
+            ref={scrollRef}
+            className="flex w-full gap-4 overflow-x-auto scrollbar-hide snap-x"
+          >
+            {events.map((event, index) => {
+              const isFixed =
+                currentTableTopDate &&
+                event.rawDate.toISOString().slice(0, 10) ===
+                  currentTableTopDate;
+              return (
+                <Card
+                  key={index}
+                  onClick={() => setSelectedDate(event.rawDate)}
+                  className={`w-[calc((100vw-10rem)/7)] min-w-[120px] flex-shrink-0 snap-start ${event.event ? 'opacity-50' : ''} ${isFixed ? 'bg-gray-300' : ''}`}
+                >
+                  <CardHeader
+                    className={`font-semibold ${
+                      isToday(event.rawDate)
+                        ? 'font-bold underline decoration-[0.20rem] underline-offset-8'
+                        : ''
+                    }`}
+                  >
+                    {event.date}
+                  </CardHeader>
+                  <CardContent className="text-sm text-gray-500">
+                    {event.event ? (
+                      <p>{event.event}</p>
+                    ) : (
+                      <>
+                        <p className="flex items-center justify-between">
+                          <span>경제지표</span>
+                          <span>{event.econ}</span>
+                        </p>
+                        <p className="flex items-center justify-between">
+                          <span>실적</span>
+                          <span>{event.earning}</span>
+                        </p>
+                        <p className="flex items-center justify-between">
+                          <span>배당</span>
+                          <span>{event.dividend}</span>
+                        </p>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* 우측 스크롤 버튼 (필요할 때만) */}
+          {showScrollButtons && (
+            <button
+              className="absolute right-0 z-10 p-2 transform -translate-y-1/2 bg-gray-200 rounded-full shadow-md top-1/2"
+              onClick={scrollRight}
+            >
+              <IoIosArrowForward size={24} />
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

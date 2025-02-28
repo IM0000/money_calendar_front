@@ -13,7 +13,7 @@ export default function AuthSuccess() {
 
     if (token) {
       // 토큰 저장
-      localStorage.setItem('token', token);
+      localStorage.setItem('accessToken', token);
       // 필요한 경우 사용자 상태 업데이트 (예: Context API, Redux 등)
       // 예: setUserAuthenticated(true);
       // 메인 페이지로 이동

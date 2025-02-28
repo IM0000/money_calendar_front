@@ -7,12 +7,14 @@ export interface CalendarState {
   selectedDates: Date[];
   selectedMonth: Date;
   subSelectedDates: Date[];
+  currentTableTopDate: string;
   setDate: (date: Date) => void;
   setDateList: (dateList: Date[]) => void;
   setSelectedDate: (date: Date) => void;
   setSelectedDates: (date: Date | Date[]) => void;
   setSelectedMonth: (date: Date) => void;
   setSubSelectedDates: (date: Date) => void;
+  setCurrentTableTopDate: (date: string) => void;
 }
 
 const useCalendarStore = create<CalendarState>((set) => {
@@ -27,6 +29,7 @@ const useCalendarStore = create<CalendarState>((set) => {
     selectedDates: [today],
     selectedMonth: selectedMonth,
     subSelectedDates: getWeekDates(today),
+    currentTableTopDate: '',
     setDate: (date: Date) =>
       set(() => {
         const monthDates = getMonthDates(date.getFullYear(), date.getMonth());
@@ -66,6 +69,8 @@ const useCalendarStore = create<CalendarState>((set) => {
       set(() => ({
         subSelectedDates: getWeekDates(date),
       })),
+    setCurrentTableTopDate: (date: string) =>
+      set({ currentTableTopDate: date }),
   };
 });
 

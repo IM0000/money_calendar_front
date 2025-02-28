@@ -1,5 +1,5 @@
 import DetailButtons from './DetailButtons';
-import { formatDate } from '../../../utils/formatDate';
+import { formatDate } from '../../utils/formatDate';
 
 export type Dividend = {
   type: '배당';
