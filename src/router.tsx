@@ -2,7 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import MainPage from './pages/MainPage';
 import SearchPage from './pages/SearchPage';
-import MyPage from './pages/MyPage';
+import MyPage from './pages/MyPage2';
 import AuthSuccess from './pages/AuthSuccessPage';
 import AuthError from './pages/AuthErrorPage';
 import EmailVerifyPage from './pages/EmailVerifyPage';

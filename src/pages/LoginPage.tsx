@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import googleLogo from '../assets/google/google-g-2015-logo-png-transparent.png';
 import kakaoLogo from '../assets/kakao/kakao_logo.webp';
@@ -20,6 +20,19 @@ export default function LoginPage() {
   const { login: authStoreLogin } = useAuthStore();
   const [error, setError] = useState(''); // 에러 메시지 상태 추가
   const navigate = useNavigate();
+  const { user, isAuthenticated, checkAuth } = useAuthStore();
+
+  useEffect(() => {
+    checkAuth();
+    console.log(
+      '🚀 ~ useEffect ~ user && isAuthenticated:',
+      user && isAuthenticated,
+    );
+    // user 정보가 있으면 메인 페이지로 리다이렉트
+    if (user && isAuthenticated) {
+      navigate('/');
+    }
+  }, [user, isAuthenticated, navigate]);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);

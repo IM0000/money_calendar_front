@@ -11,10 +11,8 @@ export default function ProtectedRoute({
 
   // 인증 상태를 확인
   useEffect(() => {
-    if (!isAuthenticated) {
-      checkAuth();
-    }
-  }, [isAuthenticated, checkAuth]);
+    checkAuth();
+  }, []);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

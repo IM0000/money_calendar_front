@@ -32,7 +32,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       const response = await apiClient.get('/api/v1/auth/status', {
         headers: { Authorization: `Bearer ${token}` }, // 헤더에 토큰 추가
       });
-      set({ isAuthenticated: true, user: response.data.user });
+      console.log(response);
+      set({
+        isAuthenticated: response.data.data.isAuthenticated,
+        user: response.data.data.user,
+      });
     } catch {
       localStorage.removeItem('accessToken'); // 인증 실패 시 토큰 제거
       set({ isAuthenticated: false, user: null });

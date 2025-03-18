@@ -2,129 +2,22 @@ import React, { createRef, useMemo, useState } from 'react';
 import EventAddButton from './EventAddButton';
 import NotificationButton from './NotificationButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
+import { DateRange } from '@/types/CalendarTypes';
+import { DividendEvent } from '@/api/services/CalendarService';
 
-interface DividendData {
-  id: number;
-  country: string;
-  exDividendDate: number; // 배당락일 (밀리초 단위)
-  dividendAmount: string; // 배당금
-  previousDividendAmount: string; // 바로 직전 배당금
-  paymentDate: number; // 배당 지급일 (밀리초 단위)
-  company: {
-    name: string;
-    ticker: string;
-  };
-  dividendYield?: string; // 배당수익률 (선택적)
+interface DividendTableProps {
+  events: DividendEvent[];
+  dateRange: DateRange;
 }
 
-// 더미 데이터 (실제 환경에서는 DB/API에서 받아옴)
-const dummyDividends: DividendData[] = [
-  {
-    id: 1,
-    country: 'USA',
-    exDividendDate: new Date('2025-02-10').getTime(),
-    dividendAmount: '$0.82',
-    previousDividendAmount: '$0.80',
-    paymentDate: new Date('2025-03-01').getTime(),
-    company: { name: 'Apple', ticker: 'AAPL' },
-    dividendYield: '1.5%',
-  },
-  {
-    id: 2,
-    country: 'USA',
-    exDividendDate: new Date('2025-02-10').getTime(),
-    dividendAmount: '$0.56',
-    previousDividendAmount: '$0.55',
-    paymentDate: new Date('2025-03-05').getTime(),
-    company: { name: 'Microsoft', ticker: 'MSFT' },
-    dividendYield: '2.0%',
-  },
-  {
-    id: 3,
-    country: 'Korea',
-    exDividendDate: new Date('2025-02-15').getTime(),
-    dividendAmount: '₩300',
-    previousDividendAmount: '₩290',
-    paymentDate: new Date('2025-03-10').getTime(),
-    company: { name: 'Samsung', ticker: '005930.KS' },
-    dividendYield: '3.2%',
-  },
-  {
-    id: 4,
-    country: 'Korea',
-    exDividendDate: new Date('2025-02-15').getTime(),
-    dividendAmount: '₩300',
-    previousDividendAmount: '₩290',
-    paymentDate: new Date('2025-03-10').getTime(),
-    company: { name: 'Samsung', ticker: '005930.KS' },
-    dividendYield: '3.2%',
-  },
-  {
-    id: 5,
-    country: 'Korea',
-    exDividendDate: new Date('2025-02-15').getTime(),
-    dividendAmount: '₩300',
-    previousDividendAmount: '₩290',
-    paymentDate: new Date('2025-03-10').getTime(),
-    company: { name: 'Samsung', ticker: '005930.KS' },
-    dividendYield: '3.2%',
-  },
-  {
-    id: 6,
-    country: 'Korea',
-    exDividendDate: new Date('2025-02-15').getTime(),
-    dividendAmount: '₩300',
-    previousDividendAmount: '₩290',
-    paymentDate: new Date('2025-03-10').getTime(),
-    company: { name: 'Samsung', ticker: '005930.KS' },
-    dividendYield: '3.2%',
-  },
-  {
-    id: 7,
-    country: 'Korea',
-    exDividendDate: new Date('2025-02-15').getTime(),
-    dividendAmount: '₩300',
-    previousDividendAmount: '₩290',
-    paymentDate: new Date('2025-03-10').getTime(),
-    company: { name: 'Samsung', ticker: '005930.KS' },
-    dividendYield: '3.2%',
-  },
-  {
-    id: 8,
-    country: 'Korea',
-    exDividendDate: new Date('2025-02-15').getTime(),
-    dividendAmount: '₩300',
-    previousDividendAmount: '₩290',
-    paymentDate: new Date('2025-03-10').getTime(),
-    company: { name: 'Samsung', ticker: '005930.KS' },
-    dividendYield: '3.2%',
-  },
-  {
-    id: 9,
-    country: 'Korea',
-    exDividendDate: new Date('2025-02-15').getTime(),
-    dividendAmount: '₩300',
-    previousDividendAmount: '₩290',
-    paymentDate: new Date('2025-03-10').getTime(),
-    company: { name: 'Samsung', ticker: '005930.KS' },
-    dividendYield: '3.2%',
-  },
-  {
-    id: 10,
-    country: 'Korea',
-    exDividendDate: new Date('2025-02-15').getTime(),
-    dividendAmount: '₩300',
-    previousDividendAmount: '₩290',
-    paymentDate: new Date('2025-03-10').getTime(),
-    company: { name: 'Samsung', ticker: '005930.KS' },
-    dividendYield: '3.2%',
-  },
-  // 추가 데이터가 필요한 경우 계속 추가...
-];
+export default function DividendTable({
+  events,
+  dateRange,
+}: DividendTableProps) {
+  dateRange; // 사용하지 않지만, 필요에 따라 추가적인 로직을 구현할 수 있습니다.
 
-export default function DividendTable() {
   // 그룹화: exDividendDate(YYYY-MM-DD) 기준으로 그룹화
-  const groups = dummyDividends.reduce(
+  const groups = events.reduce(
     (acc, dividend) => {
       const dateObj = new Date(dividend.exDividendDate);
       const groupKey = dateObj.toISOString().slice(0, 10);
@@ -132,7 +25,7 @@ export default function DividendTable() {
       acc[groupKey].push(dividend);
       return acc;
     },
-    {} as Record<string, DividendData[]>,
+    {} as Record<string, DividendEvent[]>,
   );
 
   const sortedGroupKeys = Object.keys(groups).sort();
@@ -148,30 +41,30 @@ export default function DividendTable() {
     <CalendarTableWrapper headerRefs={headerRefs}>
       <table className="min-w-full divide-y divide-gray-200">
         {/* 테이블 헤더 */}
-        <thead className="sticky top-0 z-30 calendar-table-header bg-gray-50">
+        <thead className="calendar-table-header sticky top-0 z-30 bg-gray-50">
           <tr className="h-[2.80rem]">
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               국가
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               회사
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               배당락일
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               배당금
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               배당지급일
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               배당수익률
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               이전
             </th>
-            <th className="w-10 px-2 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="w-10 px-2 py-2 text-left text-sm font-medium text-gray-700">
               {/* 알림추가 버튼 */}
             </th>
           </tr>
@@ -193,7 +86,7 @@ export default function DividendTable() {
                 >
                   <td
                     colSpan={8}
-                    className="px-4 py-2 text-sm font-semibold border-b"
+                    className="border-b px-4 py-2 text-sm font-semibold"
                   >
                     {formattedGroupDate}
                   </td>
@@ -204,9 +97,6 @@ export default function DividendTable() {
               </React.Fragment>
             );
           })}
-          <tr style={{ height: '35rem' }}>
-            <td colSpan={8}></td>
-          </tr>
         </tbody>
       </table>
     </CalendarTableWrapper>
@@ -214,7 +104,7 @@ export default function DividendTable() {
 }
 
 interface DividendRowProps {
-  dividend: DividendData;
+  dividend: DividendEvent;
 }
 
 function DividendRow({ dividend }: DividendRowProps) {
@@ -243,19 +133,25 @@ function DividendRow({ dividend }: DividendRowProps) {
   return (
     <tr className="relative">
       {/* 국가 */}
-      <td className="px-4 py-2 text-sm text-gray-700">{dividend.country}</td>
+      <td className="px-4 py-2 text-sm text-gray-700">
+        {dividend.eventCountry}
+      </td>
       {/* 회사명(티커) */}
       <td className="px-4 py-2 text-sm text-gray-700">
         {dividend.company.name} ({dividend.company.ticker})
       </td>
       {/* 배당락일 */}
-      <td className="px-4 py-2 text-sm text-gray-700">{exDividendDisplay}</td>
+      <td className="min-w-[9rem] px-4 py-2 text-sm text-gray-700">
+        {exDividendDisplay}
+      </td>
       {/* 배당금 */}
       <td className="px-4 py-2 text-sm text-gray-700">
         {dividend.dividendAmount}
       </td>
       {/* 배당지급일 */}
-      <td className="px-4 py-2 text-sm text-gray-700">{paymentDateDisplay}</td>
+      <td className="min-w-[9rem] px-4 py-2 text-sm text-gray-700">
+        {paymentDateDisplay}
+      </td>
       {/* 배당수익률 */}
       <td className="px-4 py-2 text-sm text-gray-700">
         {dividend.dividendYield ? dividend.dividendYield : '-'}
@@ -269,7 +165,7 @@ function DividendRow({ dividend }: DividendRowProps) {
           {dividend.previousDividendAmount}
         </button>
         {showOlderPopup && (
-          <div className="absolute left-0 p-2 mt-1 bg-white border rounded shadow-lg">
+          <div className="absolute left-0 mt-1 rounded border bg-white p-2 shadow-lg">
             <ul className="text-xs text-gray-700">
               {olderPreviousValues.map((item, index) => (
                 <li key={index}>배당금 {item.dividend}</li>

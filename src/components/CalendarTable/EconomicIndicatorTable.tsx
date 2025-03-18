@@ -2,126 +2,22 @@ import React, { createRef, useMemo, useState } from 'react';
 import EventAddButton from './EventAddButton';
 import NotificationButton from './NotificationButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
+import { DateRange } from '@/types/CalendarTypes';
+import { EconomicIndicatorEvent } from '@/api/services/CalendarService';
 
-interface EconomicIndicator {
-  id: number;
-  country: string;
-  releaseDate: number; // 밀리초 단위 정수 값
-  name: string;
-  importance: number;
-  actual: string;
-  forecast: string;
-  previous: string;
+interface EconomicIndicatorTableProps {
+  events: EconomicIndicatorEvent[];
+  dateRange: DateRange;
 }
 
-// 더미 데이터 (실제 환경에서는 DB/API에서 받아옴)
-const dummyEconomicIndicators: EconomicIndicator[] = [
-  {
-    id: 1,
-    country: 'Korea',
-    releaseDate: new Date('2025-02-03T09:00:00').getTime(),
-    name: 'GDP 성장률',
-    importance: 5,
-    actual: '2.5',
-    forecast: '2.3',
-    previous: '2.1',
-  },
-  {
-    id: 2,
-    country: 'USA',
-    releaseDate: new Date('2025-02-03T10:00:00').getTime(),
-    name: '소매판매',
-    importance: 3,
-    actual: '1.8',
-    forecast: '1.9',
-    previous: '1.7',
-  },
-  {
-    id: 3,
-    country: 'Germany',
-    releaseDate: new Date('2025-02-04T11:00:00').getTime(),
-    name: '수출입 지표',
-    importance: 2,
-    actual: '3.2',
-    forecast: '3.0',
-    previous: '2.9',
-  },
-  {
-    id: 4,
-    country: 'USA',
-    releaseDate: new Date('2025-02-04T12:00:00').getTime(),
-    name: '실업률',
-    importance: 4,
-    actual: '3.5',
-    forecast: '3.6',
-    previous: '3.4',
-  },
-  {
-    id: 5,
-    country: 'Korea',
-    releaseDate: new Date('2025-02-05T09:30:00').getTime(),
-    name: '소비자물가지수',
-    importance: 5,
-    actual: '105.2',
-    forecast: '105.0',
-    previous: '104.8',
-  },
-  {
-    id: 11,
-    country: 'Korea',
-    releaseDate: new Date('2025-02-03T09:00:00').getTime(),
-    name: 'GDP 성장률',
-    importance: 5,
-    actual: '2.5',
-    forecast: '2.3',
-    previous: '2.1',
-  },
-  {
-    id: 21,
-    country: 'USA',
-    releaseDate: new Date('2025-02-03T10:00:00').getTime(),
-    name: '소매판매',
-    importance: 3,
-    actual: '1.8',
-    forecast: '1.9',
-    previous: '1.7',
-  },
-  {
-    id: 31,
-    country: 'Germany',
-    releaseDate: new Date('2025-02-04T11:00:00').getTime(),
-    name: '수출입 지표',
-    importance: 2,
-    actual: '3.2',
-    forecast: '3.0',
-    previous: '2.9',
-  },
-  {
-    id: 41,
-    country: 'USA',
-    releaseDate: new Date('2025-02-04T12:00:00').getTime(),
-    name: '실업률',
-    importance: 4,
-    actual: '3.5',
-    forecast: '3.6',
-    previous: '3.4',
-  },
-  {
-    id: 51,
-    country: 'Korea',
-    releaseDate: new Date('2025-02-05T09:30:00').getTime(),
-    name: '소비자물가지수',
-    importance: 5,
-    actual: '105.2',
-    forecast: '105.0',
-    previous: '104.8',
-  },
-  // (추가 더미 데이터 생략)
-];
+export default function EconomicIndicatorTable({
+  events,
+  dateRange,
+}: EconomicIndicatorTableProps) {
+  dateRange; // 사용하지 않지만, 필요에 따라 추가적인 로직을 구현할 수 있습니다.
 
-export default function EconomicIndicatorTable() {
   // releaseDate를 기준으로 "YYYY-MM-DD" 문자열 그룹으로 묶기
-  const groups = dummyEconomicIndicators.reduce(
+  const groups = events.reduce(
     (acc, indicator) => {
       const dateObj = new Date(indicator.releaseDate);
       const groupKey = dateObj.toISOString().slice(0, 10);
@@ -131,7 +27,7 @@ export default function EconomicIndicatorTable() {
       acc[groupKey].push(indicator);
       return acc;
     },
-    {} as Record<string, EconomicIndicator[]>,
+    {} as Record<string, EconomicIndicatorEvent[]>,
   );
 
   // 그룹키(날짜)를 오름차순 정렬
@@ -150,28 +46,28 @@ export default function EconomicIndicatorTable() {
     <CalendarTableWrapper headerRefs={headerRefs}>
       <table className="min-w-full divide-y divide-gray-200">
         {/* 메인 헤더: 스크롤 시 상단에 고정 (헤더 높이 약 2.80rem) */}
-        <thead className="sticky top-0 z-30 calendar-table-header bg-gray-50">
+        <thead className="calendar-table-header sticky top-0 z-30 bg-gray-50">
           <tr className="h-[2.80rem]">
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               국가
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               이벤트
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               중요도
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               실제
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               예측
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               이전
             </th>
             {/* 알림추가 버튼은 열 너비를 최소화 */}
-            <th className="w-10 px-2 py-2 text-sm font-medium text-left text-gray-700"></th>
+            <th className="w-10 px-2 py-2 text-left text-sm font-medium text-gray-700"></th>
           </tr>
         </thead>
         <tbody>
@@ -195,7 +91,7 @@ export default function EconomicIndicatorTable() {
                 >
                   <td
                     colSpan={7}
-                    className="px-4 py-2 text-sm font-semibold border-b"
+                    className="border-b px-4 py-2 text-sm font-semibold"
                   >
                     {formattedGroupDate}
                   </td>
@@ -209,9 +105,9 @@ export default function EconomicIndicatorTable() {
               </React.Fragment>
             );
           })}
-          <tr style={{ height: '35rem' }}>
+          {/* <tr style={{ height: '35rem' }}>
             <td colSpan={7}></td>
-          </tr>
+          </tr> */}
         </tbody>
       </table>
     </CalendarTableWrapper>
@@ -219,7 +115,7 @@ export default function EconomicIndicatorTable() {
 }
 
 interface EconomicIndicatorRowProps {
-  indicator: EconomicIndicator;
+  indicator: EconomicIndicatorEvent;
 }
 
 function EconomicIndicatorRow({ indicator }: EconomicIndicatorRowProps) {
@@ -237,7 +133,9 @@ function EconomicIndicatorRow({ indicator }: EconomicIndicatorRowProps) {
 
   return (
     <tr className="relative">
-      <td className="px-4 py-2 text-sm text-gray-700">{indicator.country}</td>
+      <td className="px-4 py-2 text-sm text-gray-700">
+        {indicator.eventCountry}
+      </td>
       <td className="px-4 py-2 text-sm text-gray-700">{indicator.name}</td>
       <td className="px-4 py-2 text-sm text-gray-700">
         {indicator.importance}
@@ -252,7 +150,7 @@ function EconomicIndicatorRow({ indicator }: EconomicIndicatorRowProps) {
           {indicator.previous}
         </button>
         {showPrevPopup && (
-          <div className="absolute left-0 p-2 mt-1 bg-white border rounded shadow-lg">
+          <div className="absolute left-0 mt-1 rounded border bg-white p-2 shadow-lg">
             <p className="text-xs text-gray-700">
               이전값 상세정보: {indicator.previous}
             </p>

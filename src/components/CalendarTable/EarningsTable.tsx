@@ -3,110 +3,22 @@ import MarketIcon from './MarketIcon';
 import EventAddButton from './EventAddButton';
 import NotificationButton from './NotificationButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
+import { DateRange } from '@/types/CalendarTypes';
+import { EarningsEvent } from '@/api/services/CalendarService';
 
-interface EarningsData {
-  id: number;
-  country: string;
-  releaseDate: number | null; // 밀리초 단위 정수 값, 없으면 null
-  releaseTiming: 'UNKNOWN' | 'PRE_MARKET' | 'POST_MARKET';
-  actualEPS: string;
-  forecastEPS: string;
-  previousEPS: string;
-  actualRevenue: string;
-  forecastRevenue: string;
-  previousRevenue: string;
-  company: {
-    name: string;
-    ticker: string;
-  };
+interface EarningsTableProps {
+  events: EarningsEvent[];
+  dateRange: DateRange;
 }
 
-const dummyEarnings: EarningsData[] = [
-  {
-    id: 1,
-    country: 'USA',
-    releaseDate: new Date('2025-02-03T08:30:00').getTime(),
-    releaseTiming: 'PRE_MARKET',
-    actualEPS: '3.2',
-    forecastEPS: '3.0',
-    previousEPS: '2.9',
-    actualRevenue: '80B',
-    forecastRevenue: '78B',
-    previousRevenue: '75B',
-    company: { name: 'Apple', ticker: 'AAPL' },
-  },
-  {
-    id: 2,
-    country: 'USA',
-    releaseDate: new Date('2025-02-03T15:30:00').getTime(),
-    releaseTiming: 'POST_MARKET',
-    actualEPS: '2.1',
-    forecastEPS: '2.0',
-    previousEPS: '1.9',
-    actualRevenue: '50B',
-    forecastRevenue: '48B',
-    previousRevenue: '46B',
-    company: { name: 'Microsoft', ticker: 'MSFT' },
-  },
-  {
-    id: 3,
-    country: 'Germany',
-    releaseDate: new Date('2025-02-04T08:45:00').getTime(),
-    releaseTiming: 'PRE_MARKET',
-    actualEPS: '1.5',
-    forecastEPS: '1.4',
-    previousEPS: '1.3',
-    actualRevenue: '30B',
-    forecastRevenue: '29B',
-    previousRevenue: '28B',
-    company: { name: 'SAP', ticker: 'SAP' },
-  },
-  {
-    id: 4,
-    country: 'Japan',
-    releaseDate: new Date('2025-02-04T16:00:00').getTime(),
-    releaseTiming: 'POST_MARKET',
-    actualEPS: '2.8',
-    forecastEPS: '2.7',
-    previousEPS: '2.6',
-    actualRevenue: '40B',
-    forecastRevenue: '39B',
-    previousRevenue: '38B',
-    company: { name: 'Toyota', ticker: 'TM' },
-  },
-  {
-    id: 5,
-    country: 'Korea',
-    releaseDate: new Date('2025-02-05T09:00:00').getTime(),
-    releaseTiming: 'PRE_MARKET',
-    actualEPS: '1.9',
-    forecastEPS: '1.8',
-    previousEPS: '1.7',
-    actualRevenue: '60B',
-    forecastRevenue: '58B',
-    previousRevenue: '55B',
-    company: { name: 'Samsung', ticker: '005930.KS' },
-  },
-  {
-    id: 6,
-    country: 'Korea',
-    releaseDate: null,
-    releaseTiming: 'UNKNOWN',
-    actualEPS: '1.9',
-    forecastEPS: '1.8',
-    previousEPS: '1.7',
-    actualRevenue: '60B',
-    forecastRevenue: '58B',
-    previousRevenue: '55B',
-    company: { name: 'Samsung', ticker: '005930.KS' },
-  },
-];
-
-export default function EarningsTable() {
-  // const { selectedDate } = useCalendarStore();
+export default function EarningsTable({
+  events,
+  dateRange,
+}: EarningsTableProps) {
+  dateRange; // 사용하지 않지만, 필요에 따라 추가적인 로직을 구현할 수 있습니다.
 
   // 날짜별로 그룹화
-  const groups = dummyEarnings.reduce(
+  const groups = events.reduce(
     (acc, earning) => {
       const groupKey = earning.releaseDate
         ? new Date(earning.releaseDate).toISOString().slice(0, 10)
@@ -115,7 +27,7 @@ export default function EarningsTable() {
       acc[groupKey].push(earning);
       return acc;
     },
-    {} as Record<string, EarningsData[]>,
+    {} as Record<string, EarningsEvent[]>,
   );
 
   const sortedGroupKeys = Object.keys(groups).sort((a, b) =>
@@ -167,31 +79,31 @@ export default function EarningsTable() {
   return (
     <CalendarTableWrapper headerRefs={headerRefs}>
       <table className="min-w-full divide-y divide-gray-200">
-        <thead className="sticky top-0 z-30 calendar-table-header bg-gray-50">
+        <thead className="calendar-table-header sticky top-0 z-30 bg-gray-50">
           <tr className="h-[2.80rem]">
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               시간
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               국가
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               회사명
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               EPS / 예측
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               매출 / 예측
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               직전 발표 정보
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               시가총액
             </th>
-            <th className="w-10 px-2 py-2 text-sm font-medium text-left text-gray-700"></th>
-            <th className="w-10 px-2 py-2 text-sm font-medium text-left text-gray-700"></th>
+            <th className="w-10 px-2 py-2 text-left text-sm font-medium text-gray-700"></th>
+            <th className="w-10 px-2 py-2 text-left text-sm font-medium text-gray-700"></th>
           </tr>
         </thead>
         <tbody>
@@ -225,16 +137,13 @@ export default function EarningsTable() {
               </React.Fragment>
             );
           })}
-          <tr style={{ height: '35rem' }}>
-            <td colSpan={9}></td>
-          </tr>
         </tbody>
       </table>
     </CalendarTableWrapper>
   );
 }
 
-function EarningRow({ earning }: { earning: EarningsData }) {
+function EarningRow({ earning }: { earning: EarningsEvent }) {
   const [showOlderPopup, setShowOlderPopup] = useState(false);
   const [isAlarmSet, setIsAlarmSet] = useState(false);
   const [isEventAdded, setIsEventAdded] = useState(false);
@@ -263,14 +172,16 @@ function EarningRow({ earning }: { earning: EarningsData }) {
   return (
     <tr className="relative">
       <td className="px-4 py-2 text-sm text-gray-700">{timeDisplay}</td>
-      <td className="px-4 py-2 text-sm text-gray-700">{earning.country}</td>
+      <td className="px-4 py-2 text-sm text-gray-700">
+        {earning.eventCountry}
+      </td>
       <td className="px-4 py-2 text-sm text-gray-700">
         {earning.company.name} ({earning.company.ticker})
       </td>
-      <td className="px-4 py-2 text-sm text-gray-700">
+      <td className="min-w-[10rem] px-4 py-2 text-sm text-gray-700">
         {earning.actualEPS} / {earning.forecastEPS}
       </td>
-      <td className="px-4 py-2 text-sm text-gray-700">
+      <td className="min-w-[10rem] px-4 py-2 text-sm text-gray-700">
         {earning.actualRevenue} / {earning.forecastRevenue}
       </td>
       <td className="relative px-4 py-2 text-sm text-gray-700">
@@ -281,7 +192,7 @@ function EarningRow({ earning }: { earning: EarningsData }) {
           EPS {earning.previousEPS} / 매출 {earning.previousRevenue}
         </button>
         {showOlderPopup && (
-          <div className="absolute left-0 p-2 mt-1 bg-white rounded shadow-lg">
+          <div className="absolute left-0 mt-1 rounded bg-white p-2 shadow-lg">
             <ul className="text-xs text-gray-700">
               {olderPreviousValues.map((item, index) => (
                 <li key={index}>
