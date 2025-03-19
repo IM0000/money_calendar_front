@@ -11,6 +11,14 @@ import Calendar from '@/components/FilterPanel/Calendar'; // 달력 컴포넌트
 import useCalendarStore from '@/zustand/useCalendarDateStore';
 import { DateRange } from '@/types/CalendarTypes';
 import { formatDate } from '@/utils/formatDate';
+import { formatLocalISOString } from '@/utils/toLocaleISOString';
+import { useQuery } from '@tanstack/react-query';
+import {
+  DividendEvent,
+  EarningsEvent,
+  EconomicIndicatorEvent,
+  getCalendarEvents,
+} from '@/api/services/CalendarService';
 
 interface CalendarPanelProps {
   dateRange: DateRange;
@@ -131,15 +139,55 @@ export default function CalendarPanel({
     }
   };
 
+  // 오늘 날짜와 비교하여 dateRange가 과거 데이터인지 판단
+  const today = new Date();
+  const endDateObj = new Date(dateRange.endDate);
+  const isPastData = endDateObj < today;
+
+  // 한 번의 API 호출로 전체 이벤트 데이터를 가져옴
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['calendarEvents', dateRange.startDate, dateRange.endDate],
+    queryFn: () => getCalendarEvents(dateRange.startDate, dateRange.endDate),
+    enabled: !!dateRange.startDate && !!dateRange.endDate,
+    staleTime: isPastData ? Infinity : 1000 * 60 * 1, // 과거 데이터는 무한 캐시, 아니면 1분 유지
+    gcTime: isPastData ? Infinity : 1000 * 60 * 5, // 과거 데이터는 무한, 아니면 5분 후 삭제
+    refetchOnWindowFocus: isPastData ? false : true, // 창이 포커스될 때마다 refetch 실행
+  });
+
+  // 백엔드에서 받아온 데이터 (패칭 실패 시 빈 배열 처리)
+  const earnings = data?.data?.earnings ?? [];
+  const dividends = data?.data?.dividends ?? [];
+  const economicIndicators = data?.data?.economicIndicators ?? [];
+
   const dayKorean = ['일', '월', '화', '수', '목', '금', '토'];
-  const events = subSelectedDates.map((date) => ({
-    rawDate: date,
-    date: `${dayKorean[date.getDay()]} ${date.getDate()}일`,
-    econ: 33,
-    earning: 44,
-    dividend: 111,
-    event: null,
-  }));
+  const events = subSelectedDates.map((date) => {
+    const eventDateStr = formatDate(date); // 예: "2024-07-03"
+
+    const earningCount = earnings.filter(
+      (item: EarningsEvent) =>
+        formatDate(new Date(item.releaseDate)) === eventDateStr,
+    ).length;
+
+    const dividendCount = dividends.filter(
+      (item: DividendEvent) =>
+        formatDate(new Date(item.exDividendDate)) === eventDateStr,
+    ).length;
+
+    const economicIndicatorCount = economicIndicators.filter(
+      (item: EconomicIndicatorEvent) =>
+        formatDate(new Date(item.releaseDate)) === eventDateStr,
+    ).length;
+
+    return {
+      rawDate: date,
+      date: `${dayKorean[date.getDay()]} ${date.getDate()}일`,
+      econ: economicIndicatorCount,
+      earning: earningCount,
+      dividend: dividendCount,
+      // 만약 이벤트 메시지가 있다면 해당 필드를 채울 수 있습니다.
+      event: null,
+    };
+  });
 
   const isToday = (date: Date) => {
     const today = new Date();
@@ -232,12 +280,15 @@ export default function CalendarPanel({
             {events.map((event, index) => {
               const isFixed =
                 currentTableTopDate &&
-                event.rawDate.toISOString().slice(0, 10) ===
+                formatLocalISOString(event.rawDate).slice(0, 10) ===
                   currentTableTopDate;
               return (
                 <Card
                   key={index}
-                  onClick={() => setSelectedDate(event.rawDate)}
+                  onClick={() => {
+                    console.log(event.rawDate);
+                    setSelectedDate(event.rawDate);
+                  }}
                   className={`w-[calc((100vw-10rem)/7)] min-w-[120px] flex-shrink-0 snap-start ${event.event ? 'opacity-50' : ''} ${isFixed ? 'bg-gray-300' : ''}`}
                 >
                   <CardHeader

@@ -4,6 +4,7 @@ import NotificationButton from './NotificationButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
 import { DateRange } from '@/types/CalendarTypes';
 import { DividendEvent } from '@/api/services/CalendarService';
+import { formatLocalISOString } from '@/utils/toLocaleISOString';
 
 interface DividendTableProps {
   events: DividendEvent[];
@@ -20,7 +21,7 @@ export default function DividendTable({
   const groups = events.reduce(
     (acc, dividend) => {
       const dateObj = new Date(dividend.exDividendDate);
-      const groupKey = dateObj.toISOString().slice(0, 10);
+      const groupKey = formatLocalISOString(dateObj).slice(0, 10);
       if (!acc[groupKey]) acc[groupKey] = [];
       acc[groupKey].push(dividend);
       return acc;

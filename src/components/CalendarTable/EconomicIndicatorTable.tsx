@@ -4,6 +4,7 @@ import NotificationButton from './NotificationButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
 import { DateRange } from '@/types/CalendarTypes';
 import { EconomicIndicatorEvent } from '@/api/services/CalendarService';
+import { formatLocalISOString } from '@/utils/toLocaleISOString';
 
 interface EconomicIndicatorTableProps {
   events: EconomicIndicatorEvent[];
@@ -20,7 +21,7 @@ export default function EconomicIndicatorTable({
   const groups = events.reduce(
     (acc, indicator) => {
       const dateObj = new Date(indicator.releaseDate);
-      const groupKey = dateObj.toISOString().slice(0, 10);
+      const groupKey = formatLocalISOString(dateObj).slice(0, 10);
       if (!acc[groupKey]) {
         acc[groupKey] = [];
       }

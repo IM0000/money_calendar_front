@@ -5,6 +5,7 @@ import NotificationButton from './NotificationButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
 import { DateRange } from '@/types/CalendarTypes';
 import { EarningsEvent } from '@/api/services/CalendarService';
+import { formatLocalISOString } from '@/utils/toLocaleISOString';
 
 interface EarningsTableProps {
   events: EarningsEvent[];
@@ -21,7 +22,7 @@ export default function EarningsTable({
   const groups = events.reduce(
     (acc, earning) => {
       const groupKey = earning.releaseDate
-        ? new Date(earning.releaseDate).toISOString().slice(0, 10)
+        ? formatLocalISOString(new Date(earning.releaseDate)).slice(0, 10)
         : '날짜 없음';
       acc[groupKey] = acc[groupKey] || [];
       acc[groupKey].push(earning);

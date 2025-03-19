@@ -2,6 +2,7 @@
 import React, { useRef, useEffect } from 'react';
 import useFixedDateObserver from '@/hooks/useFixedDateObserver';
 import useCalendarStore from '@/zustand/useCalendarDateStore';
+import { formatLocalISOString } from '@/utils/toLocaleISOString';
 
 interface CalendarTableWrapperProps {
   headerRefs: React.RefObject<HTMLTableRowElement>[];
@@ -27,7 +28,7 @@ export default function CalendarTableWrapper({
 
   useEffect(() => {
     if (!selectedDate || !tableContainerRef.current) return;
-    const dateStr = selectedDate.toISOString().slice(0, 10);
+    const dateStr = formatLocalISOString(selectedDate).slice(0, 10);
     const targetHeaderRef = headerRefs.find(
       (ref) => ref.current?.getAttribute('data-date') === dateStr,
     );
@@ -55,7 +56,7 @@ export default function CalendarTableWrapper({
   return (
     <div
       ref={tableContainerRef}
-      className="relative w-screen max-w-full overflow-y-auto calendar-table-container"
+      className="calendar-table-container relative w-screen max-w-full overflow-y-auto"
       style={{ maxHeight: '600px' }}
     >
       {children}
