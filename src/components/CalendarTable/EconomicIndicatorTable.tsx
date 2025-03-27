@@ -5,15 +5,19 @@ import CalendarTableWrapper from './CalendarTableWrapper';
 import { DateRange } from '@/types/CalendarTypes';
 import { EconomicIndicatorEvent } from '@/api/services/CalendarService';
 import { formatLocalISOString } from '@/utils/toLocaleISOString';
+import { TableGroupSkeleton } from '@/components/UI/Skeleton';
+import { FaStar } from 'react-icons/fa';
 
 interface EconomicIndicatorTableProps {
   events: EconomicIndicatorEvent[];
   dateRange: DateRange;
+  isLoading?: boolean;
 }
 
 export default function EconomicIndicatorTable({
   events,
   dateRange,
+  isLoading = false,
 }: EconomicIndicatorTableProps) {
   dateRange; // 사용하지 않지만, 필요에 따라 추가적인 로직을 구현할 수 있습니다.
 
@@ -72,43 +76,50 @@ export default function EconomicIndicatorTable({
           </tr>
         </thead>
         <tbody>
-          {sortedGroupKeys.map((groupKey, index) => {
-            const groupIndicators = groups[groupKey];
-            // 그룹키 "YYYY-MM-DD" → Date 객체로 변환하여 요일 계산
-            const dateObj = new Date(groupKey);
-            const dayOfWeek = dayNames[dateObj.getDay()];
-            const [year, month, day] = groupKey.split('-');
-            const formattedGroupDate = `${year}년 ${parseInt(month)}월 ${parseInt(
-              day,
-            )}일 (${dayOfWeek})`;
+          {isLoading ? (
+            // 로딩 중일 때 스켈레톤 UI 표시
+            <>
+              <TableGroupSkeleton columns={7} rows={3} />
+              <TableGroupSkeleton columns={7} rows={2} />
+              <TableGroupSkeleton columns={7} rows={4} />
+            </>
+          ) : (
+            // 데이터가 있을 때 실제 테이블 내용 표시
+            sortedGroupKeys.map((groupKey, index) => {
+              const groupIndicators = groups[groupKey];
+              // 그룹키 "YYYY-MM-DD" → Date 객체로 변환하여 요일 계산
+              const dateObj = new Date(groupKey);
+              const dayOfWeek = dayNames[dateObj.getDay()];
+              const [year, month, day] = groupKey.split('-');
+              const formattedGroupDate = `${year}년 ${parseInt(month)}월 ${parseInt(
+                day,
+              )}일 (${dayOfWeek})`;
 
-            return (
-              <React.Fragment key={groupKey}>
-                {/* 그룹 헤더: 메인 헤더 바로 아래에 딱 붙도록 sticky top 값을 헤더 높이와 동일하게 설정 */}
-                <tr
-                  ref={headerRefs[index]}
-                  className="bg-gray-100"
-                  data-date={groupKey} // data-date를 tr에 직접 부여 (혹은 필요하다면 div로 옮길 수 있음)
-                >
-                  <td
-                    colSpan={7}
-                    className="border-b px-4 py-2 text-sm font-semibold"
+              return (
+                <React.Fragment key={groupKey}>
+                  {/* 그룹 헤더: 메인 헤더 바로 아래에 딱 붙도록 sticky top 값을 헤더 높이와 동일하게 설정 */}
+                  <tr
+                    ref={headerRefs[index]}
+                    className="bg-gray-100"
+                    data-date={groupKey} // data-date를 tr에 직접 부여 (혹은 필요하다면 div로 옮길 수 있음)
                   >
-                    {formattedGroupDate}
-                  </td>
-                </tr>
-                {groupIndicators.map((indicator) => (
-                  <EconomicIndicatorRow
-                    key={indicator.id}
-                    indicator={indicator}
-                  />
-                ))}
-              </React.Fragment>
-            );
-          })}
-          {/* <tr style={{ height: '35rem' }}>
-            <td colSpan={7}></td>
-          </tr> */}
+                    <td
+                      colSpan={7}
+                      className="border-b px-4 py-2 text-sm font-semibold"
+                    >
+                      {formattedGroupDate}
+                    </td>
+                  </tr>
+                  {groupIndicators.map((indicator) => (
+                    <EconomicIndicatorRow
+                      key={indicator.id}
+                      indicator={indicator}
+                    />
+                  ))}
+                </React.Fragment>
+              );
+            })
+          )}
         </tbody>
       </table>
     </CalendarTableWrapper>
@@ -132,6 +143,47 @@ function EconomicIndicatorRow({ indicator }: EconomicIndicatorRowProps) {
     console.log(`경제지표 정보 ${indicator.id}를 이벤트 목록에 추가합니다.`);
   };
 
+  // 중요도에 따라 별 표시를 렌더링하는 함수
+  const renderImportanceStars = (importance: number | string) => {
+    const maxImportance = 3; // 최대 중요도 (필요에 따라 조정)
+    let importanceValue = 0;
+
+    // 중요도가 숫자 또는 숫자 문자열인 경우에만 변환
+    if (importance !== undefined && importance !== null) {
+      const parsed = Number(importance);
+      if (!isNaN(parsed)) {
+        importanceValue = Math.min(Math.max(0, parsed), maxImportance);
+      }
+    }
+
+    // 중요도에 따른 설명 텍스트
+    const importanceText = {
+      0: '낮음',
+      1: '낮음',
+      2: '중간',
+      3: '높음',
+    }[importanceValue];
+
+    return (
+      <div
+        className="flex items-center"
+        title={`중요도: ${importanceText} (${importanceValue})`}
+      >
+        {Array.from({ length: maxImportance }).map((_, index) => (
+          <FaStar
+            key={index}
+            className={
+              index < importanceValue
+                ? 'text-blue-400' // 채워진 별 (파란색으로 변경하여 테마에 맞춤)
+                : 'text-gray-200' // 빈 별 (더 연한 회색으로 변경)
+            }
+            size={14}
+          />
+        ))}
+      </div>
+    );
+  };
+
   return (
     <tr className="relative">
       <td className="px-4 py-2 text-sm text-gray-700">
@@ -139,7 +191,7 @@ function EconomicIndicatorRow({ indicator }: EconomicIndicatorRowProps) {
       </td>
       <td className="px-4 py-2 text-sm text-gray-700">{indicator.name}</td>
       <td className="px-4 py-2 text-sm text-gray-700">
-        {indicator.importance}
+        {renderImportanceStars(indicator.importance)}
       </td>
       <td className="px-4 py-2 text-sm text-gray-700">{indicator.actual}</td>
       <td className="px-4 py-2 text-sm text-gray-700">{indicator.forecast}</td>

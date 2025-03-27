@@ -41,9 +41,6 @@ export default function MainPage() {
   const dividends = data?.data?.dividends ?? [];
   const economicIndicators = data?.data?.economicIndicators ?? [];
 
-  if (isLoading) return <div>Loading events...</div>;
-  if (error) return <div>Error loading events</div>;
-
   // 버튼 클릭 시 상태 변경
   const handleMenuClick = (menu: string) => {
     setSelectedMenu(menu);
@@ -56,6 +53,17 @@ export default function MainPage() {
       ? `${baseClass} bg-blue-400 text-white border-blue-400`
       : `${baseClass} bg-white text-gray-700 border-gray-300 hover:bg-gray-100`;
   };
+
+  // 에러가 있을 때의 처리 (전체 페이지에 메시지 표시)
+  if (error) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center p-8 text-red-500">
+          <p>데이터를 불러오는 중 오류가 발생했습니다.</p>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -93,13 +101,22 @@ export default function MainPage() {
             <EconomicIndicatorTable
               events={economicIndicators}
               dateRange={dateRange}
+              isLoading={isLoading}
             />
           )}
           {selectedMenu === '실적' && (
-            <EarningsTable events={earnings} dateRange={dateRange} />
+            <EarningsTable
+              events={earnings}
+              dateRange={dateRange}
+              isLoading={isLoading}
+            />
           )}
           {selectedMenu === '배당' && (
-            <DividendTable events={dividends} dateRange={dateRange} />
+            <DividendTable
+              events={dividends}
+              dateRange={dateRange}
+              isLoading={isLoading}
+            />
           )}
         </div>
       </div>

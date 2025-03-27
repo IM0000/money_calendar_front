@@ -19,6 +19,7 @@ import {
   EconomicIndicatorEvent,
   getCalendarEvents,
 } from '@/api/services/CalendarService';
+import { CalendarPanelSkeleton } from '@/components/UI/Skeleton';
 
 interface CalendarPanelProps {
   dateRange: DateRange;
@@ -197,6 +198,20 @@ export default function CalendarPanel({
       date.getDate() === today.getDate()
     );
   };
+
+  // 로딩 중일 때 스켈레톤 UI 표시
+  if (isLoading) {
+    return <CalendarPanelSkeleton />;
+  }
+
+  // 에러 발생 시 처리
+  if (error) {
+    return (
+      <div className="text-red-500">
+        데이터를 불러오는 중 오류가 발생했습니다.
+      </div>
+    );
+  }
 
   return (
     <div className="w-screen max-w-full">

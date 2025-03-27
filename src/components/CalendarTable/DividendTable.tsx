@@ -5,15 +5,18 @@ import CalendarTableWrapper from './CalendarTableWrapper';
 import { DateRange } from '@/types/CalendarTypes';
 import { DividendEvent } from '@/api/services/CalendarService';
 import { formatLocalISOString } from '@/utils/toLocaleISOString';
+import { TableGroupSkeleton } from '@/components/UI/Skeleton';
 
 interface DividendTableProps {
   events: DividendEvent[];
   dateRange: DateRange;
+  isLoading?: boolean;
 }
 
 export default function DividendTable({
   events,
   dateRange,
+  isLoading = false,
 }: DividendTableProps) {
   dateRange; // 사용하지 않지만, 필요에 따라 추가적인 로직을 구현할 수 있습니다.
 
@@ -71,33 +74,43 @@ export default function DividendTable({
           </tr>
         </thead>
         <tbody>
-          {sortedGroupKeys.map((groupKey, index) => {
-            const groupDividends = groups[groupKey];
-            const dateObj = new Date(groupKey);
-            const dayOfWeek = dayNames[dateObj.getDay()];
-            const [year, month, day] = groupKey.split('-');
-            const formattedGroupDate = `${year}년 ${parseInt(month)}월 ${parseInt(day)}일 (${dayOfWeek})`;
-            return (
-              <React.Fragment key={groupKey}>
-                {/* 그룹 헤더 (Sticky): 배당락일 기준 */}
-                <tr
-                  ref={headerRefs[index]}
-                  className="bg-gray-100"
-                  data-date={groupKey} // data-date를 tr에 직접 부여 (혹은 필요하다면 div로 옮길 수 있음)
-                >
-                  <td
-                    colSpan={8}
-                    className="border-b px-4 py-2 text-sm font-semibold"
+          {isLoading ? (
+            // 로딩 중일 때 스켈레톤 UI 표시
+            <>
+              <TableGroupSkeleton columns={8} rows={3} />
+              <TableGroupSkeleton columns={8} rows={2} />
+              <TableGroupSkeleton columns={8} rows={2} />
+            </>
+          ) : (
+            // 데이터가 있을 때 실제 테이블 내용 표시
+            sortedGroupKeys.map((groupKey, index) => {
+              const groupDividends = groups[groupKey];
+              const dateObj = new Date(groupKey);
+              const dayOfWeek = dayNames[dateObj.getDay()];
+              const [year, month, day] = groupKey.split('-');
+              const formattedGroupDate = `${year}년 ${parseInt(month)}월 ${parseInt(day)}일 (${dayOfWeek})`;
+              return (
+                <React.Fragment key={groupKey}>
+                  {/* 그룹 헤더 (Sticky): 배당락일 기준 */}
+                  <tr
+                    ref={headerRefs[index]}
+                    className="bg-gray-100"
+                    data-date={groupKey} // data-date를 tr에 직접 부여 (혹은 필요하다면 div로 옮길 수 있음)
                   >
-                    {formattedGroupDate}
-                  </td>
-                </tr>
-                {groupDividends.map((dividend) => (
-                  <DividendRow key={dividend.id} dividend={dividend} />
-                ))}
-              </React.Fragment>
-            );
-          })}
+                    <td
+                      colSpan={8}
+                      className="border-b px-4 py-2 text-sm font-semibold"
+                    >
+                      {formattedGroupDate}
+                    </td>
+                  </tr>
+                  {groupDividends.map((dividend) => (
+                    <DividendRow key={dividend.id} dividend={dividend} />
+                  ))}
+                </React.Fragment>
+              );
+            })
+          )}
         </tbody>
       </table>
     </CalendarTableWrapper>

@@ -6,15 +6,18 @@ import CalendarTableWrapper from './CalendarTableWrapper';
 import { DateRange } from '@/types/CalendarTypes';
 import { EarningsEvent } from '@/api/services/CalendarService';
 import { formatLocalISOString } from '@/utils/toLocaleISOString';
+import { TableGroupSkeleton } from '@/components/UI/Skeleton';
 
 interface EarningsTableProps {
   events: EarningsEvent[];
   dateRange: DateRange;
+  isLoading?: boolean;
 }
 
 export default function EarningsTable({
   events,
   dateRange,
+  isLoading = false,
 }: EarningsTableProps) {
   dateRange; // 사용하지 않지만, 필요에 따라 추가적인 로직을 구현할 수 있습니다.
 
@@ -108,36 +111,46 @@ export default function EarningsTable({
           </tr>
         </thead>
         <tbody>
-          {sortedGroupKeys.map((groupKey, index) => {
-            const groupEarnings = groups[groupKey];
-            const formattedGroupDate =
-              groupKey !== '날짜 없음'
-                ? (() => {
-                    const dateObj = new Date(groupKey);
-                    const dayOfWeek = dayNames[dateObj.getDay()];
-                    const [year, month, day] = groupKey.split('-');
-                    return `${year}년 ${parseInt(month)}월 ${parseInt(day)}일 (${dayOfWeek})`;
-                  })()
-                : groupKey;
+          {isLoading ? (
+            // 로딩 중일 때 스켈레톤 UI 표시
+            <>
+              <TableGroupSkeleton columns={9} rows={3} />
+              <TableGroupSkeleton columns={9} rows={4} />
+              <TableGroupSkeleton columns={9} rows={2} />
+            </>
+          ) : (
+            // 데이터가 있을 때 실제 테이블 내용 표시
+            sortedGroupKeys.map((groupKey, index) => {
+              const groupEarnings = groups[groupKey];
+              const formattedGroupDate =
+                groupKey !== '날짜 없음'
+                  ? (() => {
+                      const dateObj = new Date(groupKey);
+                      const dayOfWeek = dayNames[dateObj.getDay()];
+                      const [year, month, day] = groupKey.split('-');
+                      return `${year}년 ${parseInt(month)}월 ${parseInt(day)}일 (${dayOfWeek})`;
+                    })()
+                  : groupKey;
 
-            return (
-              <React.Fragment key={groupKey}>
-                {/* sticky 클래스 제거 */}
-                <tr
-                  ref={headerRefs[index]}
-                  className="bg-gray-100"
-                  data-date={groupKey} // data-date를 tr에 직접 부여 (혹은 필요하다면 div로 옮길 수 있음)
-                >
-                  <td colSpan={9} className="px-4 py-2 text-sm font-semibold">
-                    {formattedGroupDate}
-                  </td>
-                </tr>
-                {groupEarnings.map((earning) => (
-                  <EarningRow key={earning.id} earning={earning} />
-                ))}
-              </React.Fragment>
-            );
-          })}
+              return (
+                <React.Fragment key={groupKey}>
+                  {/* sticky 클래스 제거 */}
+                  <tr
+                    ref={headerRefs[index]}
+                    className="bg-gray-100"
+                    data-date={groupKey} // data-date를 tr에 직접 부여 (혹은 필요하다면 div로 옮길 수 있음)
+                  >
+                    <td colSpan={9} className="px-4 py-2 text-sm font-semibold">
+                      {formattedGroupDate}
+                    </td>
+                  </tr>
+                  {groupEarnings.map((earning) => (
+                    <EarningRow key={earning.id} earning={earning} />
+                  ))}
+                </React.Fragment>
+              );
+            })
+          )}
         </tbody>
       </table>
     </CalendarTableWrapper>
