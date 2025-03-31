@@ -13,7 +13,7 @@ export default function EventAddButton({
 }: EventAddButtonProps) {
   return (
     <Tippy
-      content={isAdded ? '이벤트 추가됨' : '이벤트 추가'}
+      content={isAdded ? '관심 추가됨' : '관심 추가'}
       delay={[0, 0]}
       duration={[0, 0]}
     >

@@ -7,6 +7,7 @@ import { EconomicIndicatorEvent } from '@/api/services/CalendarService';
 import { formatLocalISOString } from '@/utils/toLocaleISOString';
 import { TableGroupSkeleton } from '@/components/UI/Skeleton';
 import { FaStar } from 'react-icons/fa';
+import { renderCountry } from './CountryFlag';
 
 interface EconomicIndicatorTableProps {
   events: EconomicIndicatorEvent[];
@@ -51,37 +52,40 @@ export default function EconomicIndicatorTable({
     <CalendarTableWrapper headerRefs={headerRefs}>
       <table className="min-w-full divide-y divide-gray-200">
         {/* 메인 헤더: 스크롤 시 상단에 고정 (헤더 높이 약 2.80rem) */}
-        <thead className="calendar-table-header sticky top-0 z-30 bg-gray-50">
+        <thead className="sticky top-0 z-30 calendar-table-header bg-gray-50">
           <tr className="h-[2.80rem]">
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+              시간
+            </th>
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               국가
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               이벤트
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               중요도
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               실제
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               예측
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               이전
             </th>
             {/* 알림추가 버튼은 열 너비를 최소화 */}
-            <th className="w-10 px-2 py-2 text-left text-sm font-medium text-gray-700"></th>
+            <th className="w-10 px-2 py-2 text-sm font-medium text-left text-gray-700"></th>
           </tr>
         </thead>
         <tbody>
           {isLoading ? (
             // 로딩 중일 때 스켈레톤 UI 표시
             <>
-              <TableGroupSkeleton columns={7} rows={3} />
-              <TableGroupSkeleton columns={7} rows={2} />
-              <TableGroupSkeleton columns={7} rows={4} />
+              <TableGroupSkeleton columns={8} rows={3} />
+              <TableGroupSkeleton columns={8} rows={2} />
+              <TableGroupSkeleton columns={8} rows={4} />
             </>
           ) : (
             // 데이터가 있을 때 실제 테이블 내용 표시
@@ -104,8 +108,8 @@ export default function EconomicIndicatorTable({
                     data-date={groupKey} // data-date를 tr에 직접 부여 (혹은 필요하다면 div로 옮길 수 있음)
                   >
                     <td
-                      colSpan={7}
-                      className="border-b px-4 py-2 text-sm font-semibold"
+                      colSpan={8}
+                      className="px-4 py-2 text-sm font-semibold border-b"
                     >
                       {formattedGroupDate}
                     </td>
@@ -141,6 +145,15 @@ function EconomicIndicatorRow({ indicator }: EconomicIndicatorRowProps) {
     setIsEventAdded((prev) => !prev);
     // 여기에 사용자의 이벤트 목록에 해당 실적 정보를 추가하는 로직 구현
     console.log(`경제지표 정보 ${indicator.id}를 이벤트 목록에 추가합니다.`);
+  };
+
+  // 타임스탬프에서 시간 형식(HH:MM)으로 변환
+  const formatTime = (timestamp: number): string => {
+    const date = new Date(timestamp);
+    // 시간과 분을 2자리 숫자로 표시 (예: 09:05)
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
   };
 
   // 중요도에 따라 별 표시를 렌더링하는 함수
@@ -180,6 +193,7 @@ function EconomicIndicatorRow({ indicator }: EconomicIndicatorRowProps) {
             size={14}
           />
         ))}
+        <span className="ml-1 text-xs text-gray-500">{importanceText}</span>
       </div>
     );
   };
@@ -187,7 +201,10 @@ function EconomicIndicatorRow({ indicator }: EconomicIndicatorRowProps) {
   return (
     <tr className="relative">
       <td className="px-4 py-2 text-sm text-gray-700">
-        {indicator.eventCountry}
+        {formatTime(indicator.releaseDate)}
+      </td>
+      <td className="px-4 py-2 text-sm text-gray-700">
+        {renderCountry(indicator.eventCountry)}
       </td>
       <td className="px-4 py-2 text-sm text-gray-700">{indicator.name}</td>
       <td className="px-4 py-2 text-sm text-gray-700">
@@ -203,7 +220,7 @@ function EconomicIndicatorRow({ indicator }: EconomicIndicatorRowProps) {
           {indicator.previous}
         </button>
         {showPrevPopup && (
-          <div className="absolute left-0 mt-1 rounded border bg-white p-2 shadow-lg">
+          <div className="absolute left-0 p-2 mt-1 bg-white border rounded shadow-lg">
             <p className="text-xs text-gray-700">
               이전값 상세정보: {indicator.previous}
             </p>

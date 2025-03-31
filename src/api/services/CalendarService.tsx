@@ -2,6 +2,7 @@
 
 import { ApiResponse } from '@/types/ApiResponse';
 import apiClient from '../client';
+import { withErrorHandling } from '@/utils/errorHandler';
 
 export interface EarningsEvent {
   id: number;
@@ -59,28 +60,42 @@ export interface EconomicIndicatorEvent {
  * 모든 이벤트(실적, 배당, 경제지표)를 한 번에 조회
  * GET /api/v1/calendar/events?startDate=yyyy-mm-dd&endDate=yyyy-mm-dd
  */
-export const getCalendarEvents = async (
-  startDate: string,
-  endDate: string,
-): Promise<
-  ApiResponse<{
-    earnings: EarningsEvent[];
-    dividends: DividendEvent[];
-    economicIndicators: EconomicIndicatorEvent[];
-  }>
-> => {
-  console.log('getCalendarEvents', startDate, endDate);
-  const response = await apiClient.get<
+export const getCalendarEvents = withErrorHandling(
+  async (
+    startDate: string,
+    endDate: string,
+  ): Promise<
     ApiResponse<{
       earnings: EarningsEvent[];
       dividends: DividendEvent[];
       economicIndicators: EconomicIndicatorEvent[];
     }>
-  >('/api/v1/calendar/events', {
-    params: { startDate, endDate },
-  });
-  return response.data;
-};
+  > => {
+    console.log('getCalendarEvents', startDate, endDate);
+    const response = await apiClient.get<
+      ApiResponse<{
+        earnings: EarningsEvent[];
+        dividends: DividendEvent[];
+        economicIndicators: EconomicIndicatorEvent[];
+      }>
+    >('/api/v1/calendar/events', {
+      params: { startDate, endDate },
+    });
+    return response.data;
+  },
+  // 에러 시 기본값 (빈 데이터 반환)
+  {
+    statusCode: 500,
+    errorCode: 'CALENDAR_001',
+    errorMessage: '일정 데이터를 가져오는 중 오류가 발생했습니다.',
+    data: {
+      earnings: [],
+      dividends: [],
+      economicIndicators: [],
+    },
+  },
+  'CalendarService.getCalendarEvents',
+);
 
 /**
  * 실적만 조회
@@ -132,3 +147,44 @@ export const getEconomicIndicatorEvents = async (
   );
   return response.data;
 };
+
+/**
+ * 관심 일정만 조회
+ * GET /api/v1/favorites/calendar?startDate=yyyy-mm-dd&endDate=yyyy-mm-dd
+ */
+export const getFavoriteCalendarEvents = withErrorHandling(
+  async (
+    startDate: string,
+    endDate: string,
+  ): Promise<
+    ApiResponse<{
+      earnings: EarningsEvent[];
+      dividends: DividendEvent[];
+      economicIndicators: EconomicIndicatorEvent[];
+    }>
+  > => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        earnings: EarningsEvent[];
+        dividends: DividendEvent[];
+        economicIndicators: EconomicIndicatorEvent[];
+      }>
+    >('/api/v1/favorites/calendar', {
+      params: { startDate, endDate },
+      withAuth: true, // 인증이 필요한 API
+    });
+    return response.data;
+  },
+  // 에러 시 기본값 (빈 데이터 반환)
+  {
+    statusCode: 500,
+    errorCode: 'FAVORITES_001',
+    errorMessage: '관심 일정 데이터를 가져오는 중 오류가 발생했습니다.',
+    data: {
+      earnings: [],
+      dividends: [],
+      economicIndicators: [],
+    },
+  },
+  'CalendarService.getFavoriteCalendarEvents',
+);

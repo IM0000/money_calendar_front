@@ -24,11 +24,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     checkAuth();
-    console.log(
-      '🚀 ~ useEffect ~ user && isAuthenticated:',
-      user && isAuthenticated,
-    );
-    // user 정보가 있으면 메인 페이지로 리다이렉트
+
     if (user && isAuthenticated) {
       navigate('/');
     }
@@ -76,8 +72,8 @@ export default function LoginPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-white">
       <Logo
-        width="44px"
-        height="44px"
+        width="55px"
+        height="55px"
         divClassName="mb-8 text-black"
         spanClassName="text-4xl font-jua font-bold pt-2"
       />

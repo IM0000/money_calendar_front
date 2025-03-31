@@ -7,6 +7,7 @@ import { DateRange } from '@/types/CalendarTypes';
 import { EarningsEvent } from '@/api/services/CalendarService';
 import { formatLocalISOString } from '@/utils/toLocaleISOString';
 import { TableGroupSkeleton } from '@/components/UI/Skeleton';
+import { renderCountry } from './CountryFlag';
 
 interface EarningsTableProps {
   events: EarningsEvent[];
@@ -45,69 +46,34 @@ export default function EarningsTable({
     [sortedGroupKeys],
   );
 
-  // EarningsTable 스크롤 컨테이너 ref
-  // (이 컨테이너는 observer 훅이나 다른 스크롤 동작에서 사용됩니다.)
-  // const tableContainerRef = useRef<HTMLDivElement>(null);
-
-  // // 기존 useFixedDateObserver 훅 호출
-  // useFixedDateObserver({
-  //   headerRefs,
-  //   containerSelector: '.calendar-table-container',
-  // });
-
-  // // 선택한 날짜의 row가 테이블 헤더 바로 밑에 위치하도록 스크롤
-  // useEffect(() => {
-  //   if (!selectedDate || !tableContainerRef.current) return;
-  //   const dateStr = selectedDate.toISOString().slice(0, 10);
-  //   const targetHeaderRef = headerRefs.find(
-  //     (ref) => ref.current?.getAttribute('data-date') === dateStr,
-  //   );
-  //   if (targetHeaderRef && targetHeaderRef.current) {
-  //     const tableHeader = document.querySelector('.calendar-table-header');
-  //     const headerHeight = tableHeader
-  //       ? tableHeader.getBoundingClientRect().height
-  //       : 0; // target row의 offsetTop을 이용하여 스크롤 위치 결정 (header 바로 밑에 오도록)
-  //     const tolerance = 0.3;
-
-  //     const targetScrollTop =
-  //       targetHeaderRef.current.offsetTop - headerHeight + tolerance;
-  //     console.log('🚀 ~ useEffect ~ targetScrollTop:', targetScrollTop);
-  //     tableContainerRef.current.scrollTo({
-  //       top: targetScrollTop,
-  //       behavior: 'smooth',
-  //     });
-  //     console.log('Scrolled to header date:', dateStr);
-  //   }
-  // }, [selectedDate]);
-
   return (
     <CalendarTableWrapper headerRefs={headerRefs}>
       <table className="min-w-full divide-y divide-gray-200">
-        <thead className="calendar-table-header sticky top-0 z-30 bg-gray-50">
+        <thead className="sticky top-0 z-30 calendar-table-header bg-gray-50">
           <tr className="h-[2.80rem]">
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               시간
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               국가
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               회사명
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               EPS / 예측
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               매출 / 예측
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               직전 발표 정보
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               시가총액
             </th>
-            <th className="w-10 px-2 py-2 text-left text-sm font-medium text-gray-700"></th>
-            <th className="w-10 px-2 py-2 text-left text-sm font-medium text-gray-700"></th>
+            <th className="w-10 px-2 py-2 text-sm font-medium text-left text-gray-700"></th>
+            <th className="w-10 px-2 py-2 text-sm font-medium text-left text-gray-700"></th>
           </tr>
         </thead>
         <tbody>
@@ -187,7 +153,7 @@ function EarningRow({ earning }: { earning: EarningsEvent }) {
     <tr className="relative">
       <td className="px-4 py-2 text-sm text-gray-700">{timeDisplay}</td>
       <td className="px-4 py-2 text-sm text-gray-700">
-        {earning.eventCountry}
+        {renderCountry(earning.eventCountry)}
       </td>
       <td className="px-4 py-2 text-sm text-gray-700">
         {earning.company.name} ({earning.company.ticker})
@@ -201,12 +167,12 @@ function EarningRow({ earning }: { earning: EarningsEvent }) {
       <td className="relative px-4 py-2 text-sm text-gray-700">
         <button
           onClick={toggleOlderPopup}
-          className="text-blue-500 underline hover:text-blue-700 focus:outline-none"
+          className="min-w-[10rem] text-blue-500 underline hover:text-blue-700 focus:outline-none"
         >
           EPS {earning.previousEPS} / 매출 {earning.previousRevenue}
         </button>
         {showOlderPopup && (
-          <div className="absolute left-0 mt-1 rounded bg-white p-2 shadow-lg">
+          <div className="absolute left-0 p-2 mt-1 bg-white rounded shadow-lg">
             <ul className="text-xs text-gray-700">
               {olderPreviousValues.map((item, index) => (
                 <li key={index}>
@@ -217,7 +183,7 @@ function EarningRow({ earning }: { earning: EarningsEvent }) {
           </div>
         )}
       </td>
-      <td className="px-4 py-2 text-sm text-gray-700">-</td>
+      <td className="min-w-[8rem] px-4 py-2 text-sm text-gray-700">-</td>
       <td className="px-4 py-2 text-sm text-gray-700">
         <MarketIcon releaseTiming={earning.releaseTiming} />
       </td>

@@ -8,6 +8,7 @@ import AuthError from './pages/AuthErrorPage';
 import EmailVerifyPage from './pages/EmailVerifyPage';
 import SignUpPage from './pages/SignUpPage';
 import SetPasswordPage from './pages/SetPasswordPage';
+import FavoriteCalendarPage from './pages/FavoriteCalendarPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 
 const router = createBrowserRouter([
@@ -40,6 +41,14 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <MyPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/favorites/calendar',
+    element: (
+      <ProtectedRoute>
+        <FavoriteCalendarPage />
       </ProtectedRoute>
     ),
   },

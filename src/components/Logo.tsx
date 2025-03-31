@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import logoBlack from '../assets/money_calendar_logo_b.png';
-import logoWhite from '../assets/money_calendar_logo_w.png';
+import logoBlack from '../assets/money-calendar-logo-b.png';
+import logoWhite from '../assets/money-calendar-logo-w.png';
 
 interface LogoProps {
   width?: string;
@@ -10,8 +10,8 @@ interface LogoProps {
 }
 
 export default function Logo({
-  width = '44px',
-  height = '44px',
+  width = '55px',
+  height = '55px',
   divClassName = '',
   spanClassName = '',
 }: LogoProps) {
@@ -22,9 +22,13 @@ export default function Logo({
     <Link to="/">
       <div className={`flex gap-x-2 text-2xl ${divClassName}`}>
         <img src={logoSrc} alt="Logo" style={{ width, height }} />
-        <span className={`pt-0.5 align-text-bottom ${spanClassName}`}>
-          머니캘린더
-        </span>
+        {spanClassName ? (
+          <span className={`pt-0.5 align-text-bottom ${spanClassName}`}>
+            머니캘린더
+          </span>
+        ) : (
+          ''
+        )}
       </div>
     </Link>
   );

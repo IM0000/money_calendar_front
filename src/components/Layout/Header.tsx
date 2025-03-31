@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { FaUser, FaBars, FaTimes } from 'react-icons/fa';
+import { FaUser, FaBars, FaTimes, FaChevronDown } from 'react-icons/fa';
 import Logo from '../Logo';
 import { useAuthStore } from '../../zustand/useAuthStore';
 
@@ -10,14 +10,22 @@ export default function Header() {
 
   // 드롭다운(로그인 상태) 토글을 위한 상태
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  // 캘린더 드롭다운 상태
+  const [calendarDropdownOpen, setCalendarDropdownOpen] = useState(false);
   // 모바일 메뉴(햄버거 메뉴)를 위한 상태
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const calendarDropdownRef = useRef<HTMLLIElement>(null);
 
   // 드롭다운 토글 함수
   const handleDropdownToggle = () => {
     setDropdownOpen(!dropdownOpen);
+  };
+
+  // 캘린더 드롭다운 토글 함수
+  const handleCalendarDropdownToggle = () => {
+    setCalendarDropdownOpen(!calendarDropdownOpen);
   };
 
   // 로그아웃 처리 함수
@@ -40,6 +48,12 @@ export default function Header() {
         !dropdownRef.current.contains(event.target as Node)
       ) {
         setDropdownOpen(false);
+      }
+      if (
+        calendarDropdownRef.current &&
+        !calendarDropdownRef.current.contains(event.target as Node)
+      ) {
+        setCalendarDropdownOpen(false);
       }
     };
 
@@ -72,15 +86,51 @@ export default function Header() {
             {mobileMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
           </button>
           {/* 로고 영역 */}
-          <Logo divClassName="text-black" width="30px" height="30px" />
+          <Logo divClassName="text-black" width="55px" height="55px" />
         </div>
 
         {/* 데스크탑 화면에서만 보이는 네비게이션 메뉴 (hidden md:block: 모바일에서는 숨김) */}
         <nav className="hidden md:block">
           <ul className="flex space-x-6 text-black text-md">
+            <li className="relative" ref={calendarDropdownRef}>
+              <button
+                onClick={handleCalendarDropdownToggle}
+                className="flex items-center space-x-1 hover:text-gray-500"
+              >
+                <span>캘린더</span>
+                <FaChevronDown
+                  size={12}
+                  className={
+                    calendarDropdownOpen
+                      ? 'rotate-180 transform transition-transform'
+                      : 'transition-transform'
+                  }
+                />
+              </button>
+              {calendarDropdownOpen && (
+                <div className="absolute left-0 w-32 py-2 mt-2 bg-white rounded-lg shadow-lg">
+                  <Link
+                    to="/"
+                    className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                    onClick={() => setCalendarDropdownOpen(false)}
+                  >
+                    전체 캘린더
+                  </Link>
+                  {isAuthenticated && (
+                    <Link
+                      to="/favorites/calendar"
+                      className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                      onClick={() => setCalendarDropdownOpen(false)}
+                    >
+                      관심 일정
+                    </Link>
+                  )}
+                </div>
+              )}
+            </li>
             <li>
-              <NavLink to="/" className={desktopLinkClass}>
-                캘린더
+              <NavLink to="/search" className={desktopLinkClass}>
+                검색
               </NavLink>
             </li>
           </ul>
@@ -136,7 +186,7 @@ export default function Header() {
           <ul className="flex flex-col px-4 py-2 space-y-2 text-sm text-black">
             <li>
               <NavLink
-                to="/search/economic"
+                to="/"
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
                   isActive
@@ -144,12 +194,27 @@ export default function Header() {
                     : 'hover:text-gray-500'
                 }
               >
-                경제지표
+                캘린더
               </NavLink>
             </li>
+            {isAuthenticated && (
+              <li>
+                <NavLink
+                  to="/favorites/calendar"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    isActive
+                      ? 'text-blue-500 hover:text-blue-500'
+                      : 'hover:text-gray-500'
+                  }
+                >
+                  관심 일정
+                </NavLink>
+              </li>
+            )}
             <li>
               <NavLink
-                to="/search/earnings"
+                to="/search"
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
                   isActive
@@ -157,20 +222,7 @@ export default function Header() {
                     : 'hover:text-gray-500'
                 }
               >
-                실적
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/search/dividends"
-                onClick={() => setMobileMenuOpen(false)}
-                className={({ isActive }) =>
-                  isActive
-                    ? 'text-blue-500 hover:text-blue-500'
-                    : 'hover:text-gray-500'
-                }
-              >
-                배당
+                검색
               </NavLink>
             </li>
           </ul>

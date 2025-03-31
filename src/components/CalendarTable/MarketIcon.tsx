@@ -15,10 +15,10 @@ export default function MarketIcon({ releaseTiming }: MarketIconProps) {
   let icon: JSX.Element;
 
   if (releaseTiming === 'PRE_MARKET') {
-    content = '개장전';
+    content = '개장 전';
     icon = <HiOutlineSun size={20} className="text-gray-500" />;
   } else if (releaseTiming === 'POST_MARKET') {
-    content = '폐장후';
+    content = '폐장 후';
     icon = <HiOutlineMoon size={20} className="text-gray-500" />;
   } else {
     content = '알 수 없음';
