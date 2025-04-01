@@ -4,12 +4,11 @@ import Layout from '../components/Layout/Layout';
 import EconomicIndicatorTable from '@/components/CalendarTable/EconomicIndicatorTable';
 import EarningsTable from '@/components/CalendarTable/EarningsTable';
 import DividendTable from '@/components/CalendarTable/DividendTable';
-import { formatDate } from '@/utils/formatDate';
+import { formatDate } from '@/utils/dateUtils';
 import useCalendarStore from '@/zustand/useCalendarDateStore';
 import { DateRange } from '@/types/CalendarTypes';
 import { getFavoriteCalendarEvents } from '@/api/services/CalendarService';
 import { useQuery } from '@tanstack/react-query';
-import { Star } from 'lucide-react';
 import { extractErrorMessage } from '@/utils/errorHandler';
 
 export default function FavoriteCalendarPage() {
@@ -94,10 +93,7 @@ export default function FavoriteCalendarPage() {
     ) {
       return (
         <div className="flex flex-col items-center justify-center p-8 text-gray-500">
-          <p>
-            관심 일정이 없습니다. 캘린더에서 별표(⭐)를 클릭하여 관심 일정을
-            추가해주세요.
-          </p>
+          <p>관심 일정이 없습니다. 캘린더에서 관심 일정을 추가해주세요.</p>
         </div>
       );
     }
@@ -110,7 +106,6 @@ export default function FavoriteCalendarPage() {
         {/* 페이지 헤더 */}
         <div className="mb-4 px-8">
           <h1 className="flex items-center gap-2 text-2xl font-bold">
-            <Star className="h-6 w-6 fill-yellow-400 text-yellow-400" />
             관심 일정 보기
           </h1>
           <p className="text-sm text-gray-500">
@@ -120,7 +115,11 @@ export default function FavoriteCalendarPage() {
 
         {/* 캘린더 패널 */}
         <div className="px-8">
-          <CalendarPanel dateRange={dateRange} setDateRange={setDateRange} />
+          <CalendarPanel
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            isFavoritePage={true}
+          />
         </div>
 
         {/* 메뉴 버튼 영역 */}
@@ -155,6 +154,7 @@ export default function FavoriteCalendarPage() {
               events={economicIndicators}
               dateRange={dateRange}
               isLoading={isLoading}
+              isFavoritePage={true}
             />
           )}
           {selectedMenu === '실적' && (
@@ -162,6 +162,7 @@ export default function FavoriteCalendarPage() {
               events={earnings}
               dateRange={dateRange}
               isLoading={isLoading}
+              isFavoritePage={true}
             />
           )}
           {selectedMenu === '배당' && (
@@ -169,6 +170,7 @@ export default function FavoriteCalendarPage() {
               events={dividends}
               dateRange={dateRange}
               isLoading={isLoading}
+              isFavoritePage={true}
             />
           )}
         </div>
