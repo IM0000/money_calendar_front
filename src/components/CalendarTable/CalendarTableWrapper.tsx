@@ -2,7 +2,7 @@
 import React, { useRef, useEffect } from 'react';
 import useFixedDateObserver from '@/hooks/useFixedDateObserver';
 import useCalendarStore from '@/zustand/useCalendarDateStore';
-import { formatLocalISOString } from '@/utils/toLocaleISOString';
+import { formatLocalISOString } from '@/utils/dateUtils';
 
 interface CalendarTableWrapperProps {
   headerRefs: React.RefObject<HTMLTableRowElement>[];

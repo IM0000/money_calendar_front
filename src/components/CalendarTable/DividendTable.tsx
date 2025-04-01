@@ -3,20 +3,29 @@ import EventAddButton from './EventAddButton';
 import NotificationButton from './NotificationButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
 import { DateRange } from '@/types/CalendarTypes';
-import { DividendEvent } from '@/api/services/CalendarService';
-import { formatLocalISOString } from '@/utils/toLocaleISOString';
+import {
+  DividendEvent,
+  addFavoriteDividend,
+  removeFavoriteDividend,
+} from '@/api/services/CalendarService';
+import { formatLocalISOString } from '@/utils/dateUtils';
 import { TableGroupSkeleton } from '@/components/UI/Skeleton';
+import { renderCountry } from './CountryFlag';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
 
 interface DividendTableProps {
   events: DividendEvent[];
   dateRange: DateRange;
   isLoading?: boolean;
+  isFavoritePage?: boolean;
 }
 
 export default function DividendTable({
   events,
   dateRange,
   isLoading = false,
+  isFavoritePage = false,
 }: DividendTableProps) {
   dateRange; // 사용하지 않지만, 필요에 따라 추가적인 로직을 구현할 수 있습니다.
 
@@ -105,7 +114,11 @@ export default function DividendTable({
                     </td>
                   </tr>
                   {groupDividends.map((dividend) => (
-                    <DividendRow key={dividend.id} dividend={dividend} />
+                    <DividendRow
+                      key={dividend.id}
+                      dividend={dividend}
+                      isFavoritePage={isFavoritePage}
+                    />
                   ))}
                 </React.Fragment>
               );
@@ -119,19 +132,61 @@ export default function DividendTable({
 
 interface DividendRowProps {
   dividend: DividendEvent;
+  isFavoritePage?: boolean;
 }
 
-function DividendRow({ dividend }: DividendRowProps) {
+function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
   const [showOlderPopup, setShowOlderPopup] = useState(false);
   const [isAlarmSet, setIsAlarmSet] = useState(false);
-  const [isEventAdded, setIsEventAdded] = useState(false);
+  const [isEventAdded, setIsEventAdded] = useState(
+    isFavoritePage ? true : dividend.isFavorite || false,
+  );
+
+  const queryClient = useQueryClient();
+
+  // 관심 추가 mutation
+  const addFavoriteMutation = useMutation({
+    mutationFn: addFavoriteDividend,
+    onSuccess: () => {
+      setIsEventAdded(true);
+      toast.success('관심 일정에 추가되었습니다.');
+      // 캐시 업데이트
+      queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
+    },
+    onError: (error) => {
+      toast.error(
+        `추가 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+      );
+    },
+  });
+
+  // 관심 제거 mutation
+  const removeFavoriteMutation = useMutation({
+    mutationFn: removeFavoriteDividend,
+    onSuccess: () => {
+      setIsEventAdded(false);
+      toast.success('관심 일정에서 제거되었습니다.');
+      // 캐시 업데이트
+      queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
+    },
+    onError: (error) => {
+      toast.error(
+        `제거 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+      );
+    },
+  });
 
   const toggleOlderPopup = () => setShowOlderPopup((prev) => !prev);
   const toggleAlarm = () => setIsAlarmSet((prev) => !prev);
+
   const handleAddEvent = () => {
-    setIsEventAdded((prev) => !prev);
-    // 여기에 사용자의 이벤트 목록에 해당 실적 정보를 추가하는 로직 구현
-    console.log(`배당 정보 ${dividend.id}를 이벤트 목록에 추가합니다.`);
+    if (isEventAdded) {
+      // 제거 요청
+      removeFavoriteMutation.mutate(dividend.id);
+    } else {
+      // 추가 요청
+      addFavoriteMutation.mutate(dividend.id);
+    }
   };
 
   const exDividendDisplay = new Date(
@@ -144,11 +199,15 @@ function DividendRow({ dividend }: DividendRowProps) {
   // 더 과거의 이전 배당금값 (더미 예시)
   const olderPreviousValues = [{ dividend: '$0.78' }, { dividend: '$0.76' }];
 
+  // 요청 중인지 여부
+  const isLoading =
+    addFavoriteMutation.isPending || removeFavoriteMutation.isPending;
+
   return (
     <tr className="relative">
       {/* 국가 */}
       <td className="px-4 py-2 text-sm text-gray-700">
-        {dividend.eventCountry}
+        {renderCountry(dividend.eventCountry)}
       </td>
       {/* 회사명(티커) */}
       <td className="px-4 py-2 text-sm text-gray-700">
@@ -191,7 +250,11 @@ function DividendRow({ dividend }: DividendRowProps) {
       {/* 이벤트 추가 + 알림 버튼 */}
       <td className="w-10 px-2 py-2 text-sm text-gray-700">
         <div className="flex items-center space-x-1">
-          <EventAddButton isAdded={isEventAdded} onClick={handleAddEvent} />
+          <EventAddButton
+            isAdded={isEventAdded}
+            onClick={handleAddEvent}
+            isLoading={isLoading}
+          />
           <NotificationButton isActive={isAlarmSet} onClick={toggleAlarm} />
         </div>
       </td>

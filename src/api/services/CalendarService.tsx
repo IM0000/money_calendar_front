@@ -20,9 +20,11 @@ export interface EarningsEvent {
     ticker: string;
     name: string;
     companyCountry: string; // 회사 모델의 country
+    marketValue: string;
   };
   createdAt: string;
   updatedAt: string;
+  isFavorite?: boolean; // 관심 목록에 추가되어 있는지 여부
 }
 
 export interface DividendEvent {
@@ -38,9 +40,11 @@ export interface DividendEvent {
     ticker: string;
     name: string;
     companyCountry: string; // 회사의 나라 (Company 모델의 country)
+    marketValue: string;
   };
   createdAt: string; // 생성일자 (ISO 문자열)
   updatedAt: string; // 수정일자 (ISO 문자열)
+  isFavorite?: boolean; // 관심 목록에 추가되어 있는지 여부
 }
 
 export interface EconomicIndicatorEvent {
@@ -54,6 +58,7 @@ export interface EconomicIndicatorEvent {
   previous: string;
   createdAt: string;
   updatedAt: string;
+  isFavorite?: boolean; // 관심 목록에 추가되어 있는지 여부
 }
 
 /**
@@ -187,4 +192,149 @@ export const getFavoriteCalendarEvents = withErrorHandling(
     },
   },
   'CalendarService.getFavoriteCalendarEvents',
+);
+
+/**
+ * 실적 정보 관심 목록에 추가
+ * POST /api/v1/favorites/earnings/:id
+ */
+export const addFavoriteEarnings = async (
+  earningsId: number,
+): Promise<ApiResponse<{ success: boolean }>> => {
+  const response = await apiClient.post<ApiResponse<{ success: boolean }>>(
+    `/api/v1/favorites/earnings/${earningsId}`,
+    {},
+    { withAuth: true },
+  );
+  return response.data;
+};
+
+/**
+ * 실적 정보 관심 목록에서 제거
+ * DELETE /api/v1/favorites/earnings/:id
+ */
+export const removeFavoriteEarnings = async (
+  earningsId: number,
+): Promise<ApiResponse<{ success: boolean }>> => {
+  const response = await apiClient.delete<ApiResponse<{ success: boolean }>>(
+    `/api/v1/favorites/earnings/${earningsId}`,
+    { withAuth: true },
+  );
+  return response.data;
+};
+
+/**
+ * 배당 정보 관심 목록에 추가
+ * POST /api/v1/favorites/dividends/:id
+ */
+export const addFavoriteDividend = async (
+  dividendId: number,
+): Promise<ApiResponse<{ success: boolean }>> => {
+  const response = await apiClient.post<ApiResponse<{ success: boolean }>>(
+    `/api/v1/favorites/dividends/${dividendId}`,
+    {},
+    { withAuth: true },
+  );
+  return response.data;
+};
+
+/**
+ * 배당 정보 관심 목록에서 제거
+ * DELETE /api/v1/favorites/dividends/:id
+ */
+export const removeFavoriteDividend = async (
+  dividendId: number,
+): Promise<ApiResponse<{ success: boolean }>> => {
+  const response = await apiClient.delete<ApiResponse<{ success: boolean }>>(
+    `/api/v1/favorites/dividends/${dividendId}`,
+    { withAuth: true },
+  );
+  return response.data;
+};
+
+/**
+ * 경제지표 관심 목록에 추가
+ * POST /api/v1/favorites/economic-indicators/:id
+ */
+export const addFavoriteEconomicIndicator = async (
+  indicatorId: number,
+): Promise<ApiResponse<{ success: boolean }>> => {
+  const response = await apiClient.post<ApiResponse<{ success: boolean }>>(
+    `/api/v1/favorites/economic-indicators/${indicatorId}`,
+    {},
+    { withAuth: true },
+  );
+  return response.data;
+};
+
+/**
+ * 경제지표 관심 목록에서 제거
+ * DELETE /api/v1/favorites/economic-indicators/:id
+ */
+export const removeFavoriteEconomicIndicator = async (
+  indicatorId: number,
+): Promise<ApiResponse<{ success: boolean }>> => {
+  const response = await apiClient.delete<ApiResponse<{ success: boolean }>>(
+    `/api/v1/favorites/economic-indicators/${indicatorId}`,
+    { withAuth: true },
+  );
+  return response.data;
+};
+
+/**
+ * 관심 일정 카운트 조회
+ * GET /api/v1/favorites/count
+ */
+export const getFavoriteCount = async (): Promise<
+  ApiResponse<{
+    earnings: number;
+    dividends: number;
+    economicIndicators: number;
+  }>
+> => {
+  const response = await apiClient.get<
+    ApiResponse<{
+      earnings: number;
+      dividends: number;
+      economicIndicators: number;
+    }>
+  >('/api/v1/favorites/count', { withAuth: true });
+  return response.data;
+};
+
+/**
+ * 특정 기업의 이전 실적 정보 조회
+ * GET /api/v1/calendar/earnings/history/:companyId?page=1&limit=5
+ */
+export const getCompanyEarningsHistory = withErrorHandling(
+  async (
+    companyId: number,
+    page: number = 1,
+    limit: number = 5,
+  ): Promise<
+    ApiResponse<{
+      items: EarningsEvent[];
+      pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+      };
+    }>
+  > => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        items: EarningsEvent[];
+        pagination: {
+          total: number;
+          page: number;
+          limit: number;
+          totalPages: number;
+        };
+      }>
+    >(`/api/v1/calendar/earnings/history/${companyId}`, {
+      params: { page, limit },
+    });
+    return response.data;
+  },
 );

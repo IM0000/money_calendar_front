@@ -4,7 +4,7 @@ import Layout from '../components/Layout/Layout';
 import EconomicIndicatorTable from '@/components/CalendarTable/EconomicIndicatorTable';
 import EarningsTable from '@/components/CalendarTable/EarningsTable';
 import DividendTable from '@/components/CalendarTable/DividendTable';
-import { formatDate } from '@/utils/formatDate';
+import { formatDate } from '@/utils/dateUtils';
 import useCalendarStore from '@/zustand/useCalendarDateStore';
 import { DateRange } from '@/types/CalendarTypes';
 import { getCalendarEvents } from '@/api/services/CalendarService';

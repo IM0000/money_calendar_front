@@ -3,22 +3,30 @@ import EventAddButton from './EventAddButton';
 import NotificationButton from './NotificationButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
 import { DateRange } from '@/types/CalendarTypes';
-import { EconomicIndicatorEvent } from '@/api/services/CalendarService';
-import { formatLocalISOString } from '@/utils/toLocaleISOString';
+import {
+  EconomicIndicatorEvent,
+  addFavoriteEconomicIndicator,
+  removeFavoriteEconomicIndicator,
+} from '@/api/services/CalendarService';
+import { formatLocalISOString } from '@/utils/dateUtils';
 import { TableGroupSkeleton } from '@/components/UI/Skeleton';
 import { FaStar } from 'react-icons/fa';
 import { renderCountry } from './CountryFlag';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
 
 interface EconomicIndicatorTableProps {
   events: EconomicIndicatorEvent[];
   dateRange: DateRange;
   isLoading?: boolean;
+  isFavoritePage?: boolean;
 }
 
 export default function EconomicIndicatorTable({
   events,
   dateRange,
   isLoading = false,
+  isFavoritePage = false,
 }: EconomicIndicatorTableProps) {
   dateRange; // 사용하지 않지만, 필요에 따라 추가적인 로직을 구현할 수 있습니다.
 
@@ -52,31 +60,31 @@ export default function EconomicIndicatorTable({
     <CalendarTableWrapper headerRefs={headerRefs}>
       <table className="min-w-full divide-y divide-gray-200">
         {/* 메인 헤더: 스크롤 시 상단에 고정 (헤더 높이 약 2.80rem) */}
-        <thead className="sticky top-0 z-30 calendar-table-header bg-gray-50">
+        <thead className="calendar-table-header sticky top-0 z-30 bg-gray-50">
           <tr className="h-[2.80rem]">
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               시간
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               국가
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               이벤트
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               중요도
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               실제
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               예측
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               이전
             </th>
             {/* 알림추가 버튼은 열 너비를 최소화 */}
-            <th className="w-10 px-2 py-2 text-sm font-medium text-left text-gray-700"></th>
+            <th className="w-10 px-2 py-2 text-left text-sm font-medium text-gray-700"></th>
           </tr>
         </thead>
         <tbody>
@@ -109,7 +117,7 @@ export default function EconomicIndicatorTable({
                   >
                     <td
                       colSpan={8}
-                      className="px-4 py-2 text-sm font-semibold border-b"
+                      className="border-b px-4 py-2 text-sm font-semibold"
                     >
                       {formattedGroupDate}
                     </td>
@@ -118,6 +126,7 @@ export default function EconomicIndicatorTable({
                     <EconomicIndicatorRow
                       key={indicator.id}
                       indicator={indicator}
+                      isFavoritePage={isFavoritePage}
                     />
                   ))}
                 </React.Fragment>
@@ -132,19 +141,64 @@ export default function EconomicIndicatorTable({
 
 interface EconomicIndicatorRowProps {
   indicator: EconomicIndicatorEvent;
+  isFavoritePage?: boolean;
 }
 
-function EconomicIndicatorRow({ indicator }: EconomicIndicatorRowProps) {
+function EconomicIndicatorRow({
+  indicator,
+  isFavoritePage = false,
+}: EconomicIndicatorRowProps) {
   const [showPrevPopup, setShowPrevPopup] = useState(false);
   const [isAlarmSet, setIsAlarmSet] = useState(false);
-  const [isEventAdded, setIsEventAdded] = useState(false);
+  const [isEventAdded, setIsEventAdded] = useState(
+    isFavoritePage ? true : indicator.isFavorite || false,
+  );
+
+  const queryClient = useQueryClient();
+
+  // 관심 추가 mutation
+  const addFavoriteMutation = useMutation({
+    mutationFn: addFavoriteEconomicIndicator,
+    onSuccess: () => {
+      setIsEventAdded(true);
+      toast.success('관심 일정에 추가되었습니다.');
+      // 캐시 업데이트
+      queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
+    },
+    onError: (error) => {
+      toast.error(
+        `추가 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+      );
+    },
+  });
+
+  // 관심 제거 mutation
+  const removeFavoriteMutation = useMutation({
+    mutationFn: removeFavoriteEconomicIndicator,
+    onSuccess: () => {
+      setIsEventAdded(false);
+      toast.success('관심 일정에서 제거되었습니다.');
+      // 캐시 업데이트
+      queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
+    },
+    onError: (error) => {
+      toast.error(
+        `제거 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+      );
+    },
+  });
 
   const togglePrevPopup = () => setShowPrevPopup((prev) => !prev);
   const toggleAlarm = () => setIsAlarmSet((prev) => !prev);
+
   const handleAddEvent = () => {
-    setIsEventAdded((prev) => !prev);
-    // 여기에 사용자의 이벤트 목록에 해당 실적 정보를 추가하는 로직 구현
-    console.log(`경제지표 정보 ${indicator.id}를 이벤트 목록에 추가합니다.`);
+    if (isEventAdded) {
+      // 제거 요청
+      removeFavoriteMutation.mutate(indicator.id);
+    } else {
+      // 추가 요청
+      addFavoriteMutation.mutate(indicator.id);
+    }
   };
 
   // 타임스탬프에서 시간 형식(HH:MM)으로 변환
@@ -198,6 +252,10 @@ function EconomicIndicatorRow({ indicator }: EconomicIndicatorRowProps) {
     );
   };
 
+  // 요청 중인지 여부
+  const isLoading =
+    addFavoriteMutation.isPending || removeFavoriteMutation.isPending;
+
   return (
     <tr className="relative">
       <td className="px-4 py-2 text-sm text-gray-700">
@@ -220,7 +278,7 @@ function EconomicIndicatorRow({ indicator }: EconomicIndicatorRowProps) {
           {indicator.previous}
         </button>
         {showPrevPopup && (
-          <div className="absolute left-0 p-2 mt-1 bg-white border rounded shadow-lg">
+          <div className="absolute left-0 mt-1 rounded border bg-white p-2 shadow-lg">
             <p className="text-xs text-gray-700">
               이전값 상세정보: {indicator.previous}
             </p>
@@ -230,7 +288,11 @@ function EconomicIndicatorRow({ indicator }: EconomicIndicatorRowProps) {
       {/* 이벤트 추가 + 알림 버튼 */}
       <td className="w-10 px-2 py-2 text-sm text-gray-700">
         <div className="flex items-center space-x-1">
-          <EventAddButton isAdded={isEventAdded} onClick={handleAddEvent} />
+          <EventAddButton
+            isAdded={isEventAdded}
+            onClick={handleAddEvent}
+            isLoading={isLoading}
+          />
           <NotificationButton isActive={isAlarmSet} onClick={toggleAlarm} />
         </div>
       </td>
