@@ -7,13 +7,15 @@ import DividendTable from '@/components/CalendarTable/DividendTable';
 import { formatDate } from '@/utils/dateUtils';
 import useCalendarStore from '@/zustand/useCalendarDateStore';
 import { DateRange } from '@/types/CalendarTypes';
-import { getFavoriteCalendarEvents } from '@/api/services/CalendarService';
+import { getFavoriteCalendarEvents } from '@/api/services/calendarService';
 import { useQuery } from '@tanstack/react-query';
 import { extractErrorMessage } from '@/utils/errorHandler';
+import { useAuthStore } from '@/zustand/useAuthStore';
 
 export default function FavoriteCalendarPage() {
   // 초기 선택 메뉴를 '경제지표'로 설정
   const [selectedMenu, setSelectedMenu] = useState('경제지표');
+  const { isAuthenticated } = useAuthStore();
 
   const { subSelectedDates } = useCalendarStore();
   const initialDateRange: DateRange = {
@@ -37,10 +39,12 @@ export default function FavoriteCalendarPage() {
     ],
     queryFn: () =>
       getFavoriteCalendarEvents(dateRange.startDate, dateRange.endDate),
-    enabled: !!dateRange.startDate && !!dateRange.endDate,
+    enabled: !!dateRange.startDate && !!dateRange.endDate && isAuthenticated,
     staleTime: isPastData ? Infinity : 1000 * 60 * 1, // 과거 데이터는 무한 캐시, 아니면 1분 유지
     gcTime: isPastData ? Infinity : 1000 * 60 * 5, // 과거 데이터는 무한, 아니면 5분 후 삭제
     refetchOnWindowFocus: isPastData ? false : true, // 창이 포커스될 때마다 refetch 실행
+    retry: 1, // 실패 시 한 번만 재시도
+    retryDelay: 1000, // 재시도 간격 1초
   });
 
   const earnings = data?.data?.earnings ?? [];

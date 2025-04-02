@@ -1,9 +1,8 @@
-import { EarningsEvent } from '@/api/services/calendarService';
-import MarketIcon from './MarketIcon';
+import { DividendEvent } from '@/api/services/calendarService';
 import { formatDate } from '@/utils/dateUtils';
 
-interface EarningsHistoryTableProps {
-  data: EarningsEvent[];
+interface DividendHistoryTableProps {
+  data: DividendEvent[];
   isLoading: boolean;
   pagination: {
     total: number;
@@ -14,12 +13,12 @@ interface EarningsHistoryTableProps {
   onPageChange: (page: number) => void;
 }
 
-export default function EarningsHistoryTable({
+export default function DividendHistoryTable({
   data,
   isLoading,
   pagination,
   onPageChange,
-}: EarningsHistoryTableProps) {
+}: DividendHistoryTableProps) {
   if (isLoading) {
     return <div className="mt-4 p-4 text-center text-gray-500">로딩 중...</div>;
   }
@@ -27,7 +26,7 @@ export default function EarningsHistoryTable({
   if (data.length === 0) {
     return (
       <div className="mt-4 p-4 text-center text-gray-500">
-        이전 실적 데이터가 없습니다.
+        이전 배당금 데이터가 없습니다.
       </div>
     );
   }
@@ -41,92 +40,42 @@ export default function EarningsHistoryTable({
               scope="col"
               className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
             >
-              발표 날짜
+              배당락일
             </th>
             <th
               scope="col"
               className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
             >
-              시간
+              배당금
             </th>
             <th
               scope="col"
               className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
             >
-              EPS / 예측
+              배당수익률
             </th>
             <th
               scope="col"
               className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
             >
-              매출 / 예측
+              배당지급일
             </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200 bg-white">
-          {data.map((earning) => (
-            <tr key={earning.id}>
+          {data.map((dividend) => (
+            <tr key={dividend.id}>
               <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
-                {formatDate(new Date(earning.releaseDate))}
+                {formatDate(new Date(dividend.exDividendDate))}
+              </td>
+              <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                {dividend.dividendAmount || '-'}
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
-                {new Date(earning.releaseDate).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}{' '}
-                <MarketIcon releaseTiming={earning.releaseTiming} />
+                {dividend.dividendYield || '-'}
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
-                <div className="flex items-center space-x-1">
-                  <span
-                    className={`font-medium ${
-                      earning.actualEPS &&
-                      earning.forecastEPS &&
-                      parseFloat(earning.actualEPS) >
-                        parseFloat(earning.forecastEPS)
-                        ? 'text-green-600'
-                        : parseFloat(earning.actualEPS) <
-                            parseFloat(earning.forecastEPS)
-                          ? 'text-red-600'
-                          : ''
-                    }`}
-                  >
-                    {earning.actualEPS || '-'}
-                  </span>
-                  <span className="text-gray-500">
-                    / {earning.forecastEPS || '-'}
-                  </span>
-                </div>
-              </td>
-              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
-                <div className="flex items-center space-x-1">
-                  <span
-                    className={`font-medium ${
-                      earning.actualRevenue &&
-                      earning.forecastRevenue &&
-                      parseFloat(
-                        earning.actualRevenue.replace(/[^0-9.-]+/g, ''),
-                      ) >
-                        parseFloat(
-                          earning.forecastRevenue.replace(/[^0-9.-]+/g, ''),
-                        )
-                        ? 'text-green-600'
-                        : parseFloat(
-                              earning.actualRevenue.replace(/[^0-9.-]+/g, ''),
-                            ) <
-                            parseFloat(
-                              earning.forecastRevenue.replace(/[^0-9.-]+/g, ''),
-                            )
-                          ? 'text-red-600'
-                          : ''
-                    }`}
-                  >
-                    {earning.actualRevenue || '-'}
-                  </span>
-                  <span className="text-gray-500">
-                    / {earning.forecastRevenue || '-'}
-                  </span>
-                </div>
+                {formatDate(new Date(dividend.paymentDate))}
               </td>
             </tr>
           ))}

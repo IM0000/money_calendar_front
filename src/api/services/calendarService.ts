@@ -338,3 +338,40 @@ export const getCompanyEarningsHistory = withErrorHandling(
     return response.data;
   },
 );
+
+/**
+ * 특정 기업의 이전 배당금 정보 조회
+ * GET /api/v1/calendar/dividends/history/:companyId?page=1&limit=5
+ */
+export const getCompanyDividendHistory = withErrorHandling(
+  async (
+    companyId: number,
+    page: number = 1,
+    limit: number = 5,
+  ): Promise<
+    ApiResponse<{
+      items: DividendEvent[];
+      pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+      };
+    }>
+  > => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        items: DividendEvent[];
+        pagination: {
+          total: number;
+          page: number;
+          limit: number;
+          totalPages: number;
+        };
+      }>
+    >(`/api/v1/calendar/dividends/history/${companyId}`, {
+      params: { page, limit },
+    });
+    return response.data;
+  },
+);

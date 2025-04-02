@@ -18,7 +18,7 @@ import {
   EconomicIndicatorEvent,
   getCalendarEvents,
   getFavoriteCalendarEvents,
-} from '@/api/services/CalendarService';
+} from '@/api/services/calendarService';
 import { CalendarPanelSkeleton } from '@/components/UI/Skeleton';
 import { useAuthStore } from '@/zustand/useAuthStore';
 
@@ -38,7 +38,7 @@ export default function CalendarPanel({
   );
 
   // 로그인 상태 확인
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, checkAuth } = useAuthStore();
 
   // Zustand 스토어에서 날짜 관련 상태와 setter들을 가져옵니다.
   const { selectedDate, subSelectedDates, setSelectedDate } =
@@ -94,7 +94,6 @@ export default function CalendarPanel({
 
   useEffect(() => {
     if (subSelectedDates.length) {
-      console.log('subSelectedDates:', subSelectedDates);
       setDateRange({
         startDate: formatDate(subSelectedDates[0]),
         endDate: formatDate(subSelectedDates[subSelectedDates.length - 1]),
@@ -107,7 +106,14 @@ export default function CalendarPanel({
   const [showScrollButtons, setShowScrollButtons] = useState(false);
   const calendarContainerRef = useRef<HTMLDivElement>(null);
 
-  // 달력 팝오버 외부 클릭 시 닫힘
+  // 인증 상태 확인 (특히 관심 일정 페이지에서 필요)
+  useEffect(() => {
+    if (isFavoritePage) {
+      checkAuth();
+    }
+  }, [isFavoritePage, checkAuth]);
+
+  // Outside click handler for calendar
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -117,8 +123,11 @@ export default function CalendarPanel({
         setIsCalendarOpen(false);
       }
     };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   const updateScrollButtons = () => {

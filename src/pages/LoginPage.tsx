@@ -8,7 +8,7 @@ import OAuthLoginButton from '../components/OAuthLoginButton';
 import Logo from '../components/Logo';
 import { AxiosError } from 'axios';
 import { useAuthStore } from '../zustand/useAuthStore';
-import { login } from '../api/services/AuthService';
+import { login } from '../api/services/authService';
 import { ErrorCodes } from '../types/ErrorCodes';
 
 const { VITE_BACKEND_URL } = import.meta.env;
@@ -70,25 +70,25 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-white">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-white p-6">
       <Logo
         width="55px"
         height="55px"
         divClassName="mb-8 text-black"
         spanClassName="text-4xl font-jua font-bold pt-2"
       />
-      <div className="flex flex-col items-center mb-8 space-y-4 w-80">
+      <div className="mb-8 flex w-80 flex-col items-center space-y-4">
         <input
           type="email"
           placeholder="이메일 주소"
           value={email}
           onChange={handleEmailChange}
-          className="w-full p-2 border border-gray-300 rounded"
+          className="w-full rounded border border-gray-300 p-2"
         />
         {!showPassword && (
           <button
             onClick={handleStartEmail}
-            className="w-full px-4 py-2 text-white bg-blue-400 rounded hover:bg-blue-500"
+            className="w-full rounded bg-blue-400 px-4 py-2 text-white hover:bg-blue-500"
           >
             이메일로 시작하기
           </button>
@@ -100,12 +100,12 @@ export default function LoginPage() {
               placeholder="비밀번호"
               value={password}
               onChange={handlePasswordChange}
-              className="w-full p-2 border border-gray-300 rounded"
+              className="w-full rounded border border-gray-300 p-2"
             />
             {error && (
-              <div className="w-full mt-2 text-sm text-red-500">{error}</div>
+              <div className="mt-2 w-full text-sm text-red-500">{error}</div>
             )}
-            <div className="flex justify-between w-full text-sm">
+            <div className="flex w-full justify-between text-sm">
               {/* <div className="flex items-center">
                 <input type="checkbox" id="remember-me" className="mr-1" />
                 <label htmlFor="remember-me">로그인 상태 유지</label>
@@ -119,19 +119,19 @@ export default function LoginPage() {
             </div>
             <button
               onClick={handleLogin}
-              className="w-full px-4 py-2 mt-2 text-white bg-blue-400 rounded hover:bg-blue-500"
+              className="mt-2 w-full rounded bg-blue-400 px-4 py-2 text-white hover:bg-blue-500"
             >
               로그인
             </button>
           </>
         )}
       </div>
-      <div className="flex items-center w-64 my-4">
+      <div className="my-4 flex w-64 items-center">
         <hr className="flex-grow border-gray-300" />
         <span className="mx-2 text-gray-500">OR</span>
         <hr className="flex-grow border-gray-300" />
       </div>
-      <div className="flex justify-around w-64 mb-8">
+      <div className="mb-8 flex w-64 justify-around">
         <OAuthLoginButton
           provider="애플"
           logo={appleLogo}
@@ -153,7 +153,7 @@ export default function LoginPage() {
           onClick={handleDiscordLogin}
         />
       </div>
-      <div className="flex mt-4 space-x-4">
+      <div className="mt-4 flex space-x-4">
         <Link to="/" className="px-4 py-2 text-blue-400 hover:underline">
           비회원으로 이용하기
         </Link>

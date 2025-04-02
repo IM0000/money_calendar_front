@@ -7,12 +7,14 @@ import {
   DividendEvent,
   addFavoriteDividend,
   removeFavoriteDividend,
-} from '@/api/services/CalendarService';
+  getCompanyDividendHistory,
+} from '@/api/services/calendarService';
 import { formatLocalISOString } from '@/utils/dateUtils';
 import { TableGroupSkeleton } from '@/components/UI/Skeleton';
-import { renderCountry } from './CountryFlag';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { CountryFlag } from './CountryFlag';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
+import DividendHistoryTable from './DividendHistoryTable';
 
 interface DividendTableProps {
   events: DividendEvent[];
@@ -71,11 +73,11 @@ export default function DividendTable({
             <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               배당지급일
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="min-w-[7rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               배당수익률
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
-              이전
+            <th className="min-w-[5.5rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
+              이전 발표
             </th>
             <th className="w-10 px-2 py-2 text-left text-sm font-medium text-gray-700">
               {/* 알림추가 버튼 */}
@@ -141,6 +143,9 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
   const [isEventAdded, setIsEventAdded] = useState(
     isFavoritePage ? true : dividend.isFavorite || false,
   );
+  // 페이지 상태 추가
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyLimit] = useState(5);
 
   const queryClient = useQueryClient();
 
@@ -152,6 +157,7 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
       toast.success('관심 일정에 추가되었습니다.');
       // 캐시 업데이트
       queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
+      queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
     },
     onError: (error) => {
       toast.error(
@@ -168,6 +174,7 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
       toast.success('관심 일정에서 제거되었습니다.');
       // 캐시 업데이트
       queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
+      queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
     },
     onError: (error) => {
       toast.error(
@@ -176,7 +183,23 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
     },
   });
 
-  const toggleOlderPopup = () => setShowOlderPopup((prev) => !prev);
+  // 이전 배당금 데이터 쿼리
+  const { data: historyData, isLoading: isHistoryLoading } = useQuery({
+    queryKey: [
+      'dividendHistory',
+      dividend.company.id,
+      historyPage,
+      historyLimit,
+    ],
+    queryFn: () =>
+      getCompanyDividendHistory(dividend.company.id, historyPage, historyLimit),
+    enabled: showOlderPopup, // 상세보기가 열렸을 때만 쿼리 실행
+  });
+
+  const toggleOlderPopup = () => {
+    setShowOlderPopup((prev) => !prev);
+  };
+
   const toggleAlarm = () => setIsAlarmSet((prev) => !prev);
 
   const handleAddEvent = () => {
@@ -189,6 +212,10 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
     }
   };
 
+  const handlePageChange = (page: number) => {
+    setHistoryPage(page);
+  };
+
   const exDividendDisplay = new Date(
     dividend.exDividendDate,
   ).toLocaleDateString();
@@ -196,68 +223,83 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
     dividend.paymentDate,
   ).toLocaleDateString();
 
-  // 더 과거의 이전 배당금값 (더미 예시)
-  const olderPreviousValues = [{ dividend: '$0.78' }, { dividend: '$0.76' }];
-
   // 요청 중인지 여부
   const isLoading =
     addFavoriteMutation.isPending || removeFavoriteMutation.isPending;
 
   return (
-    <tr className="relative">
-      {/* 국가 */}
-      <td className="px-4 py-2 text-sm text-gray-700">
-        {renderCountry(dividend.eventCountry)}
-      </td>
-      {/* 회사명(티커) */}
-      <td className="px-4 py-2 text-sm text-gray-700">
-        {dividend.company.name} ({dividend.company.ticker})
-      </td>
-      {/* 배당락일 */}
-      <td className="min-w-[9rem] px-4 py-2 text-sm text-gray-700">
-        {exDividendDisplay}
-      </td>
-      {/* 배당금 */}
-      <td className="px-4 py-2 text-sm text-gray-700">
-        {dividend.dividendAmount}
-      </td>
-      {/* 배당지급일 */}
-      <td className="min-w-[9rem] px-4 py-2 text-sm text-gray-700">
-        {paymentDateDisplay}
-      </td>
-      {/* 배당수익률 */}
-      <td className="px-4 py-2 text-sm text-gray-700">
-        {dividend.dividendYield ? dividend.dividendYield : '-'}
-      </td>
-      {/* 이전 배당금값 (바로 직전 값) + 팝업 */}
-      <td className="relative px-4 py-2 text-sm text-gray-700">
-        <button
-          onClick={toggleOlderPopup}
-          className="text-blue-500 underline hover:text-blue-700 focus:outline-none"
-        >
-          {dividend.previousDividendAmount}
-        </button>
-        {showOlderPopup && (
-          <div className="absolute left-0 mt-1 rounded border bg-white p-2 shadow-lg">
-            <ul className="text-xs text-gray-700">
-              {olderPreviousValues.map((item, index) => (
-                <li key={index}>배당금 {item.dividend}</li>
-              ))}
-            </ul>
+    <>
+      <tr className="relative">
+        {/* 국가 */}
+        <td className="px-4 py-2 text-sm text-gray-700">
+          <CountryFlag countryCode={dividend.eventCountry} />
+        </td>
+        {/* 회사명(티커) */}
+        <td className="px-4 py-2 text-sm text-gray-700">
+          {dividend.company.name} ({dividend.company.ticker})
+        </td>
+        {/* 배당락일 */}
+        <td className="min-w-[9rem] px-4 py-2 text-sm text-gray-700">
+          {exDividendDisplay}
+        </td>
+        {/* 배당금 */}
+        <td className="px-4 py-2 text-sm text-gray-700">
+          {dividend.dividendAmount}
+        </td>
+        {/* 배당지급일 */}
+        <td className="min-w-[9rem] px-4 py-2 text-sm text-gray-700">
+          {paymentDateDisplay}
+        </td>
+        {/* 배당수익률 */}
+        <td className="px-4 py-2 text-sm text-gray-700">
+          {dividend.dividendYield ? dividend.dividendYield : '-'}
+        </td>
+        {/* 이전 배당금값 (바로 직전 값) + 팝업 */}
+        <td className="relative px-4 py-2 text-sm text-gray-700">
+          <button
+            onClick={toggleOlderPopup}
+            className="min-w-[4rem] text-blue-500 underline hover:text-blue-700 focus:outline-none"
+          >
+            {showOlderPopup ? '접기' : '상세보기'}
+          </button>
+        </td>
+        {/* 이벤트 추가 + 알림 버튼 */}
+        <td className="w-10 px-2 py-2 text-sm text-gray-700">
+          <div className="flex items-center space-x-1">
+            <EventAddButton
+              isAdded={isEventAdded}
+              onClick={handleAddEvent}
+              isLoading={isLoading}
+            />
+            <NotificationButton isActive={isAlarmSet} onClick={toggleAlarm} />
           </div>
-        )}
-      </td>
-      {/* 이벤트 추가 + 알림 버튼 */}
-      <td className="w-10 px-2 py-2 text-sm text-gray-700">
-        <div className="flex items-center space-x-1">
-          <EventAddButton
-            isAdded={isEventAdded}
-            onClick={handleAddEvent}
-            isLoading={isLoading}
-          />
-          <NotificationButton isActive={isAlarmSet} onClick={toggleAlarm} />
-        </div>
-      </td>
-    </tr>
+        </td>
+      </tr>
+      {showOlderPopup && (
+        <tr>
+          <td colSpan={8} className="bg-gray-50 px-4 py-4">
+            <div className="rounded border border-gray-200 bg-white p-4">
+              <h3 className="mb-4 text-lg font-medium">
+                {dividend.company.name} 이전 배당금 정보
+              </h3>
+              {historyData?.data ? (
+                <DividendHistoryTable
+                  data={historyData.data.items}
+                  isLoading={isHistoryLoading}
+                  pagination={historyData.data.pagination}
+                  onPageChange={handlePageChange}
+                />
+              ) : isHistoryLoading ? (
+                <div className="text-center">데이터를 불러오는 중...</div>
+              ) : (
+                <div className="text-center text-gray-500">
+                  데이터가 없습니다.
+                </div>
+              )}
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
   );
 }

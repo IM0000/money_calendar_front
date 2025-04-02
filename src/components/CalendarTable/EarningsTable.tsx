@@ -9,10 +9,10 @@ import {
   addFavoriteEarnings,
   removeFavoriteEarnings,
   getCompanyEarningsHistory,
-} from '@/api/services/CalendarService';
+} from '@/api/services/calendarService';
 import { formatLocalISOString } from '@/utils/dateUtils';
 import { TableGroupSkeleton } from '@/components/UI/Skeleton';
-import { renderCountry } from './CountryFlag';
+import { CountryFlag } from './CountryFlag';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import EarningsHistoryTable from './EarningsHistoryTable';
@@ -80,7 +80,7 @@ export default function EarningsTable({
               시가총액(천$)
             </th>
             <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
-              이전 발표 정보
+              이전 발표
             </th>
             <th className="w-10 px-2 py-2 text-left text-sm font-medium text-gray-700"></th>
           </tr>
@@ -221,13 +221,6 @@ function EarningRow({
     setHistoryPage(page);
   };
 
-  const timeDisplay = earning.releaseDate
-    ? new Date(earning.releaseDate).toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    : '-';
-
   // 요청 중인지 여부
   const isLoading =
     addFavoriteMutation.isPending || removeFavoriteMutation.isPending;
@@ -239,7 +232,7 @@ function EarningRow({
           <MarketIcon releaseTiming={earning.releaseTiming} />
         </td>
         <td className="px-4 py-2 text-sm text-gray-700">
-          {renderCountry(earning.eventCountry)}
+          <CountryFlag countryCode={earning.eventCountry} />
         </td>
         <td className="px-4 py-2 text-sm text-gray-700">
           {earning.company.name} ({earning.company.ticker})
@@ -253,10 +246,10 @@ function EarningRow({
         <td className="min-w-[8rem] px-4 py-2 text-sm text-gray-700">
           {earning.company.marketValue}
         </td>
-        <td className="relative px-4 py-2 text-sm text-gray-700">
+        <td className="px-4 py-2 text-sm text-gray-700 ">
           <button
             onClick={toggleOlderPopup}
-            className="min-w-[8rem] text-blue-500 underline hover:text-blue-700 focus:outline-none"
+            className="min-w-[4rem] text-blue-500 underline hover:text-blue-700 focus:outline-none"
           >
             {showOlderPopup ? '접기' : '상세보기'}
           </button>

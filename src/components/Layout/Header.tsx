@@ -40,6 +40,20 @@ export default function Header() {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
+  // 관심 일정 클릭 시 로그인 확인 처리
+  const handleFavoritesClick = (e: React.MouseEvent) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      if (
+        window.confirm('로그인이 필요합니다. 로그인 페이지로 이동하겠습니까?')
+      ) {
+        navigate('/login');
+      }
+      setCalendarDropdownOpen(false);
+      setMobileMenuOpen(false);
+    }
+  };
+
   // 드롭다운 영역 외 클릭 시 드롭다운 닫기 처리
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -66,22 +80,22 @@ export default function Header() {
   // 컴포넌트 마운트 시 로그인 상태 확인
   useEffect(() => {
     checkAuth();
-  }, [checkAuth]);
+  }, []);
 
   // 데스크탑 메뉴 링크 클래스
   const desktopLinkClass = ({ isActive }: { isActive: boolean }) =>
     isActive ? 'text-blue-500 hover:text-blue-500' : 'hover:text-gray-500';
 
   return (
-    <header className="fixed top-0 z-50 w-full bg-white shadow-md bg-opacity-90">
+    <header className="fixed top-0 z-50 w-full bg-white bg-opacity-90 shadow-md">
       {/* 헤더 상단의 메인 컨테이너 */}
-      <div className="flex items-center justify-between w-full px-8 py-2">
+      <div className="flex w-full items-center justify-between px-8 py-2">
         {/* 로고와 모바일 햄버거 메뉴 영역 */}
         <div className="flex items-center">
           {/* 모바일 화면에서만 보이는 햄버거 메뉴 버튼 (md:hidden: 중간 화면 이상에서는 숨김) */}
           <button
             onClick={toggleMobileMenu}
-            className="p-2 mr-4 text-black md:hidden"
+            className="mr-4 p-2 text-black md:hidden"
           >
             {mobileMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
           </button>
@@ -91,7 +105,7 @@ export default function Header() {
 
         {/* 데스크탑 화면에서만 보이는 네비게이션 메뉴 (hidden md:block: 모바일에서는 숨김) */}
         <nav className="hidden md:block">
-          <ul className="flex space-x-6 text-black text-md">
+          <ul className="text-md flex space-x-6 text-black">
             <li className="relative" ref={calendarDropdownRef}>
               <button
                 onClick={handleCalendarDropdownToggle}
@@ -108,7 +122,7 @@ export default function Header() {
                 />
               </button>
               {calendarDropdownOpen && (
-                <div className="absolute left-0 w-32 py-2 mt-2 bg-white rounded-lg shadow-lg">
+                <div className="absolute left-0 mt-2 w-32 rounded-lg bg-white py-2 shadow-lg">
                   <Link
                     to="/"
                     className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
@@ -116,15 +130,17 @@ export default function Header() {
                   >
                     전체 캘린더
                   </Link>
-                  {isAuthenticated && (
-                    <Link
-                      to="/favorites/calendar"
-                      className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                      onClick={() => setCalendarDropdownOpen(false)}
-                    >
-                      관심 일정
-                    </Link>
-                  )}
+
+                  <Link
+                    to="/favorites/calendar"
+                    className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                    onClick={(e) => {
+                      handleFavoritesClick(e);
+                      if (isAuthenticated) setCalendarDropdownOpen(false);
+                    }}
+                  >
+                    관심 일정
+                  </Link>
                 </div>
               )}
             </li>
@@ -142,12 +158,12 @@ export default function Header() {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={handleDropdownToggle}
-                className="p-2 text-black rounded-full hover:bg-gray-200"
+                className="rounded-full p-2 text-black hover:bg-gray-200"
               >
                 <FaUser size={20} />
               </button>
               {dropdownOpen && (
-                <div className="absolute right-0 w-32 py-2 mt-2 bg-white rounded-lg shadow-lg">
+                <div className="absolute right-0 mt-2 w-32 rounded-lg bg-white py-2 shadow-lg">
                   <Link
                     to="/mypage"
                     className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
@@ -166,12 +182,12 @@ export default function Header() {
           ) : (
             <div className="flex space-x-2">
               <Link to="/login">
-                <button className="p-2 text-black bg-white border rounded-lg hover:bg-gray-200">
+                <button className="rounded-lg border bg-white p-2 text-black hover:bg-gray-200">
                   로그인
                 </button>
               </Link>
               <Link to="/sign-up">
-                <button className="p-2 text-white bg-blue-400 rounded-lg hover:bg-blue-500">
+                <button className="rounded-lg bg-blue-400 p-2 text-white hover:bg-blue-500">
                   회원가입
                 </button>
               </Link>
@@ -183,7 +199,7 @@ export default function Header() {
       {/* 모바일 메뉴: 햄버거 메뉴 버튼을 누르면 나타남 (md:hidden: 모바일에서만 보임) */}
       {mobileMenuOpen && (
         <nav className="bg-white shadow-md md:hidden">
-          <ul className="flex flex-col px-4 py-2 space-y-2 text-sm text-black">
+          <ul className="flex flex-col space-y-2 px-4 py-2 text-sm text-black">
             <li>
               <NavLink
                 to="/"
@@ -197,21 +213,22 @@ export default function Header() {
                 캘린더
               </NavLink>
             </li>
-            {isAuthenticated && (
-              <li>
-                <NavLink
-                  to="/favorites/calendar"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={({ isActive }) =>
-                    isActive
-                      ? 'text-blue-500 hover:text-blue-500'
-                      : 'hover:text-gray-500'
-                  }
-                >
-                  관심 일정
-                </NavLink>
-              </li>
-            )}
+            <li>
+              <NavLink
+                to="/favorites/calendar"
+                onClick={(e) => {
+                  handleFavoritesClick(e);
+                  if (isAuthenticated) setMobileMenuOpen(false);
+                }}
+                className={({ isActive }) =>
+                  isActive
+                    ? 'text-blue-500 hover:text-blue-500'
+                    : 'hover:text-gray-500'
+                }
+              >
+                관심 일정
+              </NavLink>
+            </li>
             <li>
               <NavLink
                 to="/search"

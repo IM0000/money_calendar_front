@@ -7,11 +7,11 @@ import {
   EconomicIndicatorEvent,
   addFavoriteEconomicIndicator,
   removeFavoriteEconomicIndicator,
-} from '@/api/services/CalendarService';
+} from '@/api/services/calendarService';
 import { formatLocalISOString } from '@/utils/dateUtils';
 import { TableGroupSkeleton } from '@/components/UI/Skeleton';
 import { FaStar } from 'react-icons/fa';
-import { renderCountry } from './CountryFlag';
+import { CountryFlag } from './CountryFlag';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 
@@ -148,7 +148,6 @@ function EconomicIndicatorRow({
   indicator,
   isFavoritePage = false,
 }: EconomicIndicatorRowProps) {
-  const [showPrevPopup, setShowPrevPopup] = useState(false);
   const [isAlarmSet, setIsAlarmSet] = useState(false);
   const [isEventAdded, setIsEventAdded] = useState(
     isFavoritePage ? true : indicator.isFavorite || false,
@@ -164,8 +163,10 @@ function EconomicIndicatorRow({
       toast.success('관심 일정에 추가되었습니다.');
       // 캐시 업데이트
       queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
+      queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
     },
     onError: (error) => {
+      console.error('API error:', error);
       toast.error(
         `추가 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
       );
@@ -180,15 +181,16 @@ function EconomicIndicatorRow({
       toast.success('관심 일정에서 제거되었습니다.');
       // 캐시 업데이트
       queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
+      queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
     },
     onError: (error) => {
+      console.error('API error:', error);
       toast.error(
         `제거 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
       );
     },
   });
 
-  const togglePrevPopup = () => setShowPrevPopup((prev) => !prev);
   const toggleAlarm = () => setIsAlarmSet((prev) => !prev);
 
   const handleAddEvent = () => {
@@ -201,55 +203,27 @@ function EconomicIndicatorRow({
     }
   };
 
-  // 타임스탬프에서 시간 형식(HH:MM)으로 변환
-  const formatTime = (timestamp: number): string => {
+  // 시간 형식화
+  const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
-    // 시간과 분을 2자리 숫자로 표시 (예: 09:05)
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
+    return date.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
-  // 중요도에 따라 별 표시를 렌더링하는 함수
-  const renderImportanceStars = (importance: number | string) => {
-    const maxImportance = 3; // 최대 중요도 (필요에 따라 조정)
-    let importanceValue = 0;
-
-    // 중요도가 숫자 또는 숫자 문자열인 경우에만 변환
-    if (importance !== undefined && importance !== null) {
-      const parsed = Number(importance);
-      if (!isNaN(parsed)) {
-        importanceValue = Math.min(Math.max(0, parsed), maxImportance);
-      }
+  // 중요도 별표 렌더링
+  const renderImportanceStars = (importance: number) => {
+    const stars = [];
+    for (let i = 0; i < 3; i++) {
+      stars.push(
+        <FaStar
+          key={i}
+          className={i < importance ? 'text-yellow-500' : 'text-gray-300'}
+        />,
+      );
     }
-
-    // 중요도에 따른 설명 텍스트
-    const importanceText = {
-      0: '낮음',
-      1: '낮음',
-      2: '중간',
-      3: '높음',
-    }[importanceValue];
-
-    return (
-      <div
-        className="flex items-center"
-        title={`중요도: ${importanceText} (${importanceValue})`}
-      >
-        {Array.from({ length: maxImportance }).map((_, index) => (
-          <FaStar
-            key={index}
-            className={
-              index < importanceValue
-                ? 'text-blue-400' // 채워진 별 (파란색으로 변경하여 테마에 맞춤)
-                : 'text-gray-200' // 빈 별 (더 연한 회색으로 변경)
-            }
-            size={14}
-          />
-        ))}
-        <span className="ml-1 text-xs text-gray-500">{importanceText}</span>
-      </div>
-    );
+    return <div className="flex">{stars}</div>;
   };
 
   // 요청 중인지 여부
@@ -262,7 +236,7 @@ function EconomicIndicatorRow({
         {formatTime(indicator.releaseDate)}
       </td>
       <td className="px-4 py-2 text-sm text-gray-700">
-        {renderCountry(indicator.eventCountry)}
+        <CountryFlag countryCode={indicator.eventCountry} />
       </td>
       <td className="px-4 py-2 text-sm text-gray-700">{indicator.name}</td>
       <td className="px-4 py-2 text-sm text-gray-700">
@@ -271,19 +245,7 @@ function EconomicIndicatorRow({
       <td className="px-4 py-2 text-sm text-gray-700">{indicator.actual}</td>
       <td className="px-4 py-2 text-sm text-gray-700">{indicator.forecast}</td>
       <td className="relative px-4 py-2 text-sm text-gray-700">
-        <button
-          onClick={togglePrevPopup}
-          className="text-blue-500 underline hover:text-blue-700 focus:outline-none"
-        >
-          {indicator.previous}
-        </button>
-        {showPrevPopup && (
-          <div className="absolute left-0 mt-1 rounded border bg-white p-2 shadow-lg">
-            <p className="text-xs text-gray-700">
-              이전값 상세정보: {indicator.previous}
-            </p>
-          </div>
-        )}
+        {indicator.previous}
       </td>
       {/* 이벤트 추가 + 알림 버튼 */}
       <td className="w-10 px-2 py-2 text-sm text-gray-700">

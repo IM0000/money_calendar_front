@@ -7,8 +7,9 @@ import DividendTable from '@/components/CalendarTable/DividendTable';
 import { formatDate } from '@/utils/dateUtils';
 import useCalendarStore from '@/zustand/useCalendarDateStore';
 import { DateRange } from '@/types/CalendarTypes';
-import { getCalendarEvents } from '@/api/services/CalendarService';
+import { getCalendarEvents } from '@/api/services/calendarService';
 import { useQuery } from '@tanstack/react-query';
+import TestErrorButton from '@/components/TestErrorButton';
 
 export default function MainPage() {
   // 초기 선택 메뉴를 '경제지표'로 설정 (원하는 기본값으로 변경 가능)
@@ -72,6 +73,9 @@ export default function MainPage() {
         <div className="px-8">
           <CalendarPanel dateRange={dateRange} setDateRange={setDateRange} />
         </div>
+
+        {/* 개발 환경에서만 테스트 에러 버튼 표시 */}
+        {/* {import.meta.env.DEV && <TestErrorButton />} */}
 
         {/* 메뉴 버튼 영역 */}
         <div className="mt-4 flex space-x-4 px-8 text-sm">

@@ -19,7 +19,7 @@ export default function NotificationButton({
         className="flex items-center justify-center w-8 h-8 rounded focus:outline-none"
       >
         {isActive ? (
-          <IoMdNotifications size={20} className="text-blue-500" />
+          <IoMdNotifications size={20} className="text-yellow-400" />
         ) : (
           <IoMdNotificationsOutline size={20} className="text-gray-500" />
         )}

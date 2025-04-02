@@ -14,7 +14,7 @@ import {
   handleKakaoLogin,
 } from './LoginPage';
 import { ApiResponse } from '../types/ApiResponse';
-import { register } from '../api/services/AuthService';
+import { register } from '../api/services/authService';
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('');
@@ -58,14 +58,14 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-white">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-white p-6">
       <Logo
         width="44px"
         height="44px"
         divClassName="mb-6 text-black"
         spanClassName="text-4xl font-jua font-bold pt-2"
       />
-      <div className="w-full max-w-md mb-8">
+      <div className="mb-8 w-full max-w-md">
         <h2 className="text-2xl font-bold">회원가입</h2>
         <p className="mt-2 text-sm">
           경제정보를 한눈에 확인할 수 있는 머니캘린더에 오신 것을 환영합니다.
@@ -78,7 +78,7 @@ export default function SignUpPage() {
             placeholder="이메일 주소"
             value={email}
             onChange={handleEmailChange}
-            className="w-full p-2 text-black border border-gray-300 rounded"
+            className="w-full rounded border border-gray-300 p-2 text-black"
           />
         </div>
         {error && (
@@ -86,7 +86,7 @@ export default function SignUpPage() {
         )}
         <button
           onClick={handleSendCode}
-          className="w-full px-4 py-2 mt-4 text-white bg-blue-400 rounded hover:bg-blue-500"
+          className="mt-4 w-full rounded bg-blue-400 px-4 py-2 text-white hover:bg-blue-500"
         >
           {loading ? '전송 중...' : '계속하기'}{' '}
           {/* 로딩 상태에 따른 버튼 텍스트 변경 */}
@@ -98,12 +98,12 @@ export default function SignUpPage() {
           </Link>
         </p>
       </div>
-      <div className="flex items-center w-64 my-4">
+      <div className="my-4 flex w-64 items-center">
         <hr className="flex-grow border-gray-300" />
         <span className="mx-2 text-gray-500">OR</span>
         <hr className="flex-grow border-gray-300" />
       </div>
-      <div className="flex justify-around w-64 mb-8">
+      <div className="mb-8 flex w-64 justify-around">
         <OAuthLoginButton
           provider="애플"
           logo={appleLogo}
@@ -126,7 +126,7 @@ export default function SignUpPage() {
         />
       </div>
 
-      <div className="mt-8 text-xs text-center">
+      <div className="mt-8 text-center text-xs">
         <Link to="/terms" className="mr-2 text-gray-400 hover:underline">
           이용약관
         </Link>
