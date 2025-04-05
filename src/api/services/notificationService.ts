@@ -1,6 +1,6 @@
 import apiClient from '../client';
 import { withErrorHandling } from '../../utils/errorHandler';
-import { ApiResponse } from '../../types/ApiResponse';
+import { ApiResponse } from '../../types/api-response';
 
 /**
  * 알림 추가 API

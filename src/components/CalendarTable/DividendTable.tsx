@@ -2,13 +2,13 @@ import React, { createRef, useMemo, useState } from 'react';
 import EventAddButton from './EventAddButton';
 import NotificationButton from './NotificationButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
-import { DateRange } from '@/types/CalendarTypes';
+import { DateRange } from '@/types/calendar-date-range';
 import {
   addFavoriteDividend,
   removeFavoriteDividend,
   getCompanyDividendHistory,
 } from '@/api/services/calendarService';
-import { DividendEvent } from '@/types/calendarEvent';
+import { DividendEvent } from '@/types/calendar-event';
 import { formatLocalISOString } from '@/utils/dateUtils';
 import { TableGroupSkeleton } from '@/components/UI/Skeleton';
 import { CountryFlag } from './CountryFlag';

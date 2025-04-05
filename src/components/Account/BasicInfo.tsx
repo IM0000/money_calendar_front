@@ -1,5 +1,5 @@
 import React from 'react';
-import { UserDto } from '../../types/UsersTypes';
+import { UserDto } from '../../types/users-types';
 import EditNickname from './EditNickname';
 import { FaEnvelope } from 'react-icons/fa';
 

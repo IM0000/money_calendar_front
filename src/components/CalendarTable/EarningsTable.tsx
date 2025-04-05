@@ -3,7 +3,7 @@ import MarketIcon from './MarketIcon';
 import EventAddButton from './EventAddButton';
 import NotificationButton from './NotificationButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
-import { DateRange } from '@/types/CalendarTypes';
+import { DateRange } from '@/types/calendar-date-range';
 import {
   addFavoriteEarnings,
   removeFavoriteEarnings,
@@ -16,7 +16,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import EarningsHistoryTable from './EarningsHistoryTable';
 import { formatMarketCap } from '@/utils/formatUtils';
-import { EarningsEvent } from '@/types/calendarEvent';
+import { EarningsEvent } from '@/types/calendar-event';
 
 interface EarningsTableProps {
   events: EarningsEvent[];

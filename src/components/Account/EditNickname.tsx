@@ -1,5 +1,5 @@
 import React, { useState, FormEvent } from 'react';
-import { UserDto } from '../../types/UsersTypes';
+import { UserDto } from '../../types/users-types';
 import { AxiosError } from 'axios';
 import { useAuthStore } from '../../zustand/useAuthStore';
 import { updateNickname } from '../../api/services/userService';

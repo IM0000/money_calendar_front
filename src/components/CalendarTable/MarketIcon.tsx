@@ -27,7 +27,7 @@ export default function MarketIcon({ releaseTiming }: MarketIconProps) {
 
   return (
     <Tippy content={content} delay={[0, 0]} duration={[0, 0]} placement="top">
-      <span>{icon}</span>
+      <span className="inline-block">{icon}</span>
     </Tippy>
   );
 }

@@ -1,6 +1,6 @@
 import apiClient from '../client';
-import { UserDto } from '../../types/UsersTypes';
-import { ApiResponse } from '../../types/ApiResponse';
+import { UserDto } from '../../types/users-types';
+import { ApiResponse } from '../../types/api-response';
 
 // 닉네임 변경
 export const updateNickname = async (

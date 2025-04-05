@@ -1,13 +1,13 @@
 // src/services/AuthService.ts
 
-import { ApiResponse } from '../../types/ApiResponse';
+import { ApiResponse } from '../../types/api-response';
 import {
   LoginDto,
   LoginResponse,
   RegisterDto,
   VerifyDto,
-} from '../../types/AuthTypes';
-import { UserDto } from '../../types/UsersTypes';
+} from '../../types/auth-types';
+import { UserDto } from '../../types/users-types';
 import apiClient from '../client';
 
 /**

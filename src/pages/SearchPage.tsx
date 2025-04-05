@@ -8,7 +8,7 @@ import {
   searchIndicators,
 } from '../api/services/searchService';
 import { toast } from 'react-hot-toast';
-import { Company, EconomicIndicatorEvent } from '@/types/calendarEvent';
+import { Company, EconomicIndicatorEvent } from '@/types/calendar-event';
 
 // 검색 타입 정의
 type SearchType = 'company' | 'indicator';

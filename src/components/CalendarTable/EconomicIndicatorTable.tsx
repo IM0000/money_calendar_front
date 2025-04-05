@@ -2,12 +2,12 @@ import React, { createRef, useMemo, useState } from 'react';
 import EventAddButton from './EventAddButton';
 import NotificationButton from './NotificationButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
-import { DateRange } from '@/types/CalendarTypes';
+import { DateRange } from '@/types/calendar-date-range';
 import {
   addFavoriteEconomicIndicator,
   removeFavoriteEconomicIndicator,
 } from '@/api/services/calendarService';
-import { EconomicIndicatorEvent } from '@/types/calendarEvent';
+import { EconomicIndicatorEvent } from '@/types/calendar-event';
 import { formatLocalISOString } from '@/utils/dateUtils';
 import { TableGroupSkeleton } from '@/components/UI/Skeleton';
 import { FaStar } from 'react-icons/fa';

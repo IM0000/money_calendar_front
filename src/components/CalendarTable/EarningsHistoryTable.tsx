@@ -1,6 +1,7 @@
-import { EarningsEvent } from '@/types/calendarEvent';
+import { EarningsEvent } from '@/types/calendar-event';
 import MarketIcon from './MarketIcon';
 import { formatDate } from '@/utils/dateUtils';
+import { getColorClass } from '@/utils/colorUtils';
 
 interface EarningsHistoryTableProps {
   data: EarningsEvent[];
@@ -79,17 +80,10 @@ export default function EarningsHistoryTable({
               <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                 <div className="flex items-center space-x-1">
                   <span
-                    className={`font-medium ${
-                      earning.actualEPS &&
-                      earning.forecastEPS &&
-                      parseFloat(earning.actualEPS) >
-                        parseFloat(earning.forecastEPS)
-                        ? 'text-green-600'
-                        : parseFloat(earning.actualEPS) <
-                            parseFloat(earning.forecastEPS)
-                          ? 'text-red-600'
-                          : ''
-                    }`}
+                    className={`font-medium ${getColorClass(
+                      earning.actualEPS,
+                      earning.forecastEPS,
+                    )}`}
                   >
                     {earning.actualEPS || '-'}
                   </span>
@@ -101,25 +95,10 @@ export default function EarningsHistoryTable({
               <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                 <div className="flex items-center space-x-1">
                   <span
-                    className={`font-medium ${
-                      earning.actualRevenue &&
-                      earning.forecastRevenue &&
-                      parseFloat(
-                        earning.actualRevenue.replace(/[^0-9.-]+/g, ''),
-                      ) >
-                        parseFloat(
-                          earning.forecastRevenue.replace(/[^0-9.-]+/g, ''),
-                        )
-                        ? 'text-green-600'
-                        : parseFloat(
-                              earning.actualRevenue.replace(/[^0-9.-]+/g, ''),
-                            ) <
-                            parseFloat(
-                              earning.forecastRevenue.replace(/[^0-9.-]+/g, ''),
-                            )
-                          ? 'text-red-600'
-                          : ''
-                    }`}
+                    className={`font-medium ${getColorClass(
+                      earning.actualRevenue,
+                      earning.forecastRevenue,
+                    )}`}
                   >
                     {earning.actualRevenue || '-'}
                   </span>

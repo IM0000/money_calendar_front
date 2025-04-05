@@ -1,13 +1,13 @@
 // src/services/calendarService.ts
 
-import { ApiResponse } from '../../types/ApiResponse';
+import { ApiResponse } from '../../types/api-response';
 import apiClient from '../client';
 import { withErrorHandling } from '../../utils/errorHandler';
 import {
   DividendEvent,
   EarningsEvent,
   EconomicIndicatorEvent,
-} from '@/types/calendarEvent';
+} from '@/types/calendar-event';
 
 /**
  * 모든 이벤트(실적, 배당, 경제지표)를 한 번에 조회

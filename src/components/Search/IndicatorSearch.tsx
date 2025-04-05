@@ -10,7 +10,8 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import EventAddButton from '../CalendarTable/EventAddButton';
 import { useState, useEffect } from 'react';
-import { EconomicIndicatorEvent } from '@/types/calendarEvent';
+import { EconomicIndicatorEvent } from '@/types/calendar-event';
+import NotificationButton from '../CalendarTable/NotificationButton';
 
 interface IndicatorSearchProps {
   results: Array<EconomicIndicatorEvent>;
@@ -149,20 +150,33 @@ export default function IndicatorSearch({
     );
   };
 
+  const renderImportanceStars = (importance: number) => {
+    const stars = [];
+    for (let i = 0; i < 3; i++) {
+      stars.push(
+        <FaStar
+          key={i}
+          className={i < importance ? 'text-yellow-500' : 'text-gray-300'}
+        />,
+      );
+    }
+    return <div className="flex">{stars}</div>;
+  };
+
   return (
-    <div className="bg-white rounded-lg">
-      <div className="grid grid-cols-[1fr,3fr,1fr,1.5fr,80px] gap-4 border-b bg-gray-50 px-4 py-3 font-medium text-gray-700">
+    <div className="rounded-lg bg-white">
+      <div className="grid grid-cols-[1fr,5fr,1fr,1.5fr,1fr] gap-4 border-b bg-gray-50 px-4 py-3 font-medium text-gray-700">
         <div>국가</div>
         <div>지표명</div>
         <div>중요도</div>
         <div>발표일</div>
-        <div>정보</div>
+        <div>작업</div>
       </div>
 
       {localResults.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-12 text-center text-gray-500">
           <svg
-            className="w-12 h-12 text-gray-400"
+            className="h-12 w-12 text-gray-400"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -184,7 +198,7 @@ export default function IndicatorSearch({
           {localResults.map((indicator) => (
             <div
               key={indicator.id}
-              className="grid grid-cols-[1fr,3fr,1fr,1.5fr,80px] gap-4 border-b px-4 py-3 transition-colors hover:bg-gray-50"
+              className="grid grid-cols-[1fr,5fr,1fr,1.5fr,1fr] gap-4 border-b px-4 py-3 transition-colors hover:bg-gray-50"
             >
               <div className="flex items-center">
                 <CountryFlag countryCode={indicator.country} />
@@ -194,19 +208,12 @@ export default function IndicatorSearch({
               </div>
               <div className="font-medium text-gray-800">{indicator.name}</div>
               <div className="flex">
-                {Array.from({ length: indicator.importance }).map((_, i) => (
-                  <FaStar key={i} className="text-yellow-500" />
-                ))}
-                {Array.from({ length: 3 - indicator.importance }).map(
-                  (_, i) => (
-                    <FaStar key={i} className="text-gray-300" />
-                  ),
-                )}
+                {renderImportanceStars(indicator.importance)}
               </div>
               <div className="text-gray-700">
                 {formatDate(indicator.releaseDate)}
               </div>
-              <div className="flex justify-center">
+              <div className="flex">
                 <EventAddButton
                   isAdded={!!indicator.isFavorite}
                   onClick={() =>
@@ -214,6 +221,7 @@ export default function IndicatorSearch({
                   }
                   isLoading={isLoading(indicator.id)}
                 />
+                <NotificationButton isActive={false} onClick={() => {}} />
               </div>
             </div>
           ))}

@@ -9,7 +9,7 @@ import Logo from '../components/Logo';
 import { AxiosError } from 'axios';
 import { useAuthStore } from '../zustand/useAuthStore';
 import { login } from '../api/services/authService';
-import { ErrorCodes } from '../types/ErrorCodes';
+import { ErrorCodes } from '../types/error-codes';
 
 const { VITE_BACKEND_URL } = import.meta.env;
 

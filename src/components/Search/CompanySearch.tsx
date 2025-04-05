@@ -5,7 +5,7 @@ import { formatMarketCap } from '../../utils/formatUtils';
 import Pagination from '../UI/Pagination';
 import EarningsInfo from './EarningsInfo';
 import DividendInfo from './DividendInfo';
-import { Company } from '@/types/calendarEvent';
+import { Company } from '@/types/calendar-event';
 
 interface CompanySearchProps {
   results: Array<Company>;

@@ -1,4 +1,4 @@
-import { DividendEvent } from '@/types/calendarEvent';
+import { DividendEvent } from '@/types/calendar-event';
 import { formatDate } from '@/utils/dateUtils';
 
 interface DividendHistoryTableProps {

@@ -13,7 +13,7 @@ import {
   handleGoogleLogin,
   handleKakaoLogin,
 } from './LoginPage';
-import { ApiResponse } from '../types/ApiResponse';
+import { ApiResponse } from '../types/api-response';
 import { register } from '../api/services/authService';
 
 export default function SignUpPage() {

@@ -1,12 +1,12 @@
 import apiClient from '../client';
 import { withErrorHandling } from '../../utils/errorHandler';
-import { ApiResponse } from '../../types/ApiResponse';
+import { ApiResponse } from '../../types/api-response';
 import {
   Company,
   DividendEvent,
   EarningsEvent,
   EconomicIndicatorEvent,
-} from '@/types/calendarEvent';
+} from '@/types/calendar-event';
 
 // 검색 결과 인터페이스
 interface SearchResult<T> {

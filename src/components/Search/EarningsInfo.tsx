@@ -13,6 +13,7 @@ import {
   addEarningsNotification,
   removeEarningsNotification,
 } from '../../api/services/notificationService';
+import { getColorClass } from '@/utils/colorUtils';
 
 // 실적 정보 인터페이스
 interface Earnings {
@@ -257,7 +258,12 @@ export default function EarningsInfo({
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                       <div className="flex flex-col">
-                        <span className="font-medium text-gray-900">
+                        <span
+                          className={`font-medium text-gray-900 ${getColorClass(
+                            earnings.actualEPS,
+                            earnings.forecastEPS,
+                          )}`}
+                        >
                           {earnings.actualEPS || '-'}
                         </span>
                         <span className="text-xs text-gray-500">
@@ -267,7 +273,12 @@ export default function EarningsInfo({
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                       <div className="flex flex-col">
-                        <span className="font-medium text-gray-900">
+                        <span
+                          className={`font-medium text-gray-900 ${getColorClass(
+                            earnings.actualRevenue,
+                            earnings.forecastRevenue,
+                          )}`}
+                        >
                           {earnings.actualRevenue || '-'}
                         </span>
                         <span className="text-xs text-gray-500">

@@ -6,7 +6,7 @@ import EarningsTable from '@/components/CalendarTable/EarningsTable';
 import DividendTable from '@/components/CalendarTable/DividendTable';
 import { formatDate } from '@/utils/dateUtils';
 import useCalendarStore from '@/zustand/useCalendarDateStore';
-import { DateRange } from '@/types/CalendarTypes';
+import { DateRange } from '@/types/calendar-date-range';
 import { getFavoriteCalendarEvents } from '@/api/services/calendarService';
 import { useQuery } from '@tanstack/react-query';
 import { extractErrorMessage } from '@/utils/errorHandler';
