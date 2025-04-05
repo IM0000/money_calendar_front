@@ -4,10 +4,10 @@ import NotificationButton from './NotificationButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
 import { DateRange } from '@/types/CalendarTypes';
 import {
-  EconomicIndicatorEvent,
   addFavoriteEconomicIndicator,
   removeFavoriteEconomicIndicator,
 } from '@/api/services/calendarService';
+import { EconomicIndicatorEvent } from '@/types/calendarEvent';
 import { formatLocalISOString } from '@/utils/dateUtils';
 import { TableGroupSkeleton } from '@/components/UI/Skeleton';
 import { FaStar } from 'react-icons/fa';
@@ -28,7 +28,21 @@ export default function EconomicIndicatorTable({
   isLoading = false,
   isFavoritePage = false,
 }: EconomicIndicatorTableProps) {
-  dateRange; // 사용하지 않지만, 필요에 따라 추가적인 로직을 구현할 수 있습니다.
+  // dateRange를 활용하여 모든 날짜 생성
+  const allDates = useMemo(() => {
+    const dates: string[] = [];
+    const startDate = new Date(dateRange.startDate);
+    const endDate = new Date(dateRange.endDate);
+    const currentDate = new Date(startDate);
+
+    // startDate부터 endDate까지 모든 날짜를 포함
+    while (currentDate <= endDate) {
+      dates.push(formatLocalISOString(new Date(currentDate)).slice(0, 10));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return dates;
+  }, [dateRange]);
 
   // releaseDate를 기준으로 "YYYY-MM-DD" 문자열 그룹으로 묶기
   const groups = events.reduce(
@@ -44,8 +58,10 @@ export default function EconomicIndicatorTable({
     {} as Record<string, EconomicIndicatorEvent[]>,
   );
 
-  // 그룹키(날짜)를 오름차순 정렬
-  const sortedGroupKeys = Object.keys(groups).sort();
+  // allDates를 기준으로 정렬된 모든 날짜 키 생성 (빈 날짜 포함)
+  const sortedGroupKeys = useMemo(() => {
+    return allDates.sort();
+  }, [allDates]);
 
   // 요일명을 위한 배열 (0: 일요일, 1: 월요일, …)
   const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
@@ -98,7 +114,7 @@ export default function EconomicIndicatorTable({
           ) : (
             // 데이터가 있을 때 실제 테이블 내용 표시
             sortedGroupKeys.map((groupKey, index) => {
-              const groupIndicators = groups[groupKey];
+              const groupIndicators = groups[groupKey] || [];
               // 그룹키 "YYYY-MM-DD" → Date 객체로 변환하여 요일 계산
               const dateObj = new Date(groupKey);
               const dayOfWeek = dayNames[dateObj.getDay()];
@@ -122,13 +138,24 @@ export default function EconomicIndicatorTable({
                       {formattedGroupDate}
                     </td>
                   </tr>
-                  {groupIndicators.map((indicator) => (
-                    <EconomicIndicatorRow
-                      key={indicator.id}
-                      indicator={indicator}
-                      isFavoritePage={isFavoritePage}
-                    />
-                  ))}
+                  {groupIndicators.length > 0 ? (
+                    groupIndicators.map((indicator: EconomicIndicatorEvent) => (
+                      <EconomicIndicatorRow
+                        key={indicator.id}
+                        indicator={indicator}
+                        isFavoritePage={isFavoritePage}
+                      />
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={8}
+                        className="px-4 py-6 text-center text-gray-500"
+                      >
+                        예약된 일정이 없습니다.
+                      </td>
+                    </tr>
+                  )}
                 </React.Fragment>
               );
             })
@@ -236,7 +263,7 @@ function EconomicIndicatorRow({
         {formatTime(indicator.releaseDate)}
       </td>
       <td className="px-4 py-2 text-sm text-gray-700">
-        <CountryFlag countryCode={indicator.eventCountry} />
+        <CountryFlag countryCode={indicator.country} />
       </td>
       <td className="px-4 py-2 text-sm text-gray-700">{indicator.name}</td>
       <td className="px-4 py-2 text-sm text-gray-700">

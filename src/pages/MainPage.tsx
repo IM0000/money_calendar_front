@@ -9,7 +9,7 @@ import useCalendarStore from '@/zustand/useCalendarDateStore';
 import { DateRange } from '@/types/CalendarTypes';
 import { getCalendarEvents } from '@/api/services/calendarService';
 import { useQuery } from '@tanstack/react-query';
-import TestErrorButton from '@/components/TestErrorButton';
+// import TestErrorButton from '@/components/TestErrorButton';
 
 export default function MainPage() {
   // 초기 선택 메뉴를 '경제지표'로 설정 (원하는 기본값으로 변경 가능)

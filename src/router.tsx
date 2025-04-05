@@ -1,7 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import MainPage from './pages/MainPage';
-import SearchPage from './pages/SearchPage';
 import MyPage from './pages/MyPage';
 import AuthSuccess from './pages/AuthSuccessPage';
 import AuthError from './pages/AuthErrorPage';
@@ -11,6 +10,7 @@ import SetPasswordPage from './pages/SetPasswordPage';
 import FavoriteCalendarPage from './pages/FavoriteCalendarPage';
 import ErrorPage from './pages/ErrorPage';
 import ProtectedRoute from './routes/ProtectedRoute';
+import SearchPage from './pages/SearchPage';
 
 const router = createBrowserRouter([
   {
@@ -35,7 +35,11 @@ const router = createBrowserRouter([
   },
   {
     path: '/search',
-    element: <SearchPage />,
+    element: (
+      <ProtectedRoute>
+        <SearchPage />
+      </ProtectedRoute>
+    ),
     errorElement: <ErrorPage />,
   },
   {

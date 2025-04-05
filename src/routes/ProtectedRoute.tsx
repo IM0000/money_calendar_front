@@ -39,8 +39,17 @@ export default function ProtectedRoute({
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!isAuthenticated) {
-    // 인증되지 않은 사용자는 로그인 페이지로 리디렉션하며 현재 위치 저장
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+    // 사용자에게 로그인이 필요하다는 확인 창 표시
+    const userConfirmed = window.confirm(
+      '로그인이 필요합니다. 로그인 페이지로 이동할까요?',
+    );
+
+    // 사용자가 확인을 누른 경우 로그인 페이지로, 취소를 누른 경우 메인 페이지로 이동
+    return userConfirmed ? (
+      <Navigate to="/login" replace state={{ from: location.pathname }} />
+    ) : (
+      <Navigate to="/" replace />
+    );
   }
 
   // 인증된 사용자에게 컴포넌트를 보여주되, 에러 바운더리로 감싸서 안전하게 보호

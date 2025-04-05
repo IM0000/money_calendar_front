@@ -40,20 +40,6 @@ export default function Header() {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
-  // 관심 일정 클릭 시 로그인 확인 처리
-  const handleFavoritesClick = (e: React.MouseEvent) => {
-    if (!isAuthenticated) {
-      e.preventDefault();
-      if (
-        window.confirm('로그인이 필요합니다. 로그인 페이지로 이동하겠습니까?')
-      ) {
-        navigate('/login');
-      }
-      setCalendarDropdownOpen(false);
-      setMobileMenuOpen(false);
-    }
-  };
-
   // 드롭다운 영역 외 클릭 시 드롭다운 닫기 처리
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -134,10 +120,7 @@ export default function Header() {
                   <Link
                     to="/favorites/calendar"
                     className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                    onClick={(e) => {
-                      handleFavoritesClick(e);
-                      if (isAuthenticated) setCalendarDropdownOpen(false);
-                    }}
+                    onClick={() => setCalendarDropdownOpen(false)}
                   >
                     관심 일정
                   </Link>
@@ -216,10 +199,7 @@ export default function Header() {
             <li>
               <NavLink
                 to="/favorites/calendar"
-                onClick={(e) => {
-                  handleFavoritesClick(e);
-                  if (isAuthenticated) setMobileMenuOpen(false);
-                }}
+                onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
                   isActive
                     ? 'text-blue-500 hover:text-blue-500'
@@ -240,6 +220,19 @@ export default function Header() {
                 }
               >
                 검색
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/explorer"
+                onClick={() => setMobileMenuOpen(false)}
+                className={({ isActive }) =>
+                  isActive
+                    ? 'text-blue-500 hover:text-blue-500'
+                    : 'hover:text-gray-500'
+                }
+              >
+                탐색
               </NavLink>
             </li>
           </ul>

@@ -5,7 +5,6 @@ import NotificationButton from './NotificationButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
 import { DateRange } from '@/types/CalendarTypes';
 import {
-  EarningsEvent,
   addFavoriteEarnings,
   removeFavoriteEarnings,
   getCompanyEarningsHistory,
@@ -16,6 +15,8 @@ import { CountryFlag } from './CountryFlag';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import EarningsHistoryTable from './EarningsHistoryTable';
+import { formatMarketCap } from '@/utils/formatUtils';
+import { EarningsEvent } from '@/types/calendarEvent';
 
 interface EarningsTableProps {
   events: EarningsEvent[];
@@ -30,7 +31,21 @@ export default function EarningsTable({
   isLoading = false,
   isFavoritePage = false,
 }: EarningsTableProps) {
-  dateRange; // 사용하지 않지만, 필요에 따라 추가적인 로직을 구현할 수 있습니다.
+  // dateRange를 활용하여 모든 날짜 생성
+  const allDates = useMemo(() => {
+    const dates: string[] = [];
+    const startDate = new Date(dateRange.startDate);
+    const endDate = new Date(dateRange.endDate);
+    const currentDate = new Date(startDate);
+
+    // startDate부터 endDate까지 모든 날짜를 포함
+    while (currentDate <= endDate) {
+      dates.push(formatLocalISOString(new Date(currentDate)).slice(0, 10));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return dates;
+  }, [dateRange]);
 
   // 날짜별로 그룹화
   const groups = events.reduce(
@@ -45,9 +60,16 @@ export default function EarningsTable({
     {} as Record<string, EarningsEvent[]>,
   );
 
-  const sortedGroupKeys = Object.keys(groups).sort((a, b) =>
-    a === '날짜 없음' ? 1 : b === '날짜 없음' ? -1 : a.localeCompare(b),
-  );
+  // allDates를 기준으로 정렬된 모든 날짜 키 생성 (빈 날짜 포함)
+  const sortedGroupKeys = useMemo(() => {
+    // '날짜 없음' 데이터가 있으면 마지막에 추가
+    const sortedDates = [...allDates].sort();
+    if (groups['날짜 없음'] && groups['날짜 없음'].length > 0) {
+      sortedDates.push('날짜 없음');
+    }
+    return sortedDates;
+  }, [allDates, groups]);
+
   const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
 
   // 날짜 row에 대한 ref 배열 생성
@@ -77,7 +99,7 @@ export default function EarningsTable({
               매출 / 예측
             </th>
             <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
-              시가총액(천$)
+              시가총액
             </th>
             <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               이전 발표
@@ -96,7 +118,7 @@ export default function EarningsTable({
           ) : (
             // 데이터가 있을 때 실제 테이블 내용 표시
             sortedGroupKeys.map((groupKey, index) => {
-              const groupEarnings = groups[groupKey];
+              const groupEarnings = groups[groupKey] || [];
               const formattedGroupDate =
                 groupKey !== '날짜 없음'
                   ? (() => {
@@ -119,13 +141,32 @@ export default function EarningsTable({
                       {formattedGroupDate}
                     </td>
                   </tr>
-                  {groupEarnings.map((earning) => (
-                    <EarningRow
-                      key={earning.id}
-                      earning={earning}
-                      isFavoritePage={isFavoritePage}
-                    />
-                  ))}
+                  {groupEarnings.length > 0 ? (
+                    groupEarnings
+                      .filter(
+                        (
+                          e,
+                        ): e is EarningsEvent & {
+                          company: NonNullable<EarningsEvent['company']>;
+                        } => e.company != null,
+                      )
+                      .map((earning) => (
+                        <EarningRow
+                          key={earning.id}
+                          earning={earning}
+                          isFavoritePage={isFavoritePage}
+                        />
+                      ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={9}
+                        className="px-4 py-6 text-center text-gray-500"
+                      >
+                        예약된 일정이 없습니다.
+                      </td>
+                    </tr>
+                  )}
                 </React.Fragment>
               );
             })
@@ -140,7 +181,7 @@ function EarningRow({
   earning,
   isFavoritePage = false,
 }: {
-  earning: EarningsEvent;
+  earning: EarningsEvent & { company: NonNullable<EarningsEvent['company']> };
   isFavoritePage?: boolean;
 }) {
   const [showOlderPopup, setShowOlderPopup] = useState(false);
@@ -232,7 +273,7 @@ function EarningRow({
           <MarketIcon releaseTiming={earning.releaseTiming} />
         </td>
         <td className="px-4 py-2 text-sm text-gray-700">
-          <CountryFlag countryCode={earning.eventCountry} />
+          <CountryFlag countryCode={earning.country} />
         </td>
         <td className="px-4 py-2 text-sm text-gray-700">
           {earning.company.name} ({earning.company.ticker})
@@ -244,7 +285,7 @@ function EarningRow({
           {earning.actualRevenue} / {earning.forecastRevenue}
         </td>
         <td className="min-w-[8rem] px-4 py-2 text-sm text-gray-700">
-          {earning.company.marketValue}
+          {formatMarketCap(earning.company.marketValue)}
         </td>
         <td className="px-4 py-2 text-sm text-gray-700 ">
           <button

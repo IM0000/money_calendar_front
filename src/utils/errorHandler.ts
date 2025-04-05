@@ -125,17 +125,31 @@ export const withErrorHandling = <T, A extends unknown[]>(
  * 처리되지 않은 에러를 캡처하여 에러 페이지로 리다이렉트합니다.
  */
 export function setupGlobalErrorHandlers() {
-  // 처리되지 않은 Promise 에러 캐처
-  window.addEventListener('unhandledrejection', (event) => {
-    // 에러 로깅
-    logError(event.reason, { context: 'Unhandled Promise Rejection' });
+  let errorCount = 0;
+  const MAX_ERROR_COUNT = 3;
+  const ERROR_RESET_INTERVAL = 5000; // 5초
 
-    // Error Boundary와 API 에러 핸들러가 처리하지 못하는 경우에만 리다이렉트
+  window.addEventListener('unhandledrejection', (event) => {
+    errorCount++;
+
+    // 에러 카운트 리셋 타이머
+    setTimeout(
+      () => (errorCount = Math.max(0, errorCount - 1)),
+      ERROR_RESET_INTERVAL,
+    );
+
+    if (errorCount > MAX_ERROR_COUNT) {
+      console.error('다수의 에러 발생. 에러 처리 일시 중단');
+      return;
+    }
+
+    logError(event.reason);
+
     if (isUncaughtSystemError(event.reason)) {
-      // 세션 스토리지에 에러 정보 저장
-      saveErrorToStorage(event.reason);
-      // 오류 페이지로 이동
-      window.location.href = '/error';
+      // 이미 에러 페이지면 리디렉션 방지
+      if (window.location.pathname !== '/error') {
+        window.location.href = '/error';
+      }
     }
   });
 

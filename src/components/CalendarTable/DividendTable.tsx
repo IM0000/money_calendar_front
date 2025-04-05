@@ -4,11 +4,11 @@ import NotificationButton from './NotificationButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
 import { DateRange } from '@/types/CalendarTypes';
 import {
-  DividendEvent,
   addFavoriteDividend,
   removeFavoriteDividend,
   getCompanyDividendHistory,
 } from '@/api/services/calendarService';
+import { DividendEvent } from '@/types/calendarEvent';
 import { formatLocalISOString } from '@/utils/dateUtils';
 import { TableGroupSkeleton } from '@/components/UI/Skeleton';
 import { CountryFlag } from './CountryFlag';
@@ -29,7 +29,21 @@ export default function DividendTable({
   isLoading = false,
   isFavoritePage = false,
 }: DividendTableProps) {
-  dateRange; // 사용하지 않지만, 필요에 따라 추가적인 로직을 구현할 수 있습니다.
+  // dateRange를 활용하여 모든 날짜 생성
+  const allDates = useMemo(() => {
+    const dates: string[] = [];
+    const startDate = new Date(dateRange.startDate);
+    const endDate = new Date(dateRange.endDate);
+    const currentDate = new Date(startDate);
+
+    // startDate부터 endDate까지 모든 날짜를 포함
+    while (currentDate <= endDate) {
+      dates.push(formatLocalISOString(new Date(currentDate)).slice(0, 10));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return dates;
+  }, [dateRange]);
 
   // 그룹화: exDividendDate(YYYY-MM-DD) 기준으로 그룹화
   const groups = events.reduce(
@@ -43,7 +57,11 @@ export default function DividendTable({
     {} as Record<string, DividendEvent[]>,
   );
 
-  const sortedGroupKeys = Object.keys(groups).sort();
+  // allDates를 기준으로 정렬된 모든 날짜 키 생성 (빈 날짜 포함)
+  const sortedGroupKeys = useMemo(() => {
+    return allDates.sort();
+  }, [allDates]);
+
   const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
 
   // 날짜 row에 대한 ref 배열 생성
@@ -95,7 +113,7 @@ export default function DividendTable({
           ) : (
             // 데이터가 있을 때 실제 테이블 내용 표시
             sortedGroupKeys.map((groupKey, index) => {
-              const groupDividends = groups[groupKey];
+              const groupDividends = groups[groupKey] || [];
               const dateObj = new Date(groupKey);
               const dayOfWeek = dayNames[dateObj.getDay()];
               const [year, month, day] = groupKey.split('-');
@@ -115,13 +133,25 @@ export default function DividendTable({
                       {formattedGroupDate}
                     </td>
                   </tr>
-                  {groupDividends.map((dividend) => (
-                    <DividendRow
-                      key={dividend.id}
-                      dividend={dividend}
-                      isFavoritePage={isFavoritePage}
-                    />
-                  ))}
+
+                  {groupDividends.length > 0 ? (
+                    groupDividends.map((dividend: DividendEvent) => (
+                      <DividendRow
+                        key={dividend.id}
+                        dividend={dividend}
+                        isFavoritePage={isFavoritePage}
+                      />
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={8}
+                        className="px-4 py-6 text-center text-gray-500"
+                      >
+                        예약된 일정이 없습니다.
+                      </td>
+                    </tr>
+                  )}
                 </React.Fragment>
               );
             })
@@ -187,13 +217,17 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
   const { data: historyData, isLoading: isHistoryLoading } = useQuery({
     queryKey: [
       'dividendHistory',
-      dividend.company.id,
+      dividend.company?.id,
       historyPage,
       historyLimit,
     ],
     queryFn: () =>
-      getCompanyDividendHistory(dividend.company.id, historyPage, historyLimit),
-    enabled: showOlderPopup, // 상세보기가 열렸을 때만 쿼리 실행
+      getCompanyDividendHistory(
+        dividend.company?.id ?? -1,
+        historyPage,
+        historyLimit,
+      ),
+    enabled: showOlderPopup && !!dividend.company?.id, // 상세보기가 열렸을 때만 쿼리 실행
   });
 
   const toggleOlderPopup = () => {
@@ -232,11 +266,12 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
       <tr className="relative">
         {/* 국가 */}
         <td className="px-4 py-2 text-sm text-gray-700">
-          <CountryFlag countryCode={dividend.eventCountry} />
+          <CountryFlag countryCode={dividend.country} />
         </td>
         {/* 회사명(티커) */}
         <td className="px-4 py-2 text-sm text-gray-700">
-          {dividend.company.name} ({dividend.company.ticker})
+          {dividend.company?.name ?? '정보 없음'} (
+          {dividend.company?.ticker ?? '-'})
         </td>
         {/* 배당락일 */}
         <td className="min-w-[9rem] px-4 py-2 text-sm text-gray-700">
@@ -280,7 +315,7 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
           <td colSpan={8} className="bg-gray-50 px-4 py-4">
             <div className="rounded border border-gray-200 bg-white p-4">
               <h3 className="mb-4 text-lg font-medium">
-                {dividend.company.name} 이전 배당금 정보
+                {dividend.company?.name ?? '정보 없음'} 이전 배당금 정보
               </h3>
               {historyData?.data ? (
                 <DividendHistoryTable

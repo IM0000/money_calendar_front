@@ -17,6 +17,7 @@
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",
     "headless": "link:@tippyjs/react/headless",
+    "lodash.debounce": "^4.0.8",
     "lucide-react": "^0.474.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -31,6 +32,7 @@
   },
   "devDependencies": {
     "@types/axios": "^0.14.4",
+    "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^22.7.5",
     "@types/react": "^18.2.67",
     "@types/react-dom": "^18.2.22",

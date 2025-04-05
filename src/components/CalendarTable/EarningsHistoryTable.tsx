@@ -1,4 +1,4 @@
-import { EarningsEvent } from '@/api/services/calendarService';
+import { EarningsEvent } from '@/types/calendarEvent';
 import MarketIcon from './MarketIcon';
 import { formatDate } from '@/utils/dateUtils';
 
