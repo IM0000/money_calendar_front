@@ -1,20 +1,13 @@
 import React, { createRef, useMemo, useState } from 'react';
-import EventAddButton from './EventAddButton';
+import FavoriteButton from './FavoriteButton';
 import NotificationButton from './NotificationButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
 import { DateRange } from '@/types/calendar-date-range';
-import {
-  addFavoriteEconomicIndicator,
-  removeFavoriteEconomicIndicator,
-} from '@/api/services/calendarService';
 import { EconomicIndicatorEvent } from '@/types/calendar-event';
 import { formatLocalISOString } from '@/utils/dateUtils';
 import { TableGroupSkeleton } from '@/components/UI/Skeleton';
 import { FaStar } from 'react-icons/fa';
 import { CountryFlag } from './CountryFlag';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-hot-toast';
-
 interface EconomicIndicatorTableProps {
   events: EconomicIndicatorEvent[];
   dateRange: DateRange;
@@ -175,60 +168,9 @@ function EconomicIndicatorRow({
   indicator,
   isFavoritePage = false,
 }: EconomicIndicatorRowProps) {
-  const [isAlarmSet, setIsAlarmSet] = useState(false);
-  const [isEventAdded, setIsEventAdded] = useState(
+  const [isFavorite] = useState(
     isFavoritePage ? true : indicator.isFavorite || false,
   );
-
-  const queryClient = useQueryClient();
-
-  // 관심 추가 mutation
-  const addFavoriteMutation = useMutation({
-    mutationFn: addFavoriteEconomicIndicator,
-    onSuccess: () => {
-      setIsEventAdded(true);
-      toast.success('관심 일정에 추가되었습니다.');
-      // 캐시 업데이트
-      queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
-      queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
-    },
-    onError: (error) => {
-      console.error('API error:', error);
-      toast.error(
-        `추가 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-      );
-    },
-  });
-
-  // 관심 제거 mutation
-  const removeFavoriteMutation = useMutation({
-    mutationFn: removeFavoriteEconomicIndicator,
-    onSuccess: () => {
-      setIsEventAdded(false);
-      toast.success('관심 일정에서 제거되었습니다.');
-      // 캐시 업데이트
-      queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
-      queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
-    },
-    onError: (error) => {
-      console.error('API error:', error);
-      toast.error(
-        `제거 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-      );
-    },
-  });
-
-  const toggleAlarm = () => setIsAlarmSet((prev) => !prev);
-
-  const handleAddEvent = () => {
-    if (isEventAdded) {
-      // 제거 요청
-      removeFavoriteMutation.mutate(indicator.id);
-    } else {
-      // 추가 요청
-      addFavoriteMutation.mutate(indicator.id);
-    }
-  };
 
   // 시간 형식화
   const formatTime = (timestamp: number) => {
@@ -253,10 +195,6 @@ function EconomicIndicatorRow({
     return <div className="flex">{stars}</div>;
   };
 
-  // 요청 중인지 여부
-  const isLoading =
-    addFavoriteMutation.isPending || removeFavoriteMutation.isPending;
-
   return (
     <tr className="relative">
       <td className="px-4 py-2 text-sm text-gray-700">
@@ -277,12 +215,16 @@ function EconomicIndicatorRow({
       {/* 이벤트 추가 + 알림 버튼 */}
       <td className="w-10 px-2 py-2 text-sm text-gray-700">
         <div className="flex items-center space-x-1">
-          <EventAddButton
-            isAdded={isEventAdded}
-            onClick={handleAddEvent}
-            isLoading={isLoading}
+          <FavoriteButton
+            id={indicator.id}
+            eventType="economicIndicator"
+            isFavorite={isFavorite}
           />
-          <NotificationButton isActive={isAlarmSet} onClick={toggleAlarm} />
+          <NotificationButton
+            id={indicator.id}
+            eventType="economicIndicator"
+            isActive={indicator.hasNotification || false}
+          />
         </div>
       </td>
     </tr>

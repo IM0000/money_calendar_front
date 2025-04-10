@@ -1,12 +1,21 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { FaUser, FaBars, FaTimes, FaChevronDown } from 'react-icons/fa';
 import Logo from '../Logo';
 import { useAuthStore } from '../../zustand/useAuthStore';
+import { getUnreadNotificationsCount } from '@/api/services/notificationService';
+import { useQuery } from '@tanstack/react-query';
 
 export default function Header() {
   const navigate = useNavigate();
   const { isAuthenticated, logout, checkAuth } = useAuthStore();
+
+  // 읽지 않은 알림 개수를 가져오는 쿼리
+  const { data: unreadCountData } = useQuery({
+    queryKey: ['unreadNotificationsCount'],
+    queryFn: () => getUnreadNotificationsCount(),
+    refetchOnMount: true, // 컴포넌트가 마운트될 때마다 새로 쿼리 실행
+  });
 
   // 드롭다운(로그인 상태) 토글을 위한 상태
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -70,7 +79,9 @@ export default function Header() {
 
   // 데스크탑 메뉴 링크 클래스
   const desktopLinkClass = ({ isActive }: { isActive: boolean }) =>
-    isActive ? 'text-blue-500 hover:text-blue-500' : 'hover:text-gray-500';
+    isActive
+      ? 'relative text-blue-500 hover:text-blue-500'
+      : 'relative hover:text-gray-500';
 
   return (
     <header className="fixed top-0 z-50 w-full bg-white bg-opacity-90 shadow-md">
@@ -132,6 +143,17 @@ export default function Header() {
                 검색
               </NavLink>
             </li>
+            <li>
+              <NavLink to="/notifications" className={desktopLinkClass}>
+                알림
+                {/* 알림 갯수가 0보다 크면 뱃지 노출 */}
+                {(unreadCountData?.data?.count || 0) > 0 && (
+                  <span className="absolute -right-5 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                    {unreadCountData?.data?.count}
+                  </span>
+                )}
+              </NavLink>
+            </li>
           </ul>
         </nav>
 
@@ -189,8 +211,8 @@ export default function Header() {
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
                   isActive
-                    ? 'text-blue-500 hover:text-blue-500'
-                    : 'hover:text-gray-500'
+                    ? 'relative text-blue-500 hover:text-blue-500'
+                    : 'relative hover:text-gray-500'
                 }
               >
                 캘린더
@@ -202,8 +224,8 @@ export default function Header() {
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
                   isActive
-                    ? 'text-blue-500 hover:text-blue-500'
-                    : 'hover:text-gray-500'
+                    ? 'relative text-blue-500 hover:text-blue-500'
+                    : 'relative hover:text-gray-500'
                 }
               >
                 관심 일정
@@ -215,8 +237,8 @@ export default function Header() {
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
                   isActive
-                    ? 'text-blue-500 hover:text-blue-500'
-                    : 'hover:text-gray-500'
+                    ? 'relative text-blue-500 hover:text-blue-500'
+                    : 'relative hover:text-gray-500'
                 }
               >
                 검색
@@ -224,15 +246,20 @@ export default function Header() {
             </li>
             <li>
               <NavLink
-                to="/explorer"
+                to="/notifications"
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
                   isActive
-                    ? 'text-blue-500 hover:text-blue-500'
-                    : 'hover:text-gray-500'
+                    ? 'relative text-blue-500 hover:text-blue-500'
+                    : 'relative hover:text-gray-500'
                 }
               >
-                탐색
+                알림센터
+                {(unreadCountData?.data?.count || 0) && (
+                  <span className="absolute -right-4 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                    {unreadCountData?.data?.count}
+                  </span>
+                )}
               </NavLink>
             </li>
           </ul>

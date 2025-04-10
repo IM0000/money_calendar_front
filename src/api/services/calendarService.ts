@@ -24,7 +24,6 @@ export const getCalendarEvents = withErrorHandling(
       economicIndicators: EconomicIndicatorEvent[];
     }>
   > => {
-    console.log('getCalendarEvents', startDate, endDate);
     const response = await apiClient.get<
       ApiResponse<{
         earnings: EarningsEvent[];

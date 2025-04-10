@@ -9,10 +9,6 @@ import {
   addFavoriteEarnings,
   removeFavoriteEarnings,
 } from '../../api/services/calendarService';
-import {
-  addEarningsNotification,
-  removeEarningsNotification,
-} from '../../api/services/notificationService';
 import { getColorClass } from '@/utils/colorUtils';
 
 // 실적 정보 인터페이스
@@ -141,52 +137,6 @@ export default function EarningsInfo({
     }
   };
 
-  // 알림 추가 mutation
-  const addNotificationMutation = useMutation({
-    mutationFn: addEarningsNotification,
-    onSuccess: () => {
-      toast.success('알림이 설정되었습니다.');
-      // 캐시 업데이트
-      queryClient.invalidateQueries({
-        queryKey: ['companyEarnings', companyId],
-      });
-    },
-    onError: (error) => {
-      toast.error(
-        `알림 설정 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-      );
-    },
-  });
-
-  // 알림 제거 mutation
-  const removeNotificationMutation = useMutation({
-    mutationFn: removeEarningsNotification,
-    onSuccess: () => {
-      toast.success('알림이 해제되었습니다.');
-      // 캐시 업데이트
-      queryClient.invalidateQueries({
-        queryKey: ['companyEarnings', companyId],
-      });
-    },
-    onError: (error) => {
-      toast.error(
-        `알림 해제 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-      );
-    },
-  });
-
-  // 알림 설정 핸들러
-  const handleNotificationToggle = (
-    earningsId: number,
-    isCurrentlyActive: boolean,
-  ) => {
-    if (isCurrentlyActive) {
-      removeNotificationMutation.mutate(earningsId);
-    } else {
-      addNotificationMutation.mutate(earningsId);
-    }
-  };
-
   // 데이터 추출 헬퍼 함수
   const getItems = (): Earnings[] => earningsData?.data?.items || [];
   const getPagination = () =>
@@ -302,13 +252,9 @@ export default function EarningsInfo({
                           }
                         />
                         <NotificationButton
+                          id={earnings.id}
+                          eventType="earnings"
                           isActive={!!earnings.hasNotification}
-                          onClick={() =>
-                            handleNotificationToggle(
-                              earnings.id,
-                              !!earnings.hasNotification,
-                            )
-                          }
                         />
                       </div>
                     </td>

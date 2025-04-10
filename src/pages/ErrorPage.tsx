@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 interface ErrorInfo {
   message?: string;
@@ -19,7 +19,6 @@ const ErrorPage: React.FC = () => {
     message: '알 수 없는 오류가 발생했습니다.',
   });
   const [showDetails, setShowDetails] = useState(false);
-  const navigate = useNavigate();
   const isDevelopment = process.env.NODE_ENV === 'development';
 
   useEffect(() => {
@@ -43,20 +42,20 @@ const ErrorPage: React.FC = () => {
 
   const handleRefresh = () => {
     if (errorInfo.prevPath) {
-      navigate(errorInfo.prevPath);
+      window.location.href = errorInfo.prevPath;
     } else {
       window.location.reload();
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-b from-gray-50 to-gray-100">
-      <div className="w-full max-w-lg p-8 overflow-hidden bg-white shadow-xl rounded-xl">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 p-4">
+      <div className="w-full max-w-lg overflow-hidden rounded-xl bg-white p-8 shadow-xl">
         <div className="text-center">
-          <div className="flex justify-center mb-6">
-            <div className="p-4 bg-red-100 rounded-full">
+          <div className="mb-6 flex justify-center">
+            <div className="rounded-full bg-red-100 p-4">
               <svg
-                className="w-16 h-16 text-red-500"
+                className="h-16 w-16 text-red-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -78,10 +77,10 @@ const ErrorPage: React.FC = () => {
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
               to="/"
-              className="inline-flex items-center justify-center px-5 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               <svg
-                className="w-4 h-4 mr-2"
+                className="mr-2 h-4 w-4"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -98,10 +97,10 @@ const ErrorPage: React.FC = () => {
 
             <button
               onClick={handleRefresh}
-              className="inline-flex items-center justify-center px-5 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               <svg
-                className="w-4 h-4 mr-2"
+                className="mr-2 h-4 w-4"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -128,8 +127,8 @@ const ErrorPage: React.FC = () => {
         </div>
 
         {isDevelopment && showDetails && errorInfo.stack && (
-          <div className="p-4 mt-6 overflow-auto text-left bg-gray-800 rounded-lg">
-            <p className="font-mono text-xs text-gray-200 whitespace-pre-wrap">
+          <div className="mt-6 overflow-auto rounded-lg bg-gray-800 p-4 text-left">
+            <p className="whitespace-pre-wrap font-mono text-xs text-gray-200">
               {errorInfo.stack}
             </p>
             {errorInfo.timestamp && (

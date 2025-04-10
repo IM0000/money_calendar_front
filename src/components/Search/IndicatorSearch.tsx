@@ -221,7 +221,11 @@ export default function IndicatorSearch({
                   }
                   isLoading={isLoading(indicator.id)}
                 />
-                <NotificationButton isActive={false} onClick={() => {}} />
+                <NotificationButton
+                  id={indicator.id}
+                  eventType="economicIndicator"
+                  isActive={indicator.hasNotification || false}
+                />
               </div>
             </div>
           ))}

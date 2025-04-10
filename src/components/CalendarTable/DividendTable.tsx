@@ -1,20 +1,14 @@
 import React, { createRef, useMemo, useState } from 'react';
-import EventAddButton from './EventAddButton';
-import NotificationButton from './NotificationButton';
+import FavoriteButton from './FavoriteButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
 import { DateRange } from '@/types/calendar-date-range';
-import {
-  addFavoriteDividend,
-  removeFavoriteDividend,
-  getCompanyDividendHistory,
-} from '@/api/services/calendarService';
+import { getCompanyDividendHistory } from '@/api/services/calendarService';
 import { DividendEvent } from '@/types/calendar-event';
 import { formatLocalISOString } from '@/utils/dateUtils';
 import { TableGroupSkeleton } from '@/components/UI/Skeleton';
 import { CountryFlag } from './CountryFlag';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { toast } from 'react-hot-toast';
 import DividendHistoryTable from './DividendHistoryTable';
+import { useQuery } from '@tanstack/react-query';
 
 interface DividendTableProps {
   events: DividendEvent[];
@@ -169,49 +163,12 @@ interface DividendRowProps {
 
 function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
   const [showOlderPopup, setShowOlderPopup] = useState(false);
-  const [isAlarmSet, setIsAlarmSet] = useState(false);
-  const [isEventAdded, setIsEventAdded] = useState(
+  const [isFavorite] = useState(
     isFavoritePage ? true : dividend.isFavorite || false,
   );
   // 페이지 상태 추가
   const [historyPage, setHistoryPage] = useState(1);
   const [historyLimit] = useState(5);
-
-  const queryClient = useQueryClient();
-
-  // 관심 추가 mutation
-  const addFavoriteMutation = useMutation({
-    mutationFn: addFavoriteDividend,
-    onSuccess: () => {
-      setIsEventAdded(true);
-      toast.success('관심 일정에 추가되었습니다.');
-      // 캐시 업데이트
-      queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
-      queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
-    },
-    onError: (error) => {
-      toast.error(
-        `추가 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-      );
-    },
-  });
-
-  // 관심 제거 mutation
-  const removeFavoriteMutation = useMutation({
-    mutationFn: removeFavoriteDividend,
-    onSuccess: () => {
-      setIsEventAdded(false);
-      toast.success('관심 일정에서 제거되었습니다.');
-      // 캐시 업데이트
-      queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
-      queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
-    },
-    onError: (error) => {
-      toast.error(
-        `제거 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-      );
-    },
-  });
 
   // 이전 배당금 데이터 쿼리
   const { data: historyData, isLoading: isHistoryLoading } = useQuery({
@@ -234,18 +191,6 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
     setShowOlderPopup((prev) => !prev);
   };
 
-  const toggleAlarm = () => setIsAlarmSet((prev) => !prev);
-
-  const handleAddEvent = () => {
-    if (isEventAdded) {
-      // 제거 요청
-      removeFavoriteMutation.mutate(dividend.id);
-    } else {
-      // 추가 요청
-      addFavoriteMutation.mutate(dividend.id);
-    }
-  };
-
   const handlePageChange = (page: number) => {
     setHistoryPage(page);
   };
@@ -256,10 +201,6 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
   const paymentDateDisplay = new Date(
     dividend.paymentDate,
   ).toLocaleDateString();
-
-  // 요청 중인지 여부
-  const isLoading =
-    addFavoriteMutation.isPending || removeFavoriteMutation.isPending;
 
   return (
     <>
@@ -301,12 +242,11 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
         {/* 이벤트 추가 + 알림 버튼 */}
         <td className="w-10 px-2 py-2 text-sm text-gray-700">
           <div className="flex items-center space-x-1">
-            <EventAddButton
-              isAdded={isEventAdded}
-              onClick={handleAddEvent}
-              isLoading={isLoading}
+            <FavoriteButton
+              id={dividend.id}
+              eventType="dividend"
+              isFavorite={isFavorite}
             />
-            <NotificationButton isActive={isAlarmSet} onClick={toggleAlarm} />
           </div>
         </td>
       </tr>

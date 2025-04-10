@@ -1,22 +1,17 @@
 import React, { createRef, useMemo, useState } from 'react';
-import MarketIcon from './MarketIcon';
-import EventAddButton from './EventAddButton';
+import FavoriteButton from './FavoriteButton';
 import NotificationButton from './NotificationButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
 import { DateRange } from '@/types/calendar-date-range';
-import {
-  addFavoriteEarnings,
-  removeFavoriteEarnings,
-  getCompanyEarningsHistory,
-} from '@/api/services/calendarService';
+import { getCompanyEarningsHistory } from '@/api/services/calendarService';
 import { formatLocalISOString } from '@/utils/dateUtils';
 import { TableGroupSkeleton } from '@/components/UI/Skeleton';
 import { CountryFlag } from './CountryFlag';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { toast } from 'react-hot-toast';
 import EarningsHistoryTable from './EarningsHistoryTable';
 import { formatMarketCap } from '@/utils/formatUtils';
 import { EarningsEvent } from '@/types/calendar-event';
+import MarketIcon from './MarketIcon';
+import { useQuery } from '@tanstack/react-query';
 
 interface EarningsTableProps {
   events: EarningsEvent[];
@@ -185,49 +180,12 @@ function EarningRow({
   isFavoritePage?: boolean;
 }) {
   const [showOlderPopup, setShowOlderPopup] = useState(false);
-  const [isAlarmSet, setIsAlarmSet] = useState(false);
-  const [isEventAdded, setIsEventAdded] = useState(
+  const [isFavorite] = useState(
     isFavoritePage ? true : earning.isFavorite || false,
   );
   // 페이지 상태 추가
   const [historyPage, setHistoryPage] = useState(1);
   const [historyLimit] = useState(5);
-
-  const queryClient = useQueryClient();
-
-  // 관심 추가 mutation
-  const addFavoriteMutation = useMutation({
-    mutationFn: addFavoriteEarnings,
-    onSuccess: () => {
-      setIsEventAdded(true);
-      toast.success('관심 일정에 추가되었습니다.');
-      // 캐시 업데이트
-      queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
-      queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
-    },
-    onError: (error) => {
-      toast.error(
-        `추가 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-      );
-    },
-  });
-
-  // 관심 제거 mutation
-  const removeFavoriteMutation = useMutation({
-    mutationFn: removeFavoriteEarnings,
-    onSuccess: () => {
-      setIsEventAdded(false);
-      toast.success('관심 일정에서 제거되었습니다.');
-      // 캐시 업데이트
-      queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
-      queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
-    },
-    onError: (error) => {
-      toast.error(
-        `제거 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-      );
-    },
-  });
 
   // 이전 실적 데이터 쿼리
   const { data: historyData, isLoading: isHistoryLoading } = useQuery({
@@ -246,25 +204,9 @@ function EarningRow({
     setShowOlderPopup((prev) => !prev);
   };
 
-  const toggleAlarm = () => setIsAlarmSet((prev) => !prev);
-
-  const handleAddEvent = () => {
-    if (isEventAdded) {
-      // 제거 요청
-      removeFavoriteMutation.mutate(earning.id);
-    } else {
-      // 추가 요청
-      addFavoriteMutation.mutate(earning.id);
-    }
-  };
-
   const handlePageChange = (page: number) => {
     setHistoryPage(page);
   };
-
-  // 요청 중인지 여부
-  const isLoading =
-    addFavoriteMutation.isPending || removeFavoriteMutation.isPending;
 
   return (
     <>
@@ -297,12 +239,16 @@ function EarningRow({
         </td>
         <td className="w-10 px-2 py-2 text-sm text-gray-700">
           <div className="flex items-center space-x-1">
-            <EventAddButton
-              isAdded={isEventAdded}
-              onClick={handleAddEvent}
-              isLoading={isLoading}
+            <FavoriteButton
+              id={earning.id}
+              eventType="earnings"
+              isFavorite={isFavorite}
             />
-            <NotificationButton isActive={isAlarmSet} onClick={toggleAlarm} />
+            <NotificationButton
+              id={earning.id}
+              eventType="earnings"
+              isActive={earning.hasNotification || false}
+            />
           </div>
         </td>
       </tr>

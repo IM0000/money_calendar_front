@@ -11,6 +11,7 @@ import FavoriteCalendarPage from './pages/FavoriteCalendarPage';
 import ErrorPage from './pages/ErrorPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 import SearchPage from './pages/SearchPage';
+import { NotificationCenter } from './pages/NotificationCenter';
 
 const router = createBrowserRouter([
   {
@@ -78,6 +79,15 @@ const router = createBrowserRouter([
   {
     path: '/error',
     element: <ErrorPage />,
+  },
+  {
+    path: '/notifications',
+    element: (
+      <ProtectedRoute>
+        <NotificationCenter />
+      </ProtectedRoute>
+    ),
+    errorElement: <ErrorPage />,
   },
 ]);
 

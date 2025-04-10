@@ -27,7 +27,7 @@ const queryClient = new QueryClient({
 
 // 에러 발생 시 표시할 폴백 UI 컴포넌트
 const ErrorFallback = () => (
-  <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
+  <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
     <h1 className="mb-4 text-2xl font-bold text-red-600">
       오류가 발생했습니다
     </h1>
@@ -36,7 +36,7 @@ const ErrorFallback = () => (
     </p>
     <button
       onClick={() => (window.location.href = '/')}
-      className="px-4 py-2 text-white transition-colors bg-blue-500 rounded-md hover:bg-blue-600"
+      className="rounded-md bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
     >
       홈으로 돌아가기
     </button>

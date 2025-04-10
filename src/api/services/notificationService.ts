@@ -1,6 +1,8 @@
 import apiClient from '../client';
 import { withErrorHandling } from '../../utils/errorHandler';
 import { ApiResponse } from '../../types/api-response';
+import { Notification } from '@/types/notification';
+import { EarningsEvent, EconomicIndicatorEvent } from '@/types/calendar-event';
 
 /**
  * 알림 추가 API
@@ -70,14 +72,14 @@ export const removeDividendNotification = withErrorHandling(
 
 /**
  * 경제지표 알림 추가 API
- * POST /api/v1/notifications/indicators/:id
+ * POST /api/v1/notifications/economic-indicators/:id
  * @param indicatorId 경제지표 ID
  * @returns ApiResponse<{success: boolean}>
  */
 export const addIndicatorNotification = withErrorHandling(
   async (indicatorId: number): Promise<ApiResponse<{ success: boolean }>> => {
     const response = await apiClient.post(
-      `/api/v1/notifications/indicators/${indicatorId}`,
+      `/api/v1/notifications/economic-indicators/${indicatorId}`,
       {},
       { withAuth: true },
     );
@@ -87,14 +89,14 @@ export const addIndicatorNotification = withErrorHandling(
 
 /**
  * 경제지표 알림 제거 API
- * DELETE /api/v1/notifications/indicators/:id
+ * DELETE /api/v1/notifications/economic-indicators/:id
  * @param indicatorId 경제지표 ID
  * @returns ApiResponse<{success: boolean}>
  */
 export const removeIndicatorNotification = withErrorHandling(
   async (indicatorId: number): Promise<ApiResponse<{ success: boolean }>> => {
     const response = await apiClient.delete(
-      `/api/v1/notifications/indicators/${indicatorId}`,
+      `/api/v1/notifications/economic-indicators/${indicatorId}`,
       { withAuth: true },
     );
     return response.data;
@@ -106,7 +108,7 @@ export const removeIndicatorNotification = withErrorHandling(
  * GET /api/v1/notifications?page=1&limit=10
  * @param page 페이지 번호
  * @param limit 페이지당 항목 수
- * @returns ApiResponse<{items: Notification[], pagination: {...}}>
+ * @returns ApiResponse<{notifications: Notification[], total: number}>
  */
 export const getNotifications = withErrorHandling(
   async (
@@ -114,23 +116,8 @@ export const getNotifications = withErrorHandling(
     limit: number = 10,
   ): Promise<
     ApiResponse<{
-      items: Array<{
-        id: number;
-        type: 'EARNINGS' | 'DIVIDEND' | 'ECONOMIC_INDICATOR';
-        contentId: number;
-        isRead: boolean;
-        createdAt: string;
-        content: {
-          title: string;
-          message: string;
-        };
-      }>;
-      pagination: {
-        total: number;
-        totalPages: number;
-        page: number;
-        limit: number;
-      };
+      notifications: Array<Notification>;
+      total: number;
     }>
   > => {
     const response = await apiClient.get('/api/v1/notifications', {
@@ -142,16 +129,28 @@ export const getNotifications = withErrorHandling(
 );
 
 /**
+ * 읽지 않은 알림 개수 조회 API
+ * GET /api/v1/notifications/unread/count
+ * @returns ApiResponse<{count: number}>
+ */
+export const getUnreadNotificationsCount = withErrorHandling(
+  async (): Promise<ApiResponse<{ count: number }>> => {
+    const response = await apiClient.get('/api/v1/notifications/unread/count', {
+      withAuth: true,
+    });
+    return response.data;
+  },
+);
+
+/**
  * 알림 읽음 표시 API
- * PATCH /api/v1/notifications/:id/read
+ * PUT /api/v1/notifications/:id/read
  * @param notificationId 알림 ID
- * @returns ApiResponse<{success: boolean}>
+ * @returns ApiResponse<{message: string}>
  */
 export const markNotificationAsRead = withErrorHandling(
-  async (
-    notificationId: number,
-  ): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await apiClient.patch(
+  async (notificationId: number): Promise<ApiResponse<{ message: string }>> => {
+    const response = await apiClient.put(
       `/api/v1/notifications/${notificationId}/read`,
       {},
       { withAuth: true },
@@ -162,14 +161,30 @@ export const markNotificationAsRead = withErrorHandling(
 
 /**
  * 모든 알림 읽음 표시 API
- * PATCH /api/v1/notifications/read-all
- * @returns ApiResponse<{success: boolean, count: number}>
+ * PUT /api/v1/notifications/read/all
+ * @returns ApiResponse<{message: string, count: number}>
  */
 export const markAllNotificationsAsRead = withErrorHandling(
-  async (): Promise<ApiResponse<{ success: boolean; count: number }>> => {
-    const response = await apiClient.patch(
-      '/api/v1/notifications/read-all',
+  async (): Promise<ApiResponse<{ message: string; count: number }>> => {
+    const response = await apiClient.put(
+      '/api/v1/notifications/read/all',
       {},
+      { withAuth: true },
+    );
+    return response.data;
+  },
+);
+
+/**
+ * 알림 삭제 API
+ * DELETE /api/v1/notifications/:id
+ * @param notificationId 알림 ID
+ * @returns ApiResponse<{message: string}>
+ */
+export const deleteNotification = withErrorHandling(
+  async (notificationId: number): Promise<ApiResponse<{ message: string }>> => {
+    const response = await apiClient.delete(
+      `/api/v1/notifications/${notificationId}`,
       { withAuth: true },
     );
     return response.data;
@@ -179,18 +194,14 @@ export const markAllNotificationsAsRead = withErrorHandling(
 /**
  * 알림 설정 조회 API
  * GET /api/v1/notifications/settings
- * @returns ApiResponse<{settings: NotificationSettings}>
+ * @returns ApiResponse<UserNotificationSettings>
  */
 export const getNotificationSettings = withErrorHandling(
   async (): Promise<
     ApiResponse<{
-      settings: {
-        email: boolean;
-        push: boolean;
-        earnings: boolean;
-        dividends: boolean;
-        economicIndicators: boolean;
-      };
+      emailEnabled: boolean;
+      pushEnabled: boolean;
+      preferredMethod: 'EMAIL' | 'PUSH' | 'BOTH';
     }>
   > => {
     const response = await apiClient.get('/api/v1/notifications/settings', {
@@ -202,23 +213,49 @@ export const getNotificationSettings = withErrorHandling(
 
 /**
  * 알림 설정 업데이트 API
- * PATCH /api/v1/notifications/settings
+ * PUT /api/v1/notifications/settings
  * @param settings 업데이트할 설정
- * @returns ApiResponse<{success: boolean}>
+ * @returns ApiResponse<UserNotificationSettings>
  */
 export const updateNotificationSettings = withErrorHandling(
   async (settings: {
-    email?: boolean;
-    push?: boolean;
-    earnings?: boolean;
-    dividends?: boolean;
-    economicIndicators?: boolean;
-  }): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await apiClient.patch(
+    emailEnabled?: boolean;
+    pushEnabled?: boolean;
+    preferredMethod?: 'EMAIL' | 'PUSH' | 'BOTH';
+  }): Promise<
+    ApiResponse<{
+      emailEnabled: boolean;
+      pushEnabled: boolean;
+      preferredMethod: 'EMAIL' | 'PUSH' | 'BOTH';
+    }>
+  > => {
+    const response = await apiClient.put(
       '/api/v1/notifications/settings',
       settings,
       { withAuth: true },
     );
+    return response.data;
+  },
+);
+
+/**
+ * 알림 설정된 캘린더 정보 조회 API
+ * GET /api/v1/notifications/calendar
+ * @returns ApiResponse<{
+ *   economicIndicators: Array<EconomicIndicatorEvent>;
+ *   earnings: Array<EarningsEvent>;
+ * }>
+ */
+export const getNotificationCalendar = withErrorHandling(
+  async (): Promise<
+    ApiResponse<{
+      economicIndicators: Array<EconomicIndicatorEvent>;
+      earnings: Array<EarningsEvent>;
+    }>
+  > => {
+    const response = await apiClient.get('/api/v1/notifications/calendar', {
+      withAuth: true,
+    });
     return response.data;
   },
 );
