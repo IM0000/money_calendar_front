@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { Card, CardHeader, CardContent } from '@/components/UI/card';
 import {
   IoIosArrowBack,
   IoIosArrowForward,
@@ -9,18 +8,21 @@ import {
 } from 'react-icons/io';
 import Calendar from '@/components/FilterPanel/Calendar'; // 달력 컴포넌트 import
 import useCalendarStore from '@/zustand/useCalendarDateStore';
-import { DateRange } from '@/types/CalendarTypes';
+import { DateRange } from '@/types/calendar-date-range';
 import { formatDate, formatLocalISOString } from '@/utils/dateUtils';
 import { useQuery } from '@tanstack/react-query';
+import {
+  getCalendarEvents,
+  getFavoriteCalendarEvents,
+} from '@/api/services/calendarService';
 import {
   DividendEvent,
   EarningsEvent,
   EconomicIndicatorEvent,
-  getCalendarEvents,
-  getFavoriteCalendarEvents,
-} from '@/api/services/CalendarService';
+} from '@/types/calendar-event';
 import { CalendarPanelSkeleton } from '@/components/UI/Skeleton';
 import { useAuthStore } from '@/zustand/useAuthStore';
+import { Card, CardContent, CardHeader } from '@/components/UI/card';
 
 interface CalendarPanelProps {
   dateRange: DateRange;
@@ -38,7 +40,7 @@ export default function CalendarPanel({
   );
 
   // 로그인 상태 확인
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, checkAuth } = useAuthStore();
 
   // Zustand 스토어에서 날짜 관련 상태와 setter들을 가져옵니다.
   const { selectedDate, subSelectedDates, setSelectedDate } =
@@ -94,7 +96,6 @@ export default function CalendarPanel({
 
   useEffect(() => {
     if (subSelectedDates.length) {
-      console.log('subSelectedDates:', subSelectedDates);
       setDateRange({
         startDate: formatDate(subSelectedDates[0]),
         endDate: formatDate(subSelectedDates[subSelectedDates.length - 1]),
@@ -107,7 +108,14 @@ export default function CalendarPanel({
   const [showScrollButtons, setShowScrollButtons] = useState(false);
   const calendarContainerRef = useRef<HTMLDivElement>(null);
 
-  // 달력 팝오버 외부 클릭 시 닫힘
+  // 인증 상태 확인 (특히 관심 일정 페이지에서 필요)
+  useEffect(() => {
+    if (isFavoritePage) {
+      checkAuth();
+    }
+  }, [isFavoritePage, checkAuth]);
+
+  // Outside click handler for calendar
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -117,8 +125,11 @@ export default function CalendarPanel({
         setIsCalendarOpen(false);
       }
     };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   const updateScrollButtons = () => {
@@ -254,10 +265,10 @@ export default function CalendarPanel({
   return (
     <div className="w-screen max-w-full">
       {/* 헤더 섹션: 토글 버튼, 오늘 버튼, 달력 버튼 및 주간 화살표, 날짜 범위 */}
-      <div className="mb-2 flex items-center gap-2">
+      <div className="flex items-center gap-2 mb-2">
         {/* 카드 섹션 표시/숨기기 토글 */}
         <button
-          className="rounded-full bg-gray-200 p-2 shadow-md"
+          className="p-2 bg-gray-200 rounded-full shadow-md"
           onClick={toggleCards}
         >
           {showCards ? (
@@ -269,7 +280,7 @@ export default function CalendarPanel({
         {/* 오늘 버튼: 오늘 날짜로 업데이트 */}
         <button
           onClick={goToToday}
-          className="text-md rounded border border-gray-300 bg-white px-2 py-1 text-gray-700 hover:bg-gray-200"
+          className="px-2 py-1 text-gray-700 bg-white border border-gray-300 rounded text-md hover:bg-gray-200"
         >
           오늘
         </button>
@@ -279,13 +290,13 @@ export default function CalendarPanel({
           <div className="relative" ref={calendarContainerRef}>
             <button
               onClick={toggleCalendar}
-              className="rounded-full border border-gray-300 bg-white p-2 hover:bg-gray-200"
+              className="p-2 bg-white border border-gray-300 rounded-full hover:bg-gray-200"
             >
               <IoIosCalendar size={20} />
             </button>
             {isCalendarOpen && (
-              <div className="absolute left-0 top-full z-50 mt-2">
-                <div className="rounded bg-white p-2 shadow-lg">
+              <div className="absolute left-0 z-50 mt-2 top-full">
+                <div className="p-2 bg-white rounded shadow-lg">
                   <Calendar />
                 </div>
               </div>
@@ -295,7 +306,7 @@ export default function CalendarPanel({
           <button
             onClick={goToPreviousWeek}
             title="지난주"
-            className="rounded-full border border-gray-300 bg-white p-2 hover:bg-gray-200"
+            className="p-2 bg-white border border-gray-300 rounded-full hover:bg-gray-200"
           >
             <IoIosArrowBack size={20} />
           </button>
@@ -303,7 +314,7 @@ export default function CalendarPanel({
           <button
             onClick={goToNextWeek}
             title="다음주"
-            className="rounded-full border border-gray-300 bg-white p-2 hover:bg-gray-200"
+            className="p-2 bg-white border border-gray-300 rounded-full hover:bg-gray-200"
           >
             <IoIosArrowForward size={20} />
           </button>
@@ -318,7 +329,7 @@ export default function CalendarPanel({
           {/* 좌측 스크롤 버튼 (필요할 때만) */}
           {showScrollButtons && (
             <button
-              className="absolute left-0 top-1/2 z-10 -translate-y-1/2 transform rounded-full bg-gray-200 p-2 opacity-50 shadow-md"
+              className="absolute left-0 z-10 p-2 transform -translate-y-1/2 bg-gray-200 rounded-full shadow-md opacity-50 top-1/2"
               onClick={scrollLeft}
             >
               <IoIosArrowBack size={24} />
@@ -328,7 +339,7 @@ export default function CalendarPanel({
           {/* 카드들을 감싸는 래퍼 */}
           <div
             ref={scrollRef}
-            className="scrollbar-hide flex w-full snap-x gap-4 overflow-x-auto"
+            className="flex w-full gap-4 overflow-x-auto scrollbar-hide snap-x"
           >
             {events.map((event, index) => {
               const isFixed =
@@ -397,7 +408,7 @@ export default function CalendarPanel({
           {/* 우측 스크롤 버튼 (필요할 때만) */}
           {showScrollButtons && (
             <button
-              className="absolute right-0 top-1/2 z-10 -translate-y-1/2 transform rounded-full bg-gray-200 p-2 opacity-50 shadow-md"
+              className="absolute right-0 z-10 p-2 transform -translate-y-1/2 bg-gray-200 rounded-full shadow-md opacity-50 top-1/2"
               onClick={scrollRight}
             >
               <IoIosArrowForward size={24} />

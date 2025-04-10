@@ -1,6 +1,6 @@
 // useCalendarCounts.ts
 import { useQuery } from '@tanstack/react-query';
-import { getCalendarEvents } from '@/api/services/CalendarService';
+import { getCalendarEvents } from '@/api/services/calendarService';
 import { useMemo } from 'react';
 
 export function useCalendarCounts(startDate: string, endDate: string) {

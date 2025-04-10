@@ -1,13 +1,13 @@
 // src/services/AuthService.ts
 
-import { ApiResponse } from '../../types/ApiResponse';
+import { ApiResponse } from '../../types/api-response';
 import {
   LoginDto,
   LoginResponse,
   RegisterDto,
   VerifyDto,
-} from '../../types/AuthTypes';
-import { UserDto } from '../../types/UsersTypes';
+} from '../../types/auth-types';
+import { UserDto } from '../../types/users-types';
 import apiClient from '../client';
 
 /**
@@ -67,23 +67,4 @@ export const login = async (
     loginDto,
   );
   return response.data;
-};
-
-/**
- * OAuth 로그인을 시작하여 제공자의 인증 페이지로 리디렉션합니다.
- * @param provider OAuth 제공자 이름 (예: 'google', 'facebook')
- */
-export const oauthLogin = (provider: string): void => {
-  window.location.href = `${apiClient.defaults.baseURL}/api/v1/auth/oauth/${provider}`;
-};
-
-/**
- * 사용자를 로그아웃하여 토큰을 제거하고 로그인 페이지로 리디렉션합니다.
- */
-export const logout = (): void => {
-  localStorage.removeItem('authToken');
-  localStorage.removeItem('refreshToken');
-  // 필요에 따라 백엔드에 로그아웃을 알릴 수 있습니다
-  // 예: apiClient.post('/auth/logout');
-  window.location.href = '/login'; // 로그인 페이지로 리디렉션
 };

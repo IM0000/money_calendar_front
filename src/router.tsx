@@ -1,40 +1,52 @@
 import { createBrowserRouter } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import MainPage from './pages/MainPage';
-import SearchPage from './pages/SearchPage';
-import MyPage from './pages/MyPage2';
+import MyPage from './pages/MyPage';
 import AuthSuccess from './pages/AuthSuccessPage';
 import AuthError from './pages/AuthErrorPage';
 import EmailVerifyPage from './pages/EmailVerifyPage';
 import SignUpPage from './pages/SignUpPage';
 import SetPasswordPage from './pages/SetPasswordPage';
 import FavoriteCalendarPage from './pages/FavoriteCalendarPage';
+import ErrorPage from './pages/ErrorPage';
 import ProtectedRoute from './routes/ProtectedRoute';
+import SearchPage from './pages/SearchPage';
+import { NotificationCenter } from './pages/NotificationCenter';
 
 const router = createBrowserRouter([
   {
-    path: '/login',
-    element: <LoginPage />,
-  },
-  {
     path: '/',
     element: <MainPage />,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: '/login',
+    element: <LoginPage />,
+    errorElement: <ErrorPage />,
   },
   {
     path: '/sign-up',
     element: <SignUpPage />,
+    errorElement: <ErrorPage />,
   },
   {
     path: '/email-verify',
     element: <EmailVerifyPage />,
+    errorElement: <ErrorPage />,
   },
   {
     path: '/search',
-    element: <SearchPage />,
+    element: (
+      <ProtectedRoute>
+        <SearchPage />
+      </ProtectedRoute>
+    ),
+    errorElement: <ErrorPage />,
   },
   {
     path: '/users/password',
     element: <SetPasswordPage />,
+    errorElement: <ErrorPage />,
   },
   {
     path: '/mypage',
@@ -43,6 +55,7 @@ const router = createBrowserRouter([
         <MyPage />
       </ProtectedRoute>
     ),
+    errorElement: <ErrorPage />,
   },
   {
     path: '/favorites/calendar',
@@ -51,14 +64,30 @@ const router = createBrowserRouter([
         <FavoriteCalendarPage />
       </ProtectedRoute>
     ),
+    errorElement: <ErrorPage />,
   },
   {
     path: '/auth/success',
     element: <AuthSuccess />,
+    errorElement: <ErrorPage />,
   },
   {
     path: '/auth/error',
     element: <AuthError />,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: '/error',
+    element: <ErrorPage />,
+  },
+  {
+    path: '/notifications',
+    element: (
+      <ProtectedRoute>
+        <NotificationCenter />
+      </ProtectedRoute>
+    ),
+    errorElement: <ErrorPage />,
   },
 ]);
 

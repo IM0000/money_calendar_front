@@ -1,21 +1,17 @@
 import React, { createRef, useMemo, useState } from 'react';
-import MarketIcon from './MarketIcon';
-import EventAddButton from './EventAddButton';
+import FavoriteButton from './FavoriteButton';
 import NotificationButton from './NotificationButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
-import { DateRange } from '@/types/CalendarTypes';
-import {
-  EarningsEvent,
-  addFavoriteEarnings,
-  removeFavoriteEarnings,
-  getCompanyEarningsHistory,
-} from '@/api/services/CalendarService';
+import { DateRange } from '@/types/calendar-date-range';
+import { getCompanyEarningsHistory } from '@/api/services/calendarService';
 import { formatLocalISOString } from '@/utils/dateUtils';
 import { TableGroupSkeleton } from '@/components/UI/Skeleton';
-import { renderCountry } from './CountryFlag';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { toast } from 'react-hot-toast';
+import { CountryFlag } from './CountryFlag';
 import EarningsHistoryTable from './EarningsHistoryTable';
+import { formatMarketCap } from '@/utils/formatUtils';
+import { EarningsEvent } from '@/types/calendar-event';
+import MarketIcon from './MarketIcon';
+import { useQuery } from '@tanstack/react-query';
 
 interface EarningsTableProps {
   events: EarningsEvent[];
@@ -30,7 +26,21 @@ export default function EarningsTable({
   isLoading = false,
   isFavoritePage = false,
 }: EarningsTableProps) {
-  dateRange; // 사용하지 않지만, 필요에 따라 추가적인 로직을 구현할 수 있습니다.
+  // dateRange를 활용하여 모든 날짜 생성
+  const allDates = useMemo(() => {
+    const dates: string[] = [];
+    const startDate = new Date(dateRange.startDate);
+    const endDate = new Date(dateRange.endDate);
+    const currentDate = new Date(startDate);
+
+    // startDate부터 endDate까지 모든 날짜를 포함
+    while (currentDate <= endDate) {
+      dates.push(formatLocalISOString(new Date(currentDate)).slice(0, 10));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return dates;
+  }, [dateRange]);
 
   // 날짜별로 그룹화
   const groups = events.reduce(
@@ -45,9 +55,16 @@ export default function EarningsTable({
     {} as Record<string, EarningsEvent[]>,
   );
 
-  const sortedGroupKeys = Object.keys(groups).sort((a, b) =>
-    a === '날짜 없음' ? 1 : b === '날짜 없음' ? -1 : a.localeCompare(b),
-  );
+  // allDates를 기준으로 정렬된 모든 날짜 키 생성 (빈 날짜 포함)
+  const sortedGroupKeys = useMemo(() => {
+    // '날짜 없음' 데이터가 있으면 마지막에 추가
+    const sortedDates = [...allDates].sort();
+    if (groups['날짜 없음'] && groups['날짜 없음'].length > 0) {
+      sortedDates.push('날짜 없음');
+    }
+    return sortedDates;
+  }, [allDates, groups]);
+
   const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
 
   // 날짜 row에 대한 ref 배열 생성
@@ -77,10 +94,10 @@ export default function EarningsTable({
               매출 / 예측
             </th>
             <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
-              시가총액(천$)
+              시가총액
             </th>
             <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
-              이전 발표 정보
+              이전 발표
             </th>
             <th className="w-10 px-2 py-2 text-left text-sm font-medium text-gray-700"></th>
           </tr>
@@ -96,7 +113,7 @@ export default function EarningsTable({
           ) : (
             // 데이터가 있을 때 실제 테이블 내용 표시
             sortedGroupKeys.map((groupKey, index) => {
-              const groupEarnings = groups[groupKey];
+              const groupEarnings = groups[groupKey] || [];
               const formattedGroupDate =
                 groupKey !== '날짜 없음'
                   ? (() => {
@@ -119,13 +136,32 @@ export default function EarningsTable({
                       {formattedGroupDate}
                     </td>
                   </tr>
-                  {groupEarnings.map((earning) => (
-                    <EarningRow
-                      key={earning.id}
-                      earning={earning}
-                      isFavoritePage={isFavoritePage}
-                    />
-                  ))}
+                  {groupEarnings.length > 0 ? (
+                    groupEarnings
+                      .filter(
+                        (
+                          e,
+                        ): e is EarningsEvent & {
+                          company: NonNullable<EarningsEvent['company']>;
+                        } => e.company != null,
+                      )
+                      .map((earning) => (
+                        <EarningRow
+                          key={earning.id}
+                          earning={earning}
+                          isFavoritePage={isFavoritePage}
+                        />
+                      ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={9}
+                        className="px-4 py-6 text-center text-gray-500"
+                      >
+                        예약된 일정이 없습니다.
+                      </td>
+                    </tr>
+                  )}
                 </React.Fragment>
               );
             })
@@ -140,53 +176,16 @@ function EarningRow({
   earning,
   isFavoritePage = false,
 }: {
-  earning: EarningsEvent;
+  earning: EarningsEvent & { company: NonNullable<EarningsEvent['company']> };
   isFavoritePage?: boolean;
 }) {
   const [showOlderPopup, setShowOlderPopup] = useState(false);
-  const [isAlarmSet, setIsAlarmSet] = useState(false);
-  const [isEventAdded, setIsEventAdded] = useState(
+  const [isFavorite] = useState(
     isFavoritePage ? true : earning.isFavorite || false,
   );
   // 페이지 상태 추가
   const [historyPage, setHistoryPage] = useState(1);
   const [historyLimit] = useState(5);
-
-  const queryClient = useQueryClient();
-
-  // 관심 추가 mutation
-  const addFavoriteMutation = useMutation({
-    mutationFn: addFavoriteEarnings,
-    onSuccess: () => {
-      setIsEventAdded(true);
-      toast.success('관심 일정에 추가되었습니다.');
-      // 캐시 업데이트
-      queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
-      queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
-    },
-    onError: (error) => {
-      toast.error(
-        `추가 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-      );
-    },
-  });
-
-  // 관심 제거 mutation
-  const removeFavoriteMutation = useMutation({
-    mutationFn: removeFavoriteEarnings,
-    onSuccess: () => {
-      setIsEventAdded(false);
-      toast.success('관심 일정에서 제거되었습니다.');
-      // 캐시 업데이트
-      queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
-      queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
-    },
-    onError: (error) => {
-      toast.error(
-        `제거 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-      );
-    },
-  });
 
   // 이전 실적 데이터 쿼리
   const { data: historyData, isLoading: isHistoryLoading } = useQuery({
@@ -205,32 +204,9 @@ function EarningRow({
     setShowOlderPopup((prev) => !prev);
   };
 
-  const toggleAlarm = () => setIsAlarmSet((prev) => !prev);
-
-  const handleAddEvent = () => {
-    if (isEventAdded) {
-      // 제거 요청
-      removeFavoriteMutation.mutate(earning.id);
-    } else {
-      // 추가 요청
-      addFavoriteMutation.mutate(earning.id);
-    }
-  };
-
   const handlePageChange = (page: number) => {
     setHistoryPage(page);
   };
-
-  const timeDisplay = earning.releaseDate
-    ? new Date(earning.releaseDate).toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    : '-';
-
-  // 요청 중인지 여부
-  const isLoading =
-    addFavoriteMutation.isPending || removeFavoriteMutation.isPending;
 
   return (
     <>
@@ -239,7 +215,7 @@ function EarningRow({
           <MarketIcon releaseTiming={earning.releaseTiming} />
         </td>
         <td className="px-4 py-2 text-sm text-gray-700">
-          {renderCountry(earning.eventCountry)}
+          <CountryFlag countryCode={earning.country} />
         </td>
         <td className="px-4 py-2 text-sm text-gray-700">
           {earning.company.name} ({earning.company.ticker})
@@ -251,24 +227,28 @@ function EarningRow({
           {earning.actualRevenue} / {earning.forecastRevenue}
         </td>
         <td className="min-w-[8rem] px-4 py-2 text-sm text-gray-700">
-          {earning.company.marketValue}
+          {formatMarketCap(earning.company.marketValue)}
         </td>
-        <td className="relative px-4 py-2 text-sm text-gray-700">
+        <td className="px-4 py-2 text-sm text-gray-700 ">
           <button
             onClick={toggleOlderPopup}
-            className="min-w-[8rem] text-blue-500 underline hover:text-blue-700 focus:outline-none"
+            className="min-w-[4rem] text-blue-500 underline hover:text-blue-700 focus:outline-none"
           >
             {showOlderPopup ? '접기' : '상세보기'}
           </button>
         </td>
         <td className="w-10 px-2 py-2 text-sm text-gray-700">
           <div className="flex items-center space-x-1">
-            <EventAddButton
-              isAdded={isEventAdded}
-              onClick={handleAddEvent}
-              isLoading={isLoading}
+            <FavoriteButton
+              id={earning.id}
+              eventType="earnings"
+              isFavorite={isFavorite}
             />
-            <NotificationButton isActive={isAlarmSet} onClick={toggleAlarm} />
+            <NotificationButton
+              id={earning.id}
+              eventType="earnings"
+              isActive={earning.hasNotification || false}
+            />
           </div>
         </td>
       </tr>

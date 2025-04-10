@@ -1,3 +1,4 @@
+// Modified version with null check
 /**
  * 국가 코드로부터 국기 이모티콘을 생성하는 유틸리티 함수
  */
@@ -8,7 +9,11 @@
  * @param countryCode 국가 코드 (ISO 3166-1 alpha-2 또는 일부 alpha-3 코드)
  * @returns 국기 이모지 문자열
  */
-export function getCountryFlag(countryCode: string): string {
+export function getCountryFlag(countryCode?: string): string {
+  if (!countryCode || typeof countryCode !== 'string') {
+    return '🏳️'; // 기본 흰색 깃발
+  }
+
   // 국가 코드가 3글자인 경우 (USA, KOR 등) 2글자로 변환
   if (countryCode.length === 3) {
     const mapping: Record<string, string> = {

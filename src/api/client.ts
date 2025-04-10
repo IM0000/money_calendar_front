@@ -5,8 +5,8 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios';
-import { ApiResponse } from '../types/ApiResponse';
-import { extractErrorMessage, logError } from '../utils/errorHandler';
+import { ApiResponse } from '../types/api-response';
+import { logError } from '../utils/errorHandler';
 
 console.log('API Base URL:', import.meta.env.VITE_API_BASE_URL);
 
@@ -19,24 +19,22 @@ interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
 }
 
 const apiClient: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/',
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
   timeout: 10000, // 요청 타임아웃 설정 (밀리초 단위)
 });
 
+// 요청 인터셉터 - 모든 요청에 토큰 추가
 apiClient.interceptors.request.use(
   (config: ExtendedAxiosRequestConfig) => {
     const startTime = new Date().getTime();
     config.metadata = { startTime };
 
-    if (config.withAuth) {
-      // withAuth 플래그 확인
-      const token = localStorage.getItem('accessToken');
-      if (token && config.headers) {
-        config.headers['Authorization'] = `Bearer ${token}`;
-      }
+    const token = localStorage.getItem('accessToken');
+    if (token && config.headers) {
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
 
     return config;
@@ -76,40 +74,18 @@ apiClient.interceptors.response.use(
       },
     });
 
-    if (error.response) {
-      const { status, data } = error.response;
+    // 401 에러(인증 실패) 처리
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('accessToken');
 
-      // 클라이언트에서 처리할 에러 조건 전달
-      if (data?.errorCode) {
-        return Promise.reject(error);
+      // 로그인 페이지로 리다이렉트
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
       }
-
-      // 기본 에러 처리 (status 별)
-      switch (status) {
-        case 401:
-          localStorage.removeItem('authToken');
-          // 현재 페이지 URL을 로컬 스토리지에 저장 (로그인 후 리디렉션용)
-          localStorage.setItem('redirectUrl', window.location.pathname);
-          window.location.href = '/login';
-          break;
-        case 403:
-          alert('접근 권한이 없습니다.');
-          break;
-        case 404:
-          alert('요청한 리소스를 찾을 수 없습니다.');
-          break;
-        case 500:
-          alert('서버 오류가 발생했습니다. 나중에 다시 시도해주세요.');
-          break;
-        default:
-          alert(extractErrorMessage(error));
-      }
-    } else if (error.request) {
-      alert('서버와의 연결이 끊어졌습니다. 인터넷 연결을 확인해주세요.');
-    } else {
-      alert(extractErrorMessage(error));
     }
 
+    // 인터셉터가 에러를 처리하는 대신 에러를 그대로 전파
+    // 컴포넌트 레벨에서 Error Boundary와 useApiErrorHandler로 처리
     return Promise.reject(error);
   },
 );

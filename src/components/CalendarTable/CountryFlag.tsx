@@ -23,12 +23,3 @@ export const CountryFlag = ({
     </div>
   );
 };
-
-/**
- * 국가 코드에 해당하는 국기를 표시하는 함수
- * @param countryCode 국가 코드 (예: 'KR', 'US', 'JP')
- * @returns 국기 이모지가 포함된 JSX 요소
- */
-export const renderCountry = (countryCode: string) => {
-  return <CountryFlag countryCode={countryCode} />;
-};

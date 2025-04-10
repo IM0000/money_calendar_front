@@ -1,65 +1,13 @@
-// src/services/CalendarService.ts
+// src/services/calendarService.ts
 
-import { ApiResponse } from '@/types/ApiResponse';
+import { ApiResponse } from '../../types/api-response';
 import apiClient from '../client';
-import { withErrorHandling } from '@/utils/errorHandler';
-
-export interface EarningsEvent {
-  id: number;
-  releaseDate: number; // 밀리초 단위 타임스탬프
-  releaseTiming: 'UNKNOWN' | 'PRE_MARKET' | 'POST_MARKET';
-  eventCountry: string; // 실적 이벤트에 정의된 국가 (Earnings 모델의 country)
-  actualEPS: string;
-  forecastEPS: string;
-  previousEPS: string;
-  actualRevenue: string;
-  forecastRevenue: string;
-  previousRevenue: string;
-  company: {
-    id: number;
-    ticker: string;
-    name: string;
-    companyCountry: string; // 회사 모델의 country
-    marketValue: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-  isFavorite?: boolean; // 관심 목록에 추가되어 있는지 여부
-}
-
-export interface DividendEvent {
-  id: number;
-  exDividendDate: number; // 밀리초 단위
-  dividendAmount: string;
-  previousDividendAmount: string;
-  paymentDate: number; // 밀리초 단위
-  eventCountry: string; // 배당 이벤트의 나라 (Dividend 모델의 country)
-  dividendYield: string; // 배당수익률
-  company: {
-    id: number;
-    ticker: string;
-    name: string;
-    companyCountry: string; // 회사의 나라 (Company 모델의 country)
-    marketValue: string;
-  };
-  createdAt: string; // 생성일자 (ISO 문자열)
-  updatedAt: string; // 수정일자 (ISO 문자열)
-  isFavorite?: boolean; // 관심 목록에 추가되어 있는지 여부
-}
-
-export interface EconomicIndicatorEvent {
-  id: number;
-  releaseDate: number; // 밀리초 단위
-  eventCountry: string; // 경제지표 이벤트의 나라 (EconomicIndicator 모델의 country)
-  name: string;
-  importance: number;
-  actual: string;
-  forecast: string;
-  previous: string;
-  createdAt: string;
-  updatedAt: string;
-  isFavorite?: boolean; // 관심 목록에 추가되어 있는지 여부
-}
+import { withErrorHandling } from '../../utils/errorHandler';
+import {
+  DividendEvent,
+  EarningsEvent,
+  EconomicIndicatorEvent,
+} from '@/types/calendar-event';
 
 /**
  * 모든 이벤트(실적, 배당, 경제지표)를 한 번에 조회
@@ -76,7 +24,6 @@ export const getCalendarEvents = withErrorHandling(
       economicIndicators: EconomicIndicatorEvent[];
     }>
   > => {
-    console.log('getCalendarEvents', startDate, endDate);
     const response = await apiClient.get<
       ApiResponse<{
         earnings: EarningsEvent[];
@@ -85,6 +32,7 @@ export const getCalendarEvents = withErrorHandling(
       }>
     >('/api/v1/calendar/events', {
       params: { startDate, endDate },
+      withAuth: !!localStorage.getItem('accessToken'), // 토큰이 있는 경우에만 인증 사용
     });
     return response.data;
   },
@@ -114,6 +62,7 @@ export const getEarningsEvents = async (
     '/api/v1/calendar/earnings',
     {
       params: { startDate, endDate },
+      withAuth: !!localStorage.getItem('accessToken'), // 토큰이 있는 경우에만 인증 사용
     },
   );
   return response.data;
@@ -131,6 +80,7 @@ export const getDividendEvents = async (
     '/api/v1/calendar/dividends',
     {
       params: { startDate, endDate },
+      withAuth: !!localStorage.getItem('accessToken'), // 토큰이 있는 경우에만 인증 사용
     },
   );
   return response.data;
@@ -148,6 +98,7 @@ export const getEconomicIndicatorEvents = async (
     '/api/v1/calendar/economic-indicators',
     {
       params: { startDate, endDate },
+      withAuth: !!localStorage.getItem('accessToken'), // 토큰이 있는 경우에만 인증 사용
     },
   );
   return response.data;
@@ -334,6 +285,45 @@ export const getCompanyEarningsHistory = withErrorHandling(
       }>
     >(`/api/v1/calendar/earnings/history/${companyId}`, {
       params: { page, limit },
+      withAuth: true,
+    });
+    return response.data;
+  },
+);
+
+/**
+ * 특정 기업의 이전 배당금 정보 조회
+ * GET /api/v1/calendar/dividends/history/:companyId?page=1&limit=5
+ */
+export const getCompanyDividendHistory = withErrorHandling(
+  async (
+    companyId: number,
+    page: number = 1,
+    limit: number = 5,
+  ): Promise<
+    ApiResponse<{
+      items: DividendEvent[];
+      pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+      };
+    }>
+  > => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        items: DividendEvent[];
+        pagination: {
+          total: number;
+          page: number;
+          limit: number;
+          totalPages: number;
+        };
+      }>
+    >(`/api/v1/calendar/dividends/history/${companyId}`, {
+      params: { page, limit },
+      withAuth: true,
     });
     return response.data;
   },

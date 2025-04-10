@@ -1,20 +1,13 @@
 import React, { createRef, useMemo, useState } from 'react';
-import EventAddButton from './EventAddButton';
+import FavoriteButton from './FavoriteButton';
 import NotificationButton from './NotificationButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
-import { DateRange } from '@/types/CalendarTypes';
-import {
-  EconomicIndicatorEvent,
-  addFavoriteEconomicIndicator,
-  removeFavoriteEconomicIndicator,
-} from '@/api/services/CalendarService';
+import { DateRange } from '@/types/calendar-date-range';
+import { EconomicIndicatorEvent } from '@/types/calendar-event';
 import { formatLocalISOString } from '@/utils/dateUtils';
 import { TableGroupSkeleton } from '@/components/UI/Skeleton';
 import { FaStar } from 'react-icons/fa';
-import { renderCountry } from './CountryFlag';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-hot-toast';
-
+import { CountryFlag } from './CountryFlag';
 interface EconomicIndicatorTableProps {
   events: EconomicIndicatorEvent[];
   dateRange: DateRange;
@@ -28,7 +21,21 @@ export default function EconomicIndicatorTable({
   isLoading = false,
   isFavoritePage = false,
 }: EconomicIndicatorTableProps) {
-  dateRange; // 사용하지 않지만, 필요에 따라 추가적인 로직을 구현할 수 있습니다.
+  // dateRange를 활용하여 모든 날짜 생성
+  const allDates = useMemo(() => {
+    const dates: string[] = [];
+    const startDate = new Date(dateRange.startDate);
+    const endDate = new Date(dateRange.endDate);
+    const currentDate = new Date(startDate);
+
+    // startDate부터 endDate까지 모든 날짜를 포함
+    while (currentDate <= endDate) {
+      dates.push(formatLocalISOString(new Date(currentDate)).slice(0, 10));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return dates;
+  }, [dateRange]);
 
   // releaseDate를 기준으로 "YYYY-MM-DD" 문자열 그룹으로 묶기
   const groups = events.reduce(
@@ -44,8 +51,10 @@ export default function EconomicIndicatorTable({
     {} as Record<string, EconomicIndicatorEvent[]>,
   );
 
-  // 그룹키(날짜)를 오름차순 정렬
-  const sortedGroupKeys = Object.keys(groups).sort();
+  // allDates를 기준으로 정렬된 모든 날짜 키 생성 (빈 날짜 포함)
+  const sortedGroupKeys = useMemo(() => {
+    return allDates.sort();
+  }, [allDates]);
 
   // 요일명을 위한 배열 (0: 일요일, 1: 월요일, …)
   const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
@@ -98,7 +107,7 @@ export default function EconomicIndicatorTable({
           ) : (
             // 데이터가 있을 때 실제 테이블 내용 표시
             sortedGroupKeys.map((groupKey, index) => {
-              const groupIndicators = groups[groupKey];
+              const groupIndicators = groups[groupKey] || [];
               // 그룹키 "YYYY-MM-DD" → Date 객체로 변환하여 요일 계산
               const dateObj = new Date(groupKey);
               const dayOfWeek = dayNames[dateObj.getDay()];
@@ -122,13 +131,24 @@ export default function EconomicIndicatorTable({
                       {formattedGroupDate}
                     </td>
                   </tr>
-                  {groupIndicators.map((indicator) => (
-                    <EconomicIndicatorRow
-                      key={indicator.id}
-                      indicator={indicator}
-                      isFavoritePage={isFavoritePage}
-                    />
-                  ))}
+                  {groupIndicators.length > 0 ? (
+                    groupIndicators.map((indicator: EconomicIndicatorEvent) => (
+                      <EconomicIndicatorRow
+                        key={indicator.id}
+                        indicator={indicator}
+                        isFavoritePage={isFavoritePage}
+                      />
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={8}
+                        className="px-4 py-6 text-center text-gray-500"
+                      >
+                        예약된 일정이 없습니다.
+                      </td>
+                    </tr>
+                  )}
                 </React.Fragment>
               );
             })
@@ -148,113 +168,32 @@ function EconomicIndicatorRow({
   indicator,
   isFavoritePage = false,
 }: EconomicIndicatorRowProps) {
-  const [showPrevPopup, setShowPrevPopup] = useState(false);
-  const [isAlarmSet, setIsAlarmSet] = useState(false);
-  const [isEventAdded, setIsEventAdded] = useState(
+  const [isFavorite] = useState(
     isFavoritePage ? true : indicator.isFavorite || false,
   );
 
-  const queryClient = useQueryClient();
-
-  // 관심 추가 mutation
-  const addFavoriteMutation = useMutation({
-    mutationFn: addFavoriteEconomicIndicator,
-    onSuccess: () => {
-      setIsEventAdded(true);
-      toast.success('관심 일정에 추가되었습니다.');
-      // 캐시 업데이트
-      queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
-    },
-    onError: (error) => {
-      toast.error(
-        `추가 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-      );
-    },
-  });
-
-  // 관심 제거 mutation
-  const removeFavoriteMutation = useMutation({
-    mutationFn: removeFavoriteEconomicIndicator,
-    onSuccess: () => {
-      setIsEventAdded(false);
-      toast.success('관심 일정에서 제거되었습니다.');
-      // 캐시 업데이트
-      queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
-    },
-    onError: (error) => {
-      toast.error(
-        `제거 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-      );
-    },
-  });
-
-  const togglePrevPopup = () => setShowPrevPopup((prev) => !prev);
-  const toggleAlarm = () => setIsAlarmSet((prev) => !prev);
-
-  const handleAddEvent = () => {
-    if (isEventAdded) {
-      // 제거 요청
-      removeFavoriteMutation.mutate(indicator.id);
-    } else {
-      // 추가 요청
-      addFavoriteMutation.mutate(indicator.id);
-    }
-  };
-
-  // 타임스탬프에서 시간 형식(HH:MM)으로 변환
-  const formatTime = (timestamp: number): string => {
+  // 시간 형식화
+  const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
-    // 시간과 분을 2자리 숫자로 표시 (예: 09:05)
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
+    return date.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
-  // 중요도에 따라 별 표시를 렌더링하는 함수
-  const renderImportanceStars = (importance: number | string) => {
-    const maxImportance = 3; // 최대 중요도 (필요에 따라 조정)
-    let importanceValue = 0;
-
-    // 중요도가 숫자 또는 숫자 문자열인 경우에만 변환
-    if (importance !== undefined && importance !== null) {
-      const parsed = Number(importance);
-      if (!isNaN(parsed)) {
-        importanceValue = Math.min(Math.max(0, parsed), maxImportance);
-      }
+  // 중요도 별표 렌더링
+  const renderImportanceStars = (importance: number) => {
+    const stars = [];
+    for (let i = 0; i < 3; i++) {
+      stars.push(
+        <FaStar
+          key={i}
+          className={i < importance ? 'text-yellow-500' : 'text-gray-300'}
+        />,
+      );
     }
-
-    // 중요도에 따른 설명 텍스트
-    const importanceText = {
-      0: '낮음',
-      1: '낮음',
-      2: '중간',
-      3: '높음',
-    }[importanceValue];
-
-    return (
-      <div
-        className="flex items-center"
-        title={`중요도: ${importanceText} (${importanceValue})`}
-      >
-        {Array.from({ length: maxImportance }).map((_, index) => (
-          <FaStar
-            key={index}
-            className={
-              index < importanceValue
-                ? 'text-blue-400' // 채워진 별 (파란색으로 변경하여 테마에 맞춤)
-                : 'text-gray-200' // 빈 별 (더 연한 회색으로 변경)
-            }
-            size={14}
-          />
-        ))}
-        <span className="ml-1 text-xs text-gray-500">{importanceText}</span>
-      </div>
-    );
+    return <div className="flex">{stars}</div>;
   };
-
-  // 요청 중인지 여부
-  const isLoading =
-    addFavoriteMutation.isPending || removeFavoriteMutation.isPending;
 
   return (
     <tr className="relative">
@@ -262,7 +201,7 @@ function EconomicIndicatorRow({
         {formatTime(indicator.releaseDate)}
       </td>
       <td className="px-4 py-2 text-sm text-gray-700">
-        {renderCountry(indicator.eventCountry)}
+        <CountryFlag countryCode={indicator.country} />
       </td>
       <td className="px-4 py-2 text-sm text-gray-700">{indicator.name}</td>
       <td className="px-4 py-2 text-sm text-gray-700">
@@ -271,29 +210,21 @@ function EconomicIndicatorRow({
       <td className="px-4 py-2 text-sm text-gray-700">{indicator.actual}</td>
       <td className="px-4 py-2 text-sm text-gray-700">{indicator.forecast}</td>
       <td className="relative px-4 py-2 text-sm text-gray-700">
-        <button
-          onClick={togglePrevPopup}
-          className="text-blue-500 underline hover:text-blue-700 focus:outline-none"
-        >
-          {indicator.previous}
-        </button>
-        {showPrevPopup && (
-          <div className="absolute left-0 mt-1 rounded border bg-white p-2 shadow-lg">
-            <p className="text-xs text-gray-700">
-              이전값 상세정보: {indicator.previous}
-            </p>
-          </div>
-        )}
+        {indicator.previous}
       </td>
       {/* 이벤트 추가 + 알림 버튼 */}
       <td className="w-10 px-2 py-2 text-sm text-gray-700">
         <div className="flex items-center space-x-1">
-          <EventAddButton
-            isAdded={isEventAdded}
-            onClick={handleAddEvent}
-            isLoading={isLoading}
+          <FavoriteButton
+            id={indicator.id}
+            eventType="economicIndicator"
+            isFavorite={isFavorite}
           />
-          <NotificationButton isActive={isAlarmSet} onClick={toggleAlarm} />
+          <NotificationButton
+            id={indicator.id}
+            eventType="economicIndicator"
+            isActive={indicator.hasNotification || false}
+          />
         </div>
       </td>
     </tr>
