@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../zustand/useAuthStore';
 import { AppErrorBoundary } from '../utils/errorHandler';
 
@@ -25,26 +25,70 @@ export default function ProtectedRoute({
   children: React.ReactNode;
 }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isAuthenticated, checkAuth } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(true);
 
-  // 인증 상태를 확인
+  // OAuth 연동 성공 여부 확인을 위한 로직
+  const queryParams = new URLSearchParams(location.search);
+  const successMessage = queryParams.get('message');
+  const isOAuthSuccess =
+    successMessage?.includes('계정이 성공적으로 연결되었습니다');
+
+  // 성공 메시지가 있으면 로컬 스토리지에 임시 상태 저장
   useEffect(() => {
-    let isMounted = true;
-    if (isMounted) {
-      checkAuth();
+    if (isOAuthSuccess) {
+      localStorage.setItem('oauthSuccess', 'true');
+      navigate('/mypage', { replace: true });
     }
-    return () => {
-      isMounted = false;
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isOAuthSuccess, navigate]);
 
+  // 인증 상태 확인
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      setIsLoading(true);
+      await checkAuth();
+      setIsLoading(false);
+    };
+
+    checkAuthStatus();
+  }, [checkAuth]);
+
+  // 로딩 중이면 로딩 UI 표시
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-gray-600">로딩 중...</p>
+      </div>
+    );
+  }
+
+  // OAuth 연동 성공 후 마이페이지로 이동한 경우
+  const oauthSuccess = localStorage.getItem('oauthSuccess') === 'true';
+  if (oauthSuccess && location.pathname === '/mypage') {
+    // 플래그 초기화
+    localStorage.removeItem('oauthSuccess');
+
+    // 인증 상태와 상관없이 마이페이지 표시 (인증 체크가 끝난 후)
+    return (
+      <AppErrorBoundary fallback={<AuthErrorFallback />}>
+        {children}
+      </AppErrorBoundary>
+    );
+  }
+
+  // 일반적인 인증 상태 체크
   if (!isAuthenticated) {
-    // 사용자에게 로그인이 필요하다는 확인 창 표시
+    // OAuth 성공 메시지가 있는 경우 마이페이지로 강제 이동
+    if (location.pathname === '/mypage' && isOAuthSuccess) {
+      return children;
+    }
+
+    // 아니면 일반 로그인 확인 메시지
     const userConfirmed = window.confirm(
       '로그인이 필요합니다. 로그인 페이지로 이동할까요?',
     );
 
-    // 사용자가 확인을 누른 경우 로그인 페이지로, 취소를 누른 경우 메인 페이지로 이동
     return userConfirmed ? (
       <Navigate to="/login" replace state={{ from: location.pathname }} />
     ) : (
@@ -52,7 +96,7 @@ export default function ProtectedRoute({
     );
   }
 
-  // 인증된 사용자에게 컴포넌트를 보여주되, 에러 바운더리로 감싸서 안전하게 보호
+  // 인증된 사용자에게 컴포넌트 표시
   return (
     <AppErrorBoundary fallback={<AuthErrorFallback />}>
       {children}

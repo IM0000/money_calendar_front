@@ -1,5 +1,4 @@
 // src/services/AuthService.ts
-
 import { ApiResponse } from '../../types/api-response';
 import {
   LoginDto,
@@ -66,5 +65,19 @@ export const login = async (
     '/api/v1/auth/login',
     loginDto,
   );
+  return response.data;
+};
+
+/**
+ * OAuth 계정 연결을 시작합니다
+ * @param provider 연결할 OAuth 제공자 (google, apple, discord, kakao)
+ * @returns 리다이렉트 URL
+ */
+export const connectOAuthAccount = async (
+  provider: string,
+): Promise<ApiResponse<{ message: string; redirectUrl: string }>> => {
+  const response = await apiClient.post<
+    ApiResponse<{ message: string; redirectUrl: string }>
+  >('/api/v1/auth/oauth/connect', { provider });
   return response.data;
 };

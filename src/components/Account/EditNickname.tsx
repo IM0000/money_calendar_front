@@ -35,22 +35,22 @@ const EditNickname: React.FC<EditNicknameProps> = ({ user, onSave }) => {
       return;
     }
 
-    if (!user?.email) {
-      setError('사용자 정보를 불러올 수 없습니다.');
-      return;
-    }
-
     setIsLoading(true);
     setError('');
 
     try {
-      // UserService를 통한 API 호출
-      await updateNickname(user.email, nickname);
+      // UserService를 통한 API 호출 - 이메일 파라미터 제거
+      const response = await updateNickname(nickname);
+
+      // 응답에서 업데이트된 사용자 정보 추출
+      const updatedUser = response.data;
 
       // 유저 정보 업데이트
-      if (user) {
-        const updatedUser = { ...user, nickname };
-        setUser(updatedUser);
+      if (user && updatedUser) {
+        setUser({
+          ...user,
+          nickname: updatedUser.nickname || nickname,
+        });
       }
 
       onSave(nickname);

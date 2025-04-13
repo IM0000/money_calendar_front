@@ -1,6 +1,10 @@
-import React, { useState, FormEvent } from 'react';
+import React, { useState, FormEvent, useEffect } from 'react';
 import { AxiosError } from 'axios';
-import { deleteAccount } from '../../api/services/userService';
+import {
+  deleteAccount,
+  getUserProfile,
+  verifyPassword,
+} from '../../api/services/userService';
 import { useAuthStore } from '../../zustand/useAuthStore';
 import { useNavigate } from 'react-router-dom';
 import { FaExclamationTriangle, FaUserMinus, FaLock } from 'react-icons/fa';
@@ -15,27 +19,81 @@ const DeleteAccount: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [hasPassword, setHasPassword] = useState(true); // 기본적으로 비밀번호가 있다고 가정
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  // 컴포넌트 마운트 시 사용자의 비밀번호 설정 여부 확인
+  useEffect(() => {
+    const checkPasswordStatus = async () => {
+      if (!user) return;
 
+      try {
+        const response = await getUserProfile();
+        if (response?.data) {
+          // hasPassword 값을 가져오거나 찾을 수 없는 경우 기본값 true 사용
+          setHasPassword(response.data.hasPassword);
+        }
+      } catch (error) {
+        console.error('사용자 프로필 가져오기 실패:', error);
+      }
+    };
+
+    checkPasswordStatus();
+  }, [user]);
+
+  // 비밀번호 확인 함수
+  const checkPassword = async (): Promise<boolean> => {
+    if (!hasPassword) return true; // 비밀번호가 없는 계정은 확인 필요 없음
     if (!password) {
       setError('비밀번호를 입력해주세요.');
-      return;
+      return false;
     }
+
+    try {
+      setIsVerifying(true);
+      const response = await verifyPassword(password);
+
+      if (response?.data?.isValid) {
+        return true;
+      } else {
+        setError('현재 비밀번호가 일치하지 않습니다.');
+        return false;
+      }
+    } catch (error) {
+      console.error('비밀번호 확인 실패:', error);
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+      if (axiosError.response?.data?.message) {
+        setError(axiosError.response.data.message);
+      } else {
+        setError('비밀번호 확인 중 오류가 발생했습니다.');
+      }
+      return false;
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
 
     if (!user?.email) {
       setError('사용자 정보를 불러올 수 없습니다.');
       return;
     }
 
+    // 먼저 비밀번호 확인
+    const isPasswordValid = await checkPassword();
+    if (!isPasswordValid) return;
+
+    // 비밀번호 확인 성공 시 계정 삭제 진행
     setIsLoading(true);
     setError('');
 
     try {
-      await deleteAccount(user.email, password);
+      // OAuth 계정(비밀번호 없음)인 경우 빈 문자열 전달
+      await deleteAccount(user.email, hasPassword ? password : '');
       logout();
       navigate('/login');
     } catch (error) {
@@ -96,7 +154,8 @@ const DeleteAccount: React.FC = () => {
             </div>
             <p className="mt-2 text-sm text-red-700">
               계정과 모든 관련 데이터가 영구적으로 삭제됩니다. 계속하시려면
-              비밀번호를 입력하세요.
+              {hasPassword && ' 비밀번호를 입력하세요.'}
+              {!hasPassword && ' 아래 버튼을 클릭하세요.'}
             </p>
           </div>
 
@@ -106,20 +165,23 @@ const DeleteAccount: React.FC = () => {
             </div>
           )}
 
-          <div>
-            <label className="mb-1 flex items-center text-sm font-medium text-gray-700">
-              <FaLock className="mr-2 text-gray-400" />
-              비밀번호
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
-              placeholder="계정 삭제를 확인하려면 비밀번호를 입력하세요"
-              disabled={isLoading}
-            />
-          </div>
+          {/* 비밀번호가 있는 계정일 경우에만 비밀번호 입력 필드 표시 */}
+          {hasPassword && (
+            <div>
+              <label className="mb-1 flex items-center text-sm font-medium text-gray-700">
+                <FaLock className="mr-2 text-gray-400" />
+                비밀번호
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+                placeholder="계정 삭제를 확인하려면 비밀번호를 입력하세요"
+                disabled={isLoading || isVerifying}
+              />
+            </div>
+          )}
 
           <div className="flex flex-col justify-end gap-2 pt-2 sm:flex-row">
             <button
@@ -130,16 +192,16 @@ const DeleteAccount: React.FC = () => {
                 setError('');
               }}
               className="order-2 w-full rounded-md border border-gray-300 px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-50 sm:order-1 sm:w-auto"
-              disabled={isLoading}
+              disabled={isLoading || isVerifying}
             >
               취소
             </button>
             <button
               type="submit"
               className="order-1 w-full rounded-md bg-red-600 px-4 py-2 font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300 sm:order-2 sm:w-auto"
-              disabled={isLoading}
+              disabled={isLoading || isVerifying}
             >
-              {isLoading ? '처리 중...' : '계정 영구 삭제'}
+              {isLoading || isVerifying ? '처리 중...' : '계정 영구 삭제'}
             </button>
           </div>
         </form>

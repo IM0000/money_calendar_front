@@ -5,7 +5,7 @@ import MyPage from './pages/MyPage';
 import AuthSuccess from './pages/AuthSuccessPage';
 import AuthError from './pages/AuthErrorPage';
 import EmailVerifyPage from './pages/EmailVerifyPage';
-import SignUpPage from './pages/SignUpPage';
+import SignUpPage from './pages/SignupPage';
 import SetPasswordPage from './pages/SetPasswordPage';
 import FavoriteCalendarPage from './pages/FavoriteCalendarPage';
 import ErrorPage from './pages/ErrorPage';
