@@ -2,14 +2,20 @@ import React from 'react';
 import { UserDto } from '../../types/users-types';
 import EditNickname from './EditNickname';
 import { FaEnvelope } from 'react-icons/fa';
+import { useAuthStore } from '../../zustand/useAuthStore';
 
 interface BasicInfoProps {
   user: UserDto | null;
 }
 
 const BasicInfo: React.FC<BasicInfoProps> = ({ user }) => {
+  const { setUser } = useAuthStore();
+
   const handleSaveNickname = (nickname: string) => {
-    console.log(`닉네임 저장 완료: ${nickname}`);
+    if (user) {
+      // 상태를 갱신합니다
+      setUser({ ...user, nickname });
+    }
   };
 
   return (

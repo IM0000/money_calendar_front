@@ -172,12 +172,15 @@ export const handleGoogleLogin = () => {
 
 export const handleKakaoLogin = () => {
   // 카카오 로그인 로직
+  window.location.href = `${VITE_BACKEND_URL}/api/v1/auth/oauth/kakao`;
 };
 
 export const handleAppleLogin = () => {
   // 애플 로그인 로직
+  alert('준비 중입니다.');
 };
 
 export const handleDiscordLogin = () => {
   // 디스코드 로그인 로직
+  window.location.href = `${VITE_BACKEND_URL}/api/v1/auth/oauth/discord`;
 };

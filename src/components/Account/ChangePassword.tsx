@@ -1,6 +1,6 @@
-import React, { useState, FormEvent } from 'react';
+import React, { useState, FormEvent, useEffect } from 'react';
 import { AxiosError } from 'axios';
-import { changePassword } from '../../api/services/userService';
+import { changePassword, getUserProfile } from '../../api/services/userService';
 import { useAuthStore } from '../../zustand/useAuthStore';
 import { FaKey, FaLock, FaShieldAlt } from 'react-icons/fa';
 
@@ -17,13 +17,32 @@ const ChangePassword: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [hasPassword, setHasPassword] = useState(true); // 기본값: 비밀번호 있음
   const { user } = useAuthStore();
+
+  // 컴포넌트 마운트 시 사용자의 비밀번호 설정 여부 확인
+  useEffect(() => {
+    const checkPasswordStatus = async () => {
+      if (!user) return;
+
+      try {
+        const response = await getUserProfile();
+        if (response?.data) {
+          setHasPassword(response.data.hasPassword);
+        }
+      } catch (error) {
+        console.error('사용자 프로필 가져오기 실패:', error);
+      }
+    };
+
+    checkPasswordStatus();
+  }, [user]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     // 기본적인 유효성 검사
-    if (!currentPassword || !newPassword || !confirmPassword) {
+    if ((hasPassword && !currentPassword) || !newPassword || !confirmPassword) {
       setError('모든 필드를 입력해주세요.');
       return;
     }
@@ -48,7 +67,12 @@ const ChangePassword: React.FC = () => {
 
     try {
       // UserService를 통한 API 호출
-      await changePassword(user.email, currentPassword, newPassword);
+      // OAuth 계정(비밀번호 없음)인 경우 빈 문자열 전달
+      await changePassword(
+        user.email,
+        hasPassword ? currentPassword : '',
+        newPassword,
+      );
 
       setSuccess('비밀번호가 성공적으로 변경되었습니다.');
 
@@ -83,16 +107,20 @@ const ChangePassword: React.FC = () => {
       {!isChanging ? (
         <div className="flex flex-col items-center justify-between rounded-lg bg-gray-50 p-4 sm:flex-row">
           <div className="mb-4 text-center sm:mb-0 sm:text-left">
-            <p className="font-medium text-gray-700">비밀번호 변경</p>
+            <p className="font-medium text-gray-700">
+              {hasPassword ? '비밀번호 변경' : '비밀번호 설정'}
+            </p>
             <p className="text-sm text-gray-500">
-              계정 보안을 위해 주기적으로 비밀번호를 변경하세요.
+              {hasPassword
+                ? '계정 보안을 위해 주기적으로 비밀번호를 변경하세요.'
+                : '소셜 로그인 계정에 비밀번호를 설정하면 이메일로도 로그인할 수 있습니다.'}
             </p>
           </div>
           <button
             className="w-full rounded-md bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto"
             onClick={() => setIsChanging(true)}
           >
-            변경하기
+            {hasPassword ? '변경하기' : '설정하기'}
           </button>
         </div>
       ) : (
@@ -124,24 +152,28 @@ const ChangePassword: React.FC = () => {
           )}
 
           <div className="space-y-4">
-            <div>
-              <label className="mb-1 flex items-center text-sm font-medium text-gray-700">
-                <FaKey className="mr-2 text-gray-400" />
-                현재 비밀번호
-              </label>
-              <input
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="현재 비밀번호 입력"
-                disabled={isLoading}
-              />
-            </div>
+            {/* 비밀번호가 있는 계정일 경우에만 현재 비밀번호 입력 필드 표시 */}
+            {hasPassword && (
+              <div>
+                <label className="mb-1 flex items-center text-sm font-medium text-gray-700">
+                  <FaKey className="mr-2 text-gray-400" />
+                  현재 비밀번호
+                </label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="현재 비밀번호 입력"
+                  disabled={isLoading}
+                />
+              </div>
+            )}
 
             <div>
               <label className="mb-1 flex items-center text-sm font-medium text-gray-700">
-                <FaLock className="mr-2 text-gray-400" />새 비밀번호
+                <FaLock className="mr-2 text-gray-400" />
+                {hasPassword ? '새 비밀번호' : '비밀번호'}
               </label>
               <input
                 type="password"
@@ -155,14 +187,17 @@ const ChangePassword: React.FC = () => {
 
             <div>
               <label className="mb-1 flex items-center text-sm font-medium text-gray-700">
-                <FaLock className="mr-2 text-gray-400" />새 비밀번호 확인
+                <FaLock className="mr-2 text-gray-400" />
+                비밀번호 확인
               </label>
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full rounded-md border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="새 비밀번호 재입력"
+                placeholder={
+                  hasPassword ? '새 비밀번호 재입력' : '비밀번호 재입력'
+                }
                 disabled={isLoading}
               />
             </div>
@@ -188,7 +223,11 @@ const ChangePassword: React.FC = () => {
               className="order-1 w-full rounded-md bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300 sm:order-2 sm:w-auto"
               disabled={isLoading}
             >
-              {isLoading ? '처리 중...' : '변경 완료'}
+              {isLoading
+                ? '처리 중...'
+                : hasPassword
+                  ? '변경 완료'
+                  : '설정 완료'}
             </button>
           </div>
         </form>
