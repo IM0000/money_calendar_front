@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 interface ErrorInfo {
@@ -8,13 +8,7 @@ interface ErrorInfo {
   prevPath?: string;
 }
 
-/**
- * 애플리케이션 에러 페이지 컴포넌트
- *
- * 세션 스토리지에서 에러 정보를 가져와 표시합니다.
- * 사용자에게 에러에 대한 정보와 복구 옵션을 제공합니다.
- */
-const ErrorPage: React.FC = () => {
+export default function ErrorPage() {
   const [errorInfo, setErrorInfo] = useState<ErrorInfo>({
     message: '알 수 없는 오류가 발생했습니다.',
   });
@@ -137,6 +131,4 @@ const ErrorPage: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default ErrorPage;
+}

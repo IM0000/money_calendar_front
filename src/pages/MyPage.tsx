@@ -23,7 +23,7 @@ export default function MyPage() {
     const queryParams = new URLSearchParams(location.search);
     const message = queryParams.get('message');
     const errorParam = queryParams.get('errorMessage');
-    const hasError = queryParams.get('error') === 'true';
+    const hasError = queryParams.get('errorCode') !== null;
 
     if (message) {
       setSuccessMessage(message);
