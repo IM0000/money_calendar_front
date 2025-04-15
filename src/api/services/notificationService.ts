@@ -113,7 +113,7 @@ export const removeIndicatorNotification = withErrorHandling(
 export const getNotifications = withErrorHandling(
   async (
     page: number = 1,
-    limit: number = 10,
+    limit: number = 100,
   ): Promise<
     ApiResponse<{
       notifications: Array<Notification>;

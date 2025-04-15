@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
 import { Badge } from '@/components/UI/badge';
-import { Trash2 } from 'lucide-react';
+import { Trash2, AlertCircle } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import {
@@ -11,7 +11,7 @@ import {
   deleteNotification,
 } from '@/api/services/notificationService';
 import { Notification } from '@/types/notification';
-import { AlertCircle } from 'lucide-react';
+import { useState } from 'react';
 
 const getContentTypeLabel = (type: string) => {
   switch (type) {
@@ -35,11 +35,11 @@ const EmptyState = ({ message }: { message: string }) => (
 
 export default function NotificationList() {
   const queryClient = useQueryClient();
-  const page = 1;
-  const limit = 10;
+  const [page, setPage] = useState(1);
+  const limit = 10; // 한 페이지당 보여줄 알림 수를 10개로 제한
 
   // 알림 목록 조회
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isFetching } = useQuery({
     queryKey: ['notifications', page, limit],
     queryFn: () => getNotifications(page, limit),
   });
@@ -107,9 +107,24 @@ export default function NotificationList() {
     deleteNotificationMutation.mutate(id);
   };
 
+  // 다음 페이지 로드 핸들러
+  const handleLoadMore = () => {
+    setPage((prevPage) => prevPage + 1);
+  };
+
+  // 이전 페이지 핸들러
+  const handlePrevPage = () => {
+    if (page > 1) {
+      setPage((prevPage) => prevPage - 1);
+    }
+  };
+
   // 알림 목록
   const notifications = data?.data?.notifications || [];
   const hasNotifications = notifications.length > 0;
+  const totalCount = data?.data?.total || 0;
+  const totalPages = Math.ceil(totalCount / limit);
+  const hasNextPage = page < totalPages;
 
   return (
     <div className="space-y-4">
@@ -130,44 +145,78 @@ export default function NotificationList() {
             <p className="text-sm text-muted-foreground">로딩 중...</p>
           </div>
         ) : hasNotifications ? (
-          notifications.map((notification) => (
-            <Card
-              key={notification.id}
-              onClick={() => handleMarkAsRead(notification)}
-              className={
-                notification.read
-                  ? ''
-                  : 'border-blue-300 shadow-sm hover:shadow-md'
-              }
-            >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {getContentTypeLabel(notification.contentType)}
-                </CardTitle>
-                <div className="flex items-center space-x-2">
-                  <Badge variant={notification.read ? 'secondary' : 'default'}>
-                    {notification.read ? '읽음' : '새 알림'}
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteNotification(notification.id);
-                    }}
-                    disabled={deleteNotificationMutation.isPending}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {new Date(notification.createdAt).toLocaleString()}
-                </p>
-              </CardContent>
-            </Card>
-          ))
+          <>
+            {notifications.map((notification) => (
+              <Card
+                key={notification.id}
+                onClick={() => handleMarkAsRead(notification)}
+                className={
+                  notification.read
+                    ? ''
+                    : 'border-blue-300 shadow-sm hover:shadow-md'
+                }
+              >
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {getContentTypeLabel(notification.contentType)}
+                  </CardTitle>
+                  <div className="flex items-center space-x-2">
+                    <Badge
+                      variant={notification.read ? 'secondary' : 'default'}
+                    >
+                      {notification.read ? '읽음' : '새 알림'}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteNotification(notification.id);
+                      }}
+                      disabled={deleteNotificationMutation.isPending}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {new Date(notification.createdAt).toLocaleString()}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+
+            <div className="mt-4 flex justify-between">
+              <Button
+                variant="outline"
+                onClick={handlePrevPage}
+                disabled={page === 1 || isFetching}
+                className="w-1/3"
+              >
+                이전
+              </Button>
+
+              <div className="flex w-1/3 items-center justify-center">
+                <span className="text-sm text-muted-foreground">
+                  {page} / {totalPages} 페이지
+                </span>
+              </div>
+
+              <Button
+                variant="outline"
+                onClick={handleLoadMore}
+                disabled={!hasNextPage || isFetching}
+                className="w-1/3"
+              >
+                {isFetching ? '로딩 중...' : '다음'}
+              </Button>
+            </div>
+
+            <div className="mt-2 text-center text-sm text-muted-foreground">
+              총 {totalCount}개의 알림
+            </div>
+          </>
         ) : (
           <EmptyState message="알림이 없습니다." />
         )}
