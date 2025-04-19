@@ -22,62 +22,58 @@ export default function EarningsHistoryTable({
   onPageChange,
 }: EarningsHistoryTableProps) {
   if (isLoading) {
-    return <div className="mt-4 p-4 text-center text-gray-500">로딩 중...</div>;
+    return <div className="p-4 mt-4 text-center text-gray-500">로딩 중...</div>;
   }
 
   if (data.length === 0) {
     return (
-      <div className="mt-4 p-4 text-center text-gray-500">
+      <div className="p-4 mt-4 text-center text-gray-500">
         이전 실적 데이터가 없습니다.
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm">
+    <div className="overflow-hidden bg-white border border-gray-200 rounded-md shadow-sm">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th
               scope="col"
-              className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+              className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
             >
               발표 날짜
             </th>
             <th
               scope="col"
-              className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+              className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
             >
               시간
             </th>
             <th
               scope="col"
-              className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+              className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
             >
               EPS / 예측
             </th>
             <th
               scope="col"
-              className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
+              className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
             >
               매출 / 예측
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200 bg-white">
+        <tbody className="bg-white divide-y divide-gray-200">
           {data.map((earning) => (
             <tr key={earning.id}>
-              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+              <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
                 {formatDate(new Date(earning.releaseDate))}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
-                {new Date(earning.releaseDate).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}{' '}
+              <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
                 <MarketIcon releaseTiming={earning.releaseTiming} />
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+              <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
                 <div className="flex items-center space-x-1">
                   <span
                     className={`font-medium ${getColorClass(
@@ -92,7 +88,7 @@ export default function EarningsHistoryTable({
                   </span>
                 </div>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
+              <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
                 <div className="flex items-center space-x-1">
                   <span
                     className={`font-medium ${getColorClass(
@@ -113,7 +109,7 @@ export default function EarningsHistoryTable({
       </table>
 
       {/* 페이지네이션 */}
-      <div className="bg-white px-4 py-3 sm:px-6">
+      <div className="px-4 py-3 bg-white sm:px-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-700">

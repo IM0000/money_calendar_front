@@ -63,7 +63,7 @@ export default function SignUpPage() {
         width="44px"
         height="44px"
         divClassName="mb-6 text-black"
-        spanClassName="text-4xl font-jua font-bold pt-2"
+        spanClassName="text-3xl font-jua font-bold pt-2"
       />
       <div className="mb-8 w-full max-w-md">
         <h2 className="text-2xl font-bold">회원가입</h2>

@@ -20,10 +20,15 @@ export default function Logo({
 
   return (
     <Link to="/">
-      <div className={`flex gap-x-2 text-2xl ${divClassName}`}>
-        <img src={logoSrc} alt="Logo" style={{ width, height }} />
+      <div className={`flex items-center gap-x-1 text-2xl ${divClassName}`}>
+        <img
+          src={logoSrc}
+          alt="Logo"
+          className="block"
+          style={{ width, height }}
+        />
         {spanClassName ? (
-          <span className={`pt-0.5 align-text-bottom ${spanClassName}`}>
+          <span className={`${spanClassName} pt-2 leading-none`}>
             머니캘린더
           </span>
         ) : (

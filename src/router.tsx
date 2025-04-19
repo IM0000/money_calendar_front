@@ -12,8 +12,14 @@ import ErrorPage from './pages/ErrorPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 import SearchPage from './pages/SearchPage';
 import { NotificationCenter } from './pages/NotificationCenter';
+import LandingPage from './pages/LandingPage';
 
 const router = createBrowserRouter([
+  {
+    path: '/landing',
+    element: <LandingPage />,
+    errorElement: <ErrorPage />,
+  },
   {
     path: '/',
     element: <MainPage />,
