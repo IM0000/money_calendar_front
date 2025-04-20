@@ -259,3 +259,63 @@ export const getNotificationCalendar = withErrorHandling(
     return response.data;
   },
 );
+
+/**
+ * 테스트용 경제지표 실제값 설정 API
+ * POST /api/v1/notifications/test-indicator/:id
+ */
+export const testIndicatorActual = withErrorHandling(
+  async (indicatorId: number): Promise<ApiResponse<{ success: boolean }>> => {
+    const response = await apiClient.post(
+      `/api/v1/notifications/test-indicator/${indicatorId}`,
+      {},
+      { withAuth: true },
+    );
+    return response.data;
+  },
+);
+
+/**
+ * 경제지표 테스트 원상복구 API
+ * POST /api/v1/notifications/restore-indicator/:id
+ */
+export const restoreIndicatorActual = withErrorHandling(
+  async (indicatorId: number): Promise<ApiResponse<{ success: boolean }>> => {
+    const response = await apiClient.post(
+      `/api/v1/notifications/restore-indicator/${indicatorId}`,
+      {},
+      { withAuth: true },
+    );
+    return response.data;
+  },
+);
+
+/**
+ * 테스트용 실적 실제값 설정 API
+ * POST /api/v1/notifications/test-earnings/:id
+ */
+export const testEarningsActual = withErrorHandling(
+  async (earningsId: number): Promise<ApiResponse<{ success: boolean }>> => {
+    const response = await apiClient.post(
+      `/api/v1/notifications/test-earnings/${earningsId}`,
+      {},
+      { withAuth: true },
+    );
+    return response.data;
+  },
+);
+
+/**
+ * 실적 테스트 원상복구 API
+ * POST /api/v1/notifications/restore-earnings/:id
+ */
+export const restoreEarningsActual = withErrorHandling(
+  async (earningsId: number): Promise<ApiResponse<{ success: boolean }>> => {
+    const response = await apiClient.post(
+      `/api/v1/notifications/restore-earnings/${earningsId}`,
+      {},
+      { withAuth: true },
+    );
+    return response.data;
+  },
+);

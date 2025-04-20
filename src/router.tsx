@@ -95,6 +95,15 @@ const router = createBrowserRouter([
     ),
     errorElement: <ErrorPage />,
   },
+  // {
+  //   path: '/notifications/test',
+  //   element: (
+  //     <ProtectedRoute>
+  //       <NotificationTester />
+  //     </ProtectedRoute>
+  //   ),
+  //   errorElement: <ErrorPage />,
+  // },
 ]);
 
 export default router;

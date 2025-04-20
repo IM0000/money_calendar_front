@@ -13,19 +13,6 @@ import {
 import { Notification } from '@/types/notification';
 import { useState } from 'react';
 
-const getContentTypeLabel = (type: string) => {
-  switch (type) {
-    case 'EARNINGS':
-      return '실적 알림';
-    case 'DIVIDEND':
-      return '배당 알림';
-    case 'ECONOMIC_INDICATOR':
-      return '경제지표 알림';
-    default:
-      return '알림';
-  }
-};
-
 const EmptyState = ({ message }: { message: string }) => (
   <div className="flex flex-col items-center justify-center space-y-2 py-8 text-center">
     <AlertCircle className="h-8 w-8 text-muted-foreground" />
@@ -36,20 +23,19 @@ const EmptyState = ({ message }: { message: string }) => (
 export default function NotificationList() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const limit = 10; // 한 페이지당 보여줄 알림 수를 10개로 제한
+  const limit = 10;
 
-  // 알림 목록 조회
   const { data, isLoading, isFetching } = useQuery({
     queryKey: ['notifications', page, limit],
     queryFn: () => getNotifications(page, limit),
   });
 
-  // 알림 읽음 처리 mutation
   const markAsReadMutation = useMutation({
     mutationFn: (id: number) => markNotificationAsRead(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['unreadCount'] });
+      queryClient.invalidateQueries({ queryKey: ['unreadNotificationsCount'] });
     },
     onError: (error) => {
       toast.error(
@@ -58,12 +44,12 @@ export default function NotificationList() {
     },
   });
 
-  // 알림 전체 읽음 처리 mutation
   const markAllAsReadMutation = useMutation({
     mutationFn: () => markAllNotificationsAsRead(),
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['unreadCount'] });
+      queryClient.invalidateQueries({ queryKey: ['unreadNotificationsCount'] });
       toast.success(
         `${response.data?.count || 0}개의 알림을 읽음으로 표시했습니다.`,
       );
@@ -75,12 +61,12 @@ export default function NotificationList() {
     },
   });
 
-  // 알림 삭제 mutation
   const deleteNotificationMutation = useMutation({
     mutationFn: (id: number) => deleteNotification(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['unreadCount'] });
+      queryClient.invalidateQueries({ queryKey: ['unreadNotificationsCount'] });
       toast.success('알림이 삭제되었습니다.');
     },
     onError: (error) => {
@@ -90,136 +76,138 @@ export default function NotificationList() {
     },
   });
 
-  // 알림 읽음 처리 핸들러
-  const handleMarkAsRead = (notification: Notification) => {
-    if (!notification.read) {
-      markAsReadMutation.mutate(notification.id);
+  if (isLoading) {
+    return <p className="py-8 text-center">로딩 중...</p>;
+  }
+
+  const notifications = data?.data?.notifications as Array<
+    Notification & {
+      eventName: string;
+      actual?: string;
+      forecast?: string;
+      actualEPS?: string;
+      forecastEPS?: string;
+      actualRevenue?: string;
+      forecastRevenue?: string;
+      releaseDate?: number;
     }
-  };
+  >;
 
-  // 알림 전체 읽음 처리 핸들러
-  const handleMarkAllAsRead = () => {
-    markAllAsReadMutation.mutate();
-  };
-
-  // 알림 삭제 핸들러
-  const handleDeleteNotification = (id: number) => {
-    deleteNotificationMutation.mutate(id);
-  };
-
-  // 다음 페이지 로드 핸들러
-  const handleLoadMore = () => {
-    setPage((prevPage) => prevPage + 1);
-  };
-
-  // 이전 페이지 핸들러
-  const handlePrevPage = () => {
-    if (page > 1) {
-      setPage((prevPage) => prevPage - 1);
-    }
-  };
-
-  // 알림 목록
-  const notifications = data?.data?.notifications || [];
-  const hasNotifications = notifications.length > 0;
   const totalCount = data?.data?.total || 0;
   const totalPages = Math.ceil(totalCount / limit);
-  const hasNextPage = page < totalPages;
+
+  if (notifications.length === 0) {
+    return <EmptyState message="알림이 없습니다." />;
+  }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">알림 목록</h2>
+        <h2 className="text-2xl font-bold">알림 목록</h2>
         <Button
           variant="outline"
           size="sm"
-          onClick={handleMarkAllAsRead}
-          disabled={markAllAsReadMutation.isPending || !hasNotifications}
+          onClick={() => markAllAsReadMutation.mutate()}
+          disabled={
+            markAllAsReadMutation.isPending || notifications.length === 0
+          }
         >
           전체 읽음 처리
         </Button>
       </div>
-      <div className="space-y-4">
-        {isLoading ? (
-          <div className="py-8 text-center">
-            <p className="text-sm text-muted-foreground">로딩 중...</p>
-          </div>
-        ) : hasNotifications ? (
-          <>
-            {notifications.map((notification) => (
-              <Card
-                key={notification.id}
-                onClick={() => handleMarkAsRead(notification)}
-                className={
-                  notification.read
-                    ? ''
-                    : 'border-blue-300 shadow-sm hover:shadow-md'
-                }
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    {getContentTypeLabel(notification.contentType)}
-                  </CardTitle>
-                  <div className="flex items-center space-x-2">
-                    <Badge
-                      variant={notification.read ? 'secondary' : 'default'}
-                    >
-                      {notification.read ? '읽음' : '새 알림'}
-                    </Badge>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteNotification(notification.id);
-                      }}
-                      disabled={deleteNotificationMutation.isPending}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    {new Date(notification.createdAt).toLocaleString()}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
 
-            <div className="mt-4 flex justify-between">
-              <Button
-                variant="outline"
-                onClick={handlePrevPage}
-                disabled={page === 1 || isFetching}
-                className="w-1/3"
-              >
-                이전
-              </Button>
-
-              <div className="flex w-1/3 items-center justify-center">
-                <span className="text-sm text-muted-foreground">
-                  {page} / {totalPages} 페이지
-                </span>
+      <div className="grid gap-4">
+        {notifications.map((n) => (
+          <Card
+            key={n.id}
+            onClick={() => markAsReadMutation.mutate(n.id)}
+            className={`rounded-lg border border-gray-200 p-4 shadow-sm transition-shadow hover:shadow-lg ${
+              n.read ? '' : 'ring-2 ring-blue-300'
+            }`}
+          >
+            <CardHeader className="flex items-start justify-between pb-2">
+              <div>
+                <CardTitle className="text-lg font-semibold">
+                  {n.eventName}
+                </CardTitle>
+                <p className="text-xs text-gray-500">
+                  발표시간:{' '}
+                  {n.releaseDate
+                    ? new Date(n.releaseDate).toLocaleString()
+                    : '-'}
+                </p>
               </div>
+              <div className="flex items-center space-x-2">
+                <Badge variant={n.read ? 'secondary' : 'default'}>
+                  {n.read ? '읽음' : '새 알림'}
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteNotificationMutation.mutate(n.id);
+                  }}
+                  disabled={deleteNotificationMutation.isPending}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
 
-              <Button
-                variant="outline"
-                onClick={handleLoadMore}
-                disabled={!hasNextPage || isFetching}
-                className="w-1/3"
-              >
-                {isFetching ? '로딩 중...' : '다음'}
-              </Button>
-            </div>
+            <CardContent className="grid grid-cols-2 gap-4 text-sm">
+              {n.contentType === 'EARNINGS' ? (
+                <>
+                  <div>
+                    <p className="font-medium">실제 EPS</p>
+                    <p>{n.actualEPS ?? '-'}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium">예측 EPS</p>
+                    <p>{n.forecastEPS ?? '-'}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium">실제 매출</p>
+                    <p>{n.actualRevenue ?? '-'}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium">예측 매출</p>
+                    <p>{n.forecastRevenue ?? '-'}</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <p className="font-medium">실제</p>
+                    <p>{n.actual === '' ? '-' : n.actual}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium">예측</p>
+                    <p>{n.forecast === '' ? '-' : n.forecast}</p>
+                  </div>
+                </>
+              )}
+              <div className="col-span-2 text-xs text-gray-500">
+                알림시간: {new Date(n.createdAt).toLocaleString()}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-            <div className="mt-2 text-center text-sm text-muted-foreground">
-              총 {totalCount}개의 알림
-            </div>
-          </>
-        ) : (
-          <EmptyState message="알림이 없습니다." />
-        )}
+      {/* Pagination */}
+      <div className="flex justify-center space-x-2">
+        {Array.from({ length: totalPages }, (_, i) => (
+          <Button
+            key={i}
+            size="sm"
+            variant={page === i + 1 ? 'default' : 'outline'}
+            onClick={() => setPage(i + 1)}
+            disabled={isFetching}
+          >
+            {i + 1}
+          </Button>
+        ))}
       </div>
     </div>
   );
