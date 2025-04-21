@@ -41,7 +41,7 @@ export default function SignUpPage() {
     try {
       const res: ApiResponse<{ token: string; message: string }> =
         await register({ email }); // RegisterDto 사용
-      console.log('register res', res);
+
       // 인증 코드 전송 성공 시 EmailVerifyPage로 이동
       const emailToken: string = res.data?.token || '';
       localStorage.setItem('moneyCalendarEmailToken', emailToken);

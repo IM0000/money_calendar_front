@@ -53,7 +53,6 @@ export default function EmailVerifyPage() {
     // 코드 검증 로직(이메일 검증)
     try {
       const response = await verify({ email, code: verificationCode });
-      console.log(response);
       if (response.data?.verified) {
         // 인증 완료된 경우
         alert(
@@ -70,7 +69,7 @@ export default function EmailVerifyPage() {
     } catch (error: unknown) {
       if (error instanceof AxiosError && error.response?.data) {
         const { errorCode, errorMessage, data } = error.response.data;
-        console.log(errorCode && errorMessage);
+
         if (errorCode && errorMessage) {
           console.error('Error Code:', errorCode);
           console.error('Error Message:', errorMessage);
@@ -94,9 +93,6 @@ export default function EmailVerifyPage() {
         console.error('기타 에러:', error);
       }
     }
-    // 검증 성공 시 회원가입 완료 페이지로 이동하거나 다른 로직 수행
-    console.log(`Verifying code ${verificationCode} for email ${email}`);
-    // 예시: navigate('/signup-complete');
   };
 
   const handleResendCode = async () => {
@@ -112,8 +108,6 @@ export default function EmailVerifyPage() {
     } finally {
       setLoading(false);
     }
-    console.log(`Resending code to email ${email}`);
-    // 예: API 호출 후 성공 시
   };
 
   return (

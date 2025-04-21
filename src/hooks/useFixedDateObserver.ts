@@ -36,7 +36,6 @@ export default function useFixedDateObserver({
         headerRefs.forEach((ref) => {
           if (ref.current) {
             const rect = ref.current.getBoundingClientRect();
-            // console.log('🚀 ~ headerRefs.forEach ~ rect:', rect);
             if (rect.top <= headerBottom && rect.top > candidateTop) {
               candidateTop = rect.top;
               candidateDate = ref.current.getAttribute('data-date');
@@ -55,7 +54,6 @@ export default function useFixedDateObserver({
         if (candidateDate && lastSetDateRef.current !== candidateDate) {
           lastSetDateRef.current = candidateDate;
           setCurrentTableTopDate(candidateDate);
-          console.log('Updated fixed date to:', candidateDate);
         }
       });
     };

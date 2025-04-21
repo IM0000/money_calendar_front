@@ -47,7 +47,6 @@ export default function LoginPage() {
   const handleLogin = async () => {
     try {
       const res = await login({ email, password });
-      console.log(res);
 
       if (res.statusCode === 201 && res.data) {
         authStoreLogin(res.data.user, res.data.accessToken);

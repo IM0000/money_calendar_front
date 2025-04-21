@@ -35,7 +35,6 @@ export default function SetPasswordPage() {
     setError(null);
 
     try {
-      console.log(email);
       // 비밀번호 설정 API 호출
       const pwRes = await updateUserPassword({ email, password });
       if (pwRes.data?.message === 'success') {

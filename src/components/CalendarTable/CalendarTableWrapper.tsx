@@ -45,7 +45,6 @@ export default function CalendarTableWrapper({
         top: targetScrollTop,
         behavior: isInitialMount.current ? 'auto' : 'smooth',
       });
-      console.log('Scrolled to header date:', dateStr);
     }
     // 최초 마운트가 아니라면 이후부터는 smooth 스크롤을 사용하도록 설정
     if (isInitialMount.current) {
