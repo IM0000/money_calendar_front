@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function TestErrorButton() {
   // 런타임 에러 발생 버튼 클릭 핸들러
   const handleRuntimeError = () => {
