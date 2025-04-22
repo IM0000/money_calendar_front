@@ -2,8 +2,8 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Logo from '../components/Logo';
-import { updateUserPassword } from '../api/services/UsersService';
-import { login } from '../api/services/AuthService';
+import { login } from '../api/services/authService';
+import { updateUserPassword } from '../api/services/userService';
 
 export default function SetPasswordPage() {
   const navigate = useNavigate();
@@ -35,7 +35,6 @@ export default function SetPasswordPage() {
     setError(null);
 
     try {
-      console.log(email);
       // 비밀번호 설정 API 호출
       const pwRes = await updateUserPassword({ email, password });
       if (pwRes.data?.message === 'success') {

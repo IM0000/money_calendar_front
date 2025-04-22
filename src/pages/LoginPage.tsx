@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import googleLogo from '../assets/google/google-g-2015-logo-png-transparent.png';
 import kakaoLogo from '../assets/kakao/kakao_logo.webp';
@@ -8,8 +8,8 @@ import OAuthLoginButton from '../components/OAuthLoginButton';
 import Logo from '../components/Logo';
 import { AxiosError } from 'axios';
 import { useAuthStore } from '../zustand/useAuthStore';
-import { login } from '../api/services/AuthService';
-import { ErrorCodes } from '../types/ErrorCodes';
+import { login } from '../api/services/authService';
+import { ErrorCodes } from '../types/error-codes';
 
 const { VITE_BACKEND_URL } = import.meta.env;
 
@@ -20,6 +20,15 @@ export default function LoginPage() {
   const { login: authStoreLogin } = useAuthStore();
   const [error, setError] = useState(''); // 에러 메시지 상태 추가
   const navigate = useNavigate();
+  const { user, isAuthenticated, checkAuth } = useAuthStore();
+
+  useEffect(() => {
+    checkAuth();
+
+    if (user && isAuthenticated) {
+      navigate('/');
+    }
+  }, [user, isAuthenticated, navigate]);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
@@ -38,7 +47,6 @@ export default function LoginPage() {
   const handleLogin = async () => {
     try {
       const res = await login({ email, password });
-      console.log(res);
 
       if (res.statusCode === 201 && res.data) {
         authStoreLogin(res.data.user, res.data.accessToken);
@@ -63,8 +71,8 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-white p-6">
       <Logo
-        width="44px"
-        height="44px"
+        width="55px"
+        height="55px"
         divClassName="mb-8 text-black"
         spanClassName="text-4xl font-jua font-bold pt-2"
       />
@@ -158,17 +166,20 @@ export default function LoginPage() {
 
 export const handleGoogleLogin = () => {
   // 구글 로그인 로직
-  window.location.href = `${VITE_BACKEND_URL}/auth/google`;
+  window.location.href = `${VITE_BACKEND_URL}/api/v1/auth/oauth/google`;
 };
 
 export const handleKakaoLogin = () => {
   // 카카오 로그인 로직
+  window.location.href = `${VITE_BACKEND_URL}/api/v1/auth/oauth/kakao`;
 };
 
 export const handleAppleLogin = () => {
   // 애플 로그인 로직
+  alert('준비 중입니다.');
 };
 
 export const handleDiscordLogin = () => {
   // 디스코드 로그인 로직
+  window.location.href = `${VITE_BACKEND_URL}/api/v1/auth/oauth/discord`;
 };

@@ -1,354 +1,152 @@
-import React, { useState } from 'react';
-import Tippy from '@tippyjs/react';
-import { FaDollarSign, FaChartLine } from 'react-icons/fa';
-import { AiOutlineMinusCircle, AiOutlinePlus } from 'react-icons/ai';
-import { FaCheckCircle } from 'react-icons/fa';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Layout from '../components/Layout/Layout';
-import SearchInput from '../components/Search/SearchInput';
-import {
-  EconomicResult,
-  EconomicResultItem,
-} from '../components/Search/EconomicResultItem';
-import {
-  CompanyResult,
-  CompanyResultItem,
-} from '../components/Search/CompanyResultItem';
-import googleLogo from '../assets/google/google-g-2015-logo-png-transparent.png';
-import kakaoLogo from '../assets/kakao/kakao_logo.webp';
-import appleLogo from '../assets/apple/apple-logo-bg.png';
-import discordLogo from '../assets/discord/discord_logo.png';
 import { useAuthStore } from '../zustand/useAuthStore';
-import { UserDto } from '../types/UsersTypes';
+import { getUserProfile } from '../api/services/userService';
 
-type availableSNS = 'google' | 'apple' | 'kakao' | 'discord';
-
-type LinkedAccount = {
-  linked: boolean;
-  email: string;
-};
-
-type LinkedAccounts = {
-  [key in availableSNS]: LinkedAccount;
-};
-
-const BasicInfo = ({ user }: { user: UserDto | null }) => (
-  <div className="mb-6 w-full rounded-lg bg-white p-6 shadow-md">
-    <div className="mb-4 border-b border-gray-300 pb-4">
-      <label className="block text-sm font-medium text-gray-600">이메일</label>
-      <div className="mt-2 flex items-center justify-between">
-        <div className="font-semibold text-gray-800">
-          {user?.email || '이메일 없음'}
-        </div>
-      </div>
-    </div>
-    <div className="mb-4 border-b border-gray-300 pb-4">
-      <label className="block text-sm font-medium text-gray-600">닉네임</label>
-      <div className="mt-2 flex items-center justify-between">
-        <div className="font-semibold text-gray-800">
-          {user?.nickname || '닉네임 없음'}
-        </div>
-        <button className="text-sm font-semibold text-blue-500 transition hover:text-blue-700">
-          수정
-        </button>
-      </div>
-    </div>
-    <div>
-      <button className="mt-4 w-full rounded-md bg-blue-500 px-4 py-3 text-center text-sm font-semibold text-white shadow-md transition hover:bg-blue-600">
-        비밀번호 변경하기
-      </button>
-    </div>
-  </div>
-);
-
-const SNSAccountLink = () => {
-  const [linkedAccounts, setLinkedAccounts] = useState<LinkedAccounts>({
-    google: { linked: true, email: 'imsang0000@gmail.com' },
-    apple: { linked: false, email: '' },
-    kakao: { linked: false, email: '' },
-    discord: { linked: false, email: '' },
-  });
-
-  const toggleLink = (provider: availableSNS) => {
-    setLinkedAccounts((prevState: LinkedAccounts) => ({
-      ...prevState,
-      [provider]: {
-        linked: !prevState[provider].linked,
-        email: prevState[provider].linked ? '' : 'imsang0000@gmail.com',
-      },
-    }));
-  };
-
-  return (
-    <div className="mb-4 w-full rounded-lg bg-white p-4 shadow">
-      <h3 className="mb-4 text-xl font-semibold">SNS 계정 연동하기</h3>
-      <div className="space-y-4">
-        {Object.keys(linkedAccounts).map((provider) => (
-          <div
-            key={provider}
-            className="flex items-center justify-between rounded-lg bg-gray-50 p-4 shadow-sm"
-          >
-            <div className="flex items-center">
-              <img
-                src={
-                  provider === 'google'
-                    ? googleLogo
-                    : provider === 'apple'
-                      ? appleLogo
-                      : provider === 'kakao'
-                        ? kakaoLogo
-                        : discordLogo
-                }
-                alt={provider}
-                className="h-6 w-6"
-              />
-              <span className="ml-3">
-                {provider.charAt(0).toUpperCase() + provider.slice(1)}
-              </span>
-            </div>
-            <div className="flex flex-col items-end">
-              {linkedAccounts[provider as availableSNS].linked ? (
-                <>
-                  <div className="flex items-center">
-                    <FaCheckCircle className="mr-2 text-green-500" />
-                    <span className="text-gray-700">로그인되었습니다.</span>
-                  </div>
-                  <span className="text-sm text-gray-500">
-                    {linkedAccounts[provider as availableSNS].email}
-                  </span>
-                </>
-              ) : (
-                <button
-                  className="text-blue-500 hover:text-blue-700"
-                  onClick={() => toggleLink(provider as availableSNS)}
-                >
-                  <AiOutlinePlus size={20} />
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const DeleteAccount = () => (
-  <div className="mb-4 w-full rounded-lg bg-white p-4 shadow">
-    <div className="flex items-center justify-between">
-      <h3 className="text-xl font-semibold">계정 삭제하기</h3>
-      <button className="text-gray rounded border border-gray-200 px-2 py-1 text-sm font-semibold hover:bg-gray-200">
-        회원 탈퇴
-      </button>
-    </div>
-  </div>
-);
+// 분리된 컴포넌트 임포트
+import BasicInfo from '../components/Account/BasicInfo';
+import ChangePassword from '../components/Account/ChangePassword';
+import AccountLink from '../components/Account/AccountLink';
+import DeleteAccount from '../components/Account/DeleteAccount';
 
 export default function MyPage() {
-  const { user } = useAuthStore();
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [economicResults, setEconomicResults] = useState<EconomicResult[]>([
-    {
-      country: '영국',
-      importance: 3,
-      eventName: '월간 영국 국내총생산(GDP)',
-      isAdded: true,
-    },
-    {
-      country: '호주',
-      importance: 2,
-      eventName: '호주 국내총생산(GDP) <전분기 대비>',
-      isAdded: true,
-    },
-    {
-      country: '영국',
-      importance: 3,
-      eventName: '월간 영국 국내총생산(GDP)',
-      isAdded: true,
-    },
-    {
-      country: '호주',
-      importance: 2,
-      eventName: '호주 국내총생산(GDP) <전분기 대비>',
-      isAdded: true,
-    },
-    {
-      country: '영국',
-      importance: 3,
-      eventName: '월간 영국 국내총생산(GDP)',
-      isAdded: true,
-    },
-    {
-      country: '호주',
-      importance: 2,
-      eventName: '호주 국내총생산(GDP) <전분기 대비>',
-      isAdded: true,
-    },
-    {
-      country: '영국',
-      importance: 3,
-      eventName: '월간 영국 국내총생산(GDP)',
-      isAdded: true,
-    },
-    {
-      country: '호주',
-      importance: 2,
-      eventName: '호주 국내총생산(GDP) <전분기 대비>',
-      isAdded: true,
-    },
-    {
-      country: '영국',
-      importance: 3,
-      eventName: '월간 영국 국내총생산(GDP)',
-      isAdded: true,
-    },
-    {
-      country: '호주',
-      importance: 2,
-      eventName: '호주 국내총생산(GDP) <전분기 대비>',
-      isAdded: true,
-    },
-    {
-      country: '영국',
-      importance: 3,
-      eventName: '월간 영국 국내총생산(GDP)',
-      isAdded: true,
-    },
-    {
-      country: '호주',
-      importance: 2,
-      eventName: '호주 국내총생산(GDP) <전분기 대비>',
-      isAdded: true,
-    },
-    {
-      country: '영국',
-      importance: 3,
-      eventName: '월간 영국 국내총생산(GDP)',
-      isAdded: true,
-    },
-    {
-      country: '호주',
-      importance: 2,
-      eventName: '호주 국내총생산(GDP) <전분기 대비>',
-      isAdded: true,
-    },
-  ]);
-  const [companyResults, setCompanyResults] = useState<CompanyResult[]>([
-    {
-      ticker: 'AAPL',
-      name: 'Apple Inc.',
-      isDividendAdded: true,
-      isPerformanceAdded: false,
-    },
-    {
-      ticker: 'MSFT',
-      name: 'Microsoft Corp.',
-      isDividendAdded: false,
-      isPerformanceAdded: true,
-    },
-  ]);
+  const { user, logout, setUser } = useAuthStore();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(event.target.value);
+  // URL에서 성공 또는 오류 메시지 파라미터 확인
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const message = queryParams.get('message');
+    const errorParam = queryParams.get('errorMessage');
+    const hasError = queryParams.get('errorCode') !== null;
+
+    if (message) {
+      setSuccessMessage(message);
+      navigate('/mypage', { replace: true });
+    }
+
+    if (hasError && errorParam) {
+      setError(decodeURIComponent(errorParam));
+      navigate('/mypage', { replace: true });
+    }
+  }, [location.search, navigate]);
+
+  // 로그아웃 처리
+  const handleLogout = () => {
+    if (confirm('로그아웃할까요?')) {
+      logout();
+      navigate('/login');
+    }
   };
 
-  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    // 검색 기능 추가
-  };
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) {
+        navigate('/login');
+        return;
+      }
 
-  const handleDeleteEconomicResult = (index: number) => {
-    setEconomicResults((prevResults) =>
-      prevResults.filter((_, i) => i !== index),
-    );
-  };
+      try {
+        setIsLoading(true);
+        const response = await getUserProfile();
 
-  const handleDeleteCompanyResult = (index: number) => {
-    setCompanyResults((prevResults) =>
-      prevResults.filter((_, i) => i !== index),
-    );
-  };
+        // 사용자 정보 업데이트
+        if (response?.data) {
+          // UserProfileResponse는 user 객체를 포함하지 않고 직접 필드를 가지고 있음
+          const profileData = response.data;
+
+          // 기존 유저 정보에 프로필 정보 병합
+          setUser({
+            ...user,
+            id: profileData.id,
+            email: profileData.email,
+            nickname: profileData.nickname,
+            verified: profileData.verified,
+            createdAt: profileData.createdAt,
+            updatedAt: profileData.updatedAt,
+            hasPassword: profileData.hasPassword,
+          });
+        }
+      } catch (err) {
+        console.error('프로필 정보 가져오기 실패:', err);
+        setError('프로필 정보를 불러오는데 실패했습니다.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   return (
     <Layout>
-      <div className="container mx-auto flex flex-wrap items-start p-8">
-        <div className="w-full pr-8 lg:w-1/3">
-          <h2 className="mb-4 text-2xl font-bold">내 계정</h2>
-          <BasicInfo user={user} />
-          <SNSAccountLink />
-          <DeleteAccount />
-        </div>
-
-        <div className="w-full border-gray-300 pl-8 lg:w-2/3 lg:border-l">
-          <div className="w-full">
-            <h3 className="mb-4 text-2xl font-bold">내 이벤트</h3>
-            <div className="mb-4 w-full max-w-4xl">
-              <SearchInput
-                searchQuery={searchQuery}
-                onSearchChange={handleSearchChange}
-                onSearchSubmit={handleSearchSubmit}
-              />
-            </div>
-            <div className="flex w-full max-w-4xl flex-col space-y-4">
-              <div className="w-full overflow-y-auto rounded-lg border border-gray-300 p-4 shadow-md">
-                <h3 className="mb-2 rounded bg-gray-200 p-2 text-lg font-semibold">
-                  경제지표
-                </h3>
-                {economicResults.map((result, index) => (
-                  <EconomicResultItem key={index} result={result}>
-                    <button
-                      className="p-1"
-                      onClick={() => handleDeleteEconomicResult(index)}
-                    >
-                      <AiOutlineMinusCircle
-                        size={20}
-                        className="text-gray-500 hover:text-black"
-                      />
-                    </button>
-                  </EconomicResultItem>
-                ))}
-              </div>
-              <div className="w-full overflow-y-auto rounded-lg border border-gray-300 p-4 shadow-md">
-                <h3 className="mb-2 rounded bg-gray-200 p-2 text-lg font-semibold">
-                  기업
-                </h3>
-                {companyResults.map((result, index) => (
-                  <CompanyResultItem key={index} result={result}>
-                    <div className="flex space-x-2">
-                      <Tippy
-                        content={
-                          result.isDividendAdded
-                            ? '이미 추가됨'
-                            : '배당일정 추가'
-                        }
-                      >
-                        <button className="p-1">
-                          <FaDollarSign
-                            size={20}
-                            className={`${result.isDividendAdded ? 'text-gray-300' : 'text-gray-500 hover:text-black'}`}
-                          />
-                        </button>
-                      </Tippy>
-                      <Tippy
-                        content={
-                          result.isPerformanceAdded
-                            ? '이미 추가됨'
-                            : '실적일정 추가'
-                        }
-                      >
-                        <button className="p-1">
-                          <FaChartLine
-                            size={20}
-                            className={`${result.isPerformanceAdded ? 'text-gray-300' : 'text-gray-500 hover:text-black'}`}
-                          />
-                        </button>
-                      </Tippy>
-                    </div>
-                  </CompanyResultItem>
-                ))}
-              </div>
-            </div>
+      <div className="container mx-auto px-4 py-8">
+        {error && (
+          <div className="mb-4 rounded-md bg-red-50 p-4 text-red-700">
+            <p>{error}</p>
+            <button
+              className="mt-2 text-sm text-red-500 hover:underline"
+              onClick={() => setError(null)}
+            >
+              닫기
+            </button>
           </div>
-        </div>
+        )}
+
+        {successMessage && (
+          <div className="mb-4 rounded-md bg-green-50 p-4 text-green-700">
+            <p>{successMessage}</p>
+            <button
+              className="mt-2 text-sm text-green-500 hover:underline"
+              onClick={() => setSuccessMessage(null)}
+            >
+              닫기
+            </button>
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <p className="text-gray-600">프로필 정보를 불러오는 중...</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-6 md:flex-row">
+            {/* ============ 왼쪽 사이드 메뉴 (모바일에서는 상단에 표시) ============ */}
+            <aside className="mb-6 w-full self-start md:sticky md:top-6 md:mb-0 md:w-64 lg:w-72">
+              <div className="rounded-lg bg-white p-6 shadow">
+                <h2 className="mb-4 border-b border-gray-200 pb-2 text-xl font-bold text-gray-800">
+                  계정 설정
+                </h2>
+                <nav className="flex flex-col space-y-2">
+                  <button className="rounded-md bg-blue-50 p-3 text-left font-medium text-blue-700 transition-colors hover:bg-blue-100">
+                    계정관리
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="rounded-md p-3 text-left text-gray-700 transition-colors hover:bg-gray-100"
+                  >
+                    로그아웃
+                  </button>
+                </nav>
+              </div>
+            </aside>
+
+            {/* ============ 오른쪽 메인 컨텐츠 ============ */}
+            <main className="max-w-3xl flex-1">
+              <div className="space-y-6">
+                <BasicInfo user={user} />
+                <ChangePassword />
+                <AccountLink />
+                <DeleteAccount />
+              </div>
+            </main>
+          </div>
+        )}
       </div>
     </Layout>
   );

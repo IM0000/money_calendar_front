@@ -6,7 +6,7 @@ import {
   getEmailFromToken,
   register,
   verify,
-} from '../api/services/AuthService';
+} from '../api/services/authService';
 import { AxiosError } from 'axios';
 
 export default function EmailVerifyPage() {
@@ -27,8 +27,12 @@ export default function EmailVerifyPage() {
             setEmail(response.data.email);
           }
         } catch (err: unknown) {
-          alert('이메일을 가져오는 데 실패했습니다.');
-          navigate('/sign-up');
+          if (err instanceof AxiosError && err.response?.status === 401) {
+            alert('토큰이 유효하지 않습니다. 다시 로그인해주세요.');
+            navigate('/sign-up');
+          } else {
+            alert('네트워크 오류가 발생했습니다. 다시 시도해주세요.');
+          }
         }
       } else {
         alert('유효한 토큰이 없습니다.');
@@ -49,7 +53,6 @@ export default function EmailVerifyPage() {
     // 코드 검증 로직(이메일 검증)
     try {
       const response = await verify({ email, code: verificationCode });
-      console.log(response);
       if (response.data?.verified) {
         // 인증 완료된 경우
         alert(
@@ -66,7 +69,7 @@ export default function EmailVerifyPage() {
     } catch (error: unknown) {
       if (error instanceof AxiosError && error.response?.data) {
         const { errorCode, errorMessage, data } = error.response.data;
-        console.log(errorCode && errorMessage);
+
         if (errorCode && errorMessage) {
           console.error('Error Code:', errorCode);
           console.error('Error Message:', errorMessage);
@@ -78,9 +81,11 @@ export default function EmailVerifyPage() {
               navigate('/users/password', {
                 state: { email: data?.email },
               });
-            } else {
+            } else if (data?.email) {
               alert('이미 등록된 이메일입니다. 로그인해주세요.');
               navigate('/login');
+            } else {
+              alert('서버 응답을 처리할 수 없습니다.');
             }
           }
         }
@@ -88,9 +93,6 @@ export default function EmailVerifyPage() {
         console.error('기타 에러:', error);
       }
     }
-    // 검증 성공 시 회원가입 완료 페이지로 이동하거나 다른 로직 수행
-    console.log(`Verifying code ${verificationCode} for email ${email}`);
-    // 예시: navigate('/signup-complete');
   };
 
   const handleResendCode = async () => {
@@ -106,19 +108,17 @@ export default function EmailVerifyPage() {
     } finally {
       setLoading(false);
     }
-    console.log(`Resending code to email ${email}`);
-    // 예: API 호출 후 성공 시
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-white">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-white p-6">
       <Logo
         width="44px"
         height="44px"
         divClassName="mb-6 text-black"
         spanClassName="text-4xl font-jua font-bold pt-2"
       />
-      <div className="w-full max-w-md mb-8">
+      <div className="mb-8 w-full max-w-md">
         <h2 className="text-2xl font-bold">이메일 인증</h2>
         <p className="mt-2 text-sm">
           {email}로 4자리 코드를 보냈습니다. 코드를 입력하고 이메일을
@@ -126,10 +126,9 @@ export default function EmailVerifyPage() {
         </p>
         <div className="mt-6">
           <input
-            type="email"
+            type="text"
             value={email}
-            onChange={() => {}}
-            className="w-full p-2 text-black border border-gray-300 rounded"
+            className="w-full rounded border border-gray-300 p-2 text-black"
             disabled
           />
         </div>
@@ -139,10 +138,10 @@ export default function EmailVerifyPage() {
             placeholder="인증 코드"
             value={verificationCode}
             onChange={handleVerificationCodeChange}
-            className="w-full p-2 text-black border border-gray-300 rounded"
+            className="w-full rounded border border-gray-300 p-2 text-black"
           />
         </div>
-        <div className="flex items-center justify-between mt-2">
+        <div className="mt-2 flex items-center justify-between">
           {error && <p className="text-red-500">{error}</p>}
           <button
             onClick={handleResendCode}
@@ -153,7 +152,7 @@ export default function EmailVerifyPage() {
         </div>
         <button
           onClick={handleVerifyCode}
-          className="w-full px-4 py-2 mt-4 text-white bg-blue-400 rounded hover:bg-blue-500"
+          className="mt-4 w-full rounded bg-blue-400 px-4 py-2 text-white hover:bg-blue-500"
         >
           {loading ? '인증 중...' : '계속하기'}
         </button>
@@ -165,7 +164,7 @@ export default function EmailVerifyPage() {
         </p>
       </div>
 
-      <div className="mt-8 text-xs text-center">
+      <div className="mt-8 text-center text-xs">
         <Link to="/terms" className="mr-2 text-gray-400 hover:underline">
           이용약관
         </Link>
