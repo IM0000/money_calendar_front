@@ -52,6 +52,7 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+    --calendar-header-height: 2.75rem;
   }
 
   .dark {
@@ -89,5 +90,15 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .sticky-separator-td {
+    position: sticky;
+    top: var(--calendar-header-height);
+    z-index: 10;
+    /* Tailwind bg-gray-100 과 비슷한 색 */
+    background-color: #f3f4f6;
   }
 }
