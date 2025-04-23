@@ -12,6 +12,7 @@ import { formatMarketCap } from '@/utils/formatUtils';
 import { EarningsEvent } from '@/types/calendar-event';
 import MarketIcon from './MarketIcon';
 import { useQuery } from '@tanstack/react-query';
+import { getColorClass } from '@/utils/colorUtils';
 
 interface EarningsTableProps {
   events: EarningsEvent[];
@@ -223,10 +224,20 @@ function EarningRow({
           {earning.company.name} ({earning.company.ticker})
         </td>
         <td className="min-w-[10rem] px-4 py-2 text-sm text-gray-700">
-          {earning.actualEPS} / {earning.forecastEPS}
+          <span
+            className={`${getColorClass(earning.actualEPS, earning.forecastEPS)}`}
+          >
+            {earning.actualEPS}
+          </span>
+          / {earning.forecastEPS}
         </td>
         <td className="min-w-[10rem] px-4 py-2 text-sm text-gray-700">
-          {earning.actualRevenue} / {earning.forecastRevenue}
+          <span
+            className={`${getColorClass(earning.actualRevenue, earning.forecastRevenue)}`}
+          >
+            {earning.actualRevenue}
+          </span>
+          / {earning.forecastRevenue}
         </td>
         <td className="min-w-[8rem] px-4 py-2 text-sm text-gray-700">
           {formatMarketCap(earning.company.marketValue)}
