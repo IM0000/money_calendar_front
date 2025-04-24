@@ -81,3 +81,49 @@ export const connectOAuthAccount = async (
   >('/api/v1/auth/oauth/connect', { provider });
   return response.data;
 };
+
+/**
+ * 비밀번호 재설정 요청 (이메일로 토큰 발송)
+ * @param email 사용자 이메일
+ * @returns API 응답 객체
+ */
+export const requestPasswordReset = async (
+  email: string,
+): Promise<ApiResponse<{ message: string }>> => {
+  const response = await apiClient.post<ApiResponse<{ message: string }>>(
+    '/api/v1/auth/password-reset/request',
+    { email },
+  );
+  return response.data;
+};
+
+/**
+ * 비밀번호 재설정 토큰 검증 (토큰이 유효하면 email 반환)
+ * @param token 리셋 토큰
+ * @returns API 응답 객체
+ */
+export const verifyPasswordResetToken = async (
+  token: string,
+): Promise<ApiResponse<{ email: string }>> => {
+  const response = await apiClient.get<ApiResponse<{ email: string }>>(
+    `/api/v1/auth/password-reset/verify?token=${encodeURIComponent(token)}`,
+  );
+  return response.data;
+};
+
+/**
+ * 비밀번호 재설정 (토큰 & 새 비밀번호)
+ * @param token 리셋 토큰
+ * @param password 새 비밀번호
+ * @returns API 응답 객체
+ */
+export const resetPassword = async (
+  token: string,
+  password: string,
+): Promise<ApiResponse<{ message: string }>> => {
+  const response = await apiClient.post<ApiResponse<{ message: string }>>(
+    '/api/v1/auth/password-reset',
+    { token, password },
+  );
+  return response.data;
+};

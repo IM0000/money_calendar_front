@@ -1,19 +1,54 @@
 // src/pages/SetPasswordPage.tsx
-import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import Logo from '../components/Logo';
-import { login } from '../api/services/authService';
+import { login, verifyPasswordResetToken } from '../api/services/authService';
 import { updateUserPassword } from '../api/services/userService';
 
 export default function SetPasswordPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const email = location.state?.email;
+  const [searchParams] = useSearchParams();
+  const [email, setEmail] = useState<string | undefined>(location.state?.email);
+  const [tokenValidating, setTokenValidating] = useState(true);
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const tokenParam = searchParams.get('token');
+    // 잘못된 접근: 이메일도 없고 토큰도 없는 경우
+    if (!location.state?.email && !tokenParam) {
+      alert('잘못된 접근입니다. 이메일 정보나 토큰이 없습니다.');
+      navigate('/login');
+      return;
+    }
+
+    if (tokenParam) {
+      (async () => {
+        try {
+          const res = await verifyPasswordResetToken(tokenParam);
+          setEmail(res.data?.email);
+        } catch {
+          alert('유효하지 않거나 만료된 토큰입니다.');
+          navigate('/login');
+        } finally {
+          setTokenValidating(false);
+        }
+      })();
+    } else {
+      setTokenValidating(false);
+    }
+  }, [searchParams, location.state, navigate]);
+
+  if (tokenValidating) {
+    return <div>로딩 중...</div>;
+  }
+  if (!email) {
+    return null;
+  }
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
