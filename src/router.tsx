@@ -13,6 +13,7 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import SearchPage from './pages/SearchPage';
 import { NotificationCenter } from './pages/NotificationCenter';
 import LandingPage from './pages/LandingPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,11 @@ const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: '/forgot-password',
+    element: <ForgotPasswordPage />,
     errorElement: <ErrorPage />,
   },
   {

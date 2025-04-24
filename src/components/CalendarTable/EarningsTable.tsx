@@ -12,6 +12,7 @@ import { formatMarketCap } from '@/utils/formatUtils';
 import { EarningsEvent } from '@/types/calendar-event';
 import MarketIcon from './MarketIcon';
 import { useQuery } from '@tanstack/react-query';
+import { getColorClass } from '@/utils/colorUtils';
 
 interface EarningsTableProps {
   events: EarningsEvent[];
@@ -126,13 +127,15 @@ export default function EarningsTable({
 
               return (
                 <React.Fragment key={groupKey}>
-                  {/* sticky 클래스 제거 */}
                   <tr
                     ref={headerRefs[index]}
                     className="bg-gray-100"
                     data-date={groupKey} // data-date를 tr에 직접 부여 (혹은 필요하다면 div로 옮길 수 있음)
                   >
-                    <td colSpan={9} className="px-4 py-2 text-sm font-semibold">
+                    <td
+                      colSpan={9}
+                      className="sticky-separator-td px-4 py-2 text-sm font-semibold"
+                    >
                       {formattedGroupDate}
                     </td>
                   </tr>
@@ -221,10 +224,20 @@ function EarningRow({
           {earning.company.name} ({earning.company.ticker})
         </td>
         <td className="min-w-[10rem] px-4 py-2 text-sm text-gray-700">
-          {earning.actualEPS} / {earning.forecastEPS}
+          <span
+            className={`${getColorClass(earning.actualEPS, earning.forecastEPS)}`}
+          >
+            {earning.actualEPS}
+          </span>
+          / {earning.forecastEPS}
         </td>
         <td className="min-w-[10rem] px-4 py-2 text-sm text-gray-700">
-          {earning.actualRevenue} / {earning.forecastRevenue}
+          <span
+            className={`${getColorClass(earning.actualRevenue, earning.forecastRevenue)}`}
+          >
+            {earning.actualRevenue}
+          </span>
+          / {earning.forecastRevenue}
         </td>
         <td className="min-w-[8rem] px-4 py-2 text-sm text-gray-700">
           {formatMarketCap(earning.company.marketValue)}

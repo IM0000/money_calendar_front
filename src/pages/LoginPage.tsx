@@ -16,7 +16,6 @@ const { VITE_BACKEND_URL } = import.meta.env;
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const { login: authStoreLogin } = useAuthStore();
   const [error, setError] = useState(''); // 에러 메시지 상태 추가
   const navigate = useNavigate();
@@ -32,12 +31,6 @@ export default function LoginPage() {
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
-  };
-
-  const handleStartEmail = () => {
-    if (email) {
-      setShowPassword(true);
-    }
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,46 +77,31 @@ export default function LoginPage() {
           onChange={handleEmailChange}
           className="w-full rounded border border-gray-300 p-2"
         />
-        {!showPassword && (
-          <button
-            onClick={handleStartEmail}
-            className="w-full rounded bg-blue-400 px-4 py-2 text-white hover:bg-blue-500"
-          >
-            이메일로 시작하기
-          </button>
+        <input
+          type="password"
+          placeholder="비밀번호"
+          value={password}
+          onChange={handlePasswordChange}
+          className="w-full rounded border border-gray-300 p-2"
+        />
+        {error && (
+          <div className="mt-2 w-full text-sm text-red-500">{error}</div>
         )}
-        {showPassword && (
-          <>
-            <input
-              type="password"
-              placeholder="비밀번호"
-              value={password}
-              onChange={handlePasswordChange}
-              className="w-full rounded border border-gray-300 p-2"
-            />
-            {error && (
-              <div className="mt-2 w-full text-sm text-red-500">{error}</div>
-            )}
-            <div className="flex w-full justify-between text-sm">
-              {/* <div className="flex items-center">
+        <div className="flex w-full justify-between text-sm">
+          {/* <div className="flex items-center">
                 <input type="checkbox" id="remember-me" className="mr-1" />
                 <label htmlFor="remember-me">로그인 상태 유지</label>
               </div> */}
-              <Link
-                to="/forgot-password"
-                className="text-blue-400 hover:underline"
-              >
-                비밀번호 찾기
-              </Link>
-            </div>
-            <button
-              onClick={handleLogin}
-              className="mt-2 w-full rounded bg-blue-400 px-4 py-2 text-white hover:bg-blue-500"
-            >
-              로그인
-            </button>
-          </>
-        )}
+          <Link to="/forgot-password" className="text-blue-400 hover:underline">
+            비밀번호 찾기
+          </Link>
+        </div>
+        <button
+          onClick={handleLogin}
+          className="mt-2 w-full rounded bg-blue-400 px-4 py-2 text-white hover:bg-blue-500"
+        >
+          로그인
+        </button>
       </div>
       <div className="my-4 flex w-64 items-center">
         <hr className="flex-grow border-gray-300" />

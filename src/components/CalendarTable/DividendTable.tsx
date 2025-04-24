@@ -122,7 +122,7 @@ export default function DividendTable({
                   >
                     <td
                       colSpan={8}
-                      className="border-b px-4 py-2 text-sm font-semibold"
+                      className="sticky-separator-td border-b px-4 py-2 text-sm font-semibold"
                     >
                       {formattedGroupDate}
                     </td>

@@ -8,8 +8,6 @@ import axios, {
 import { ApiResponse } from '../types/api-response';
 import { logError } from '../utils/errorHandler';
 
-console.log('API Base URL:', import.meta.env.VITE_API_BASE_URL);
-
 // 확장된 axios 요청 설정 타입
 interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
   metadata?: {
