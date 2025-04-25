@@ -12,7 +12,6 @@ import { useQuery } from '@tanstack/react-query';
 // import TestErrorButton from '@/components/TestErrorButton';
 
 export default function MainPage() {
-  // 초기 선택 메뉴를 '경제지표'로 설정 (원하는 기본값으로 변경 가능)
   const [selectedMenu, setSelectedMenu] = useState('경제지표');
 
   const { subSelectedDates } = useCalendarStore();
@@ -23,7 +22,6 @@ export default function MainPage() {
 
   const [dateRange, setDateRange] = useState<DateRange>(initialDateRange);
 
-  // 오늘 날짜와 비교하여 dateRange가 과거 데이터인지 판단
   const today = new Date();
   const endDateObj = new Date(dateRange.endDate);
   const isPastData = endDateObj < today;
@@ -42,12 +40,10 @@ export default function MainPage() {
   const dividends = data?.data?.dividends ?? [];
   const economicIndicators = data?.data?.economicIndicators ?? [];
 
-  // 버튼 클릭 시 상태 변경
   const handleMenuClick = (menu: string) => {
     setSelectedMenu(menu);
   };
 
-  // 버튼 스타일 (선택된 버튼은 파란 배경, 선택되지 않은 버튼은 흰 배경)
   const getButtonClass = (menu: string) => {
     const baseClass = 'px-4 py-2 border rounded transition-colors';
     return selectedMenu === menu
@@ -55,7 +51,6 @@ export default function MainPage() {
       : `${baseClass} bg-white text-gray-700 border-gray-300 hover:bg-gray-100`;
   };
 
-  // 에러가 있을 때의 처리 (전체 페이지에 메시지 표시)
   if (error) {
     return (
       <Layout>

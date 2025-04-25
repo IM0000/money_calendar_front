@@ -63,12 +63,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-white p-6">
-      <Logo
-        width="55px"
-        height="55px"
-        divClassName="mb-8 text-black"
-        spanClassName="text-4xl font-jua font-bold pt-2"
-      />
+      <Logo height="55px" divClassName="mb-8 text-black" />
       <div className="mb-8 flex w-80 flex-col items-center space-y-4">
         <input
           type="email"

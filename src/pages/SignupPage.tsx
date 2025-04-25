@@ -59,12 +59,7 @@ export default function SignUpPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-white p-6">
-      <Logo
-        width="44px"
-        height="44px"
-        divClassName="mb-6 text-black"
-        spanClassName="text-3xl font-jua font-bold pt-2"
-      />
+      <Logo height="55px" divClassName="mb-6 text-black" />
       <div className="mb-8 w-full max-w-md">
         <h2 className="text-2xl font-bold">회원가입</h2>
         <p className="mt-2 text-sm">
