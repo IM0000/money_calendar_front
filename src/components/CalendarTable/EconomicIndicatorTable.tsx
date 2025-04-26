@@ -207,7 +207,9 @@ function EconomicIndicatorRow({
       <td className="px-4 py-2 text-sm text-gray-700">
         {renderImportanceStars(indicator.importance)}
       </td>
-      <td className="px-4 py-2 text-sm text-gray-700">{indicator.actual}</td>
+      <td className="px-4 py-2 text-sm font-bold text-gray-700">
+        {indicator.actual}
+      </td>
       <td className="px-4 py-2 text-sm text-gray-700">{indicator.forecast}</td>
       <td className="relative px-4 py-2 text-sm text-gray-700">
         {indicator.previous}

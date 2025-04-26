@@ -48,6 +48,7 @@ export default function MyNotifications() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }));
+
       const earnings = data.data.earnings.map((item) => ({
         ...item,
         actualEPS: item.actualEPS || '',
@@ -150,6 +151,9 @@ export default function MyNotifications() {
                     className="flex items-center justify-between rounded-lg border p-4 hover:bg-gray-50"
                   >
                     <div className="space-y-1">
+                      <p className="text-sm font-bold text-blue-600">
+                        {new Date(notification.releaseDate).toLocaleString()}
+                      </p>
                       <div className="flex items-center space-x-2">
                         <Badge variant="outline">
                           <CountryFlag
@@ -160,9 +164,6 @@ export default function MyNotifications() {
                         <h3 className="font-medium">{notification.name}</h3>
                         {renderImportanceStars(notification.importance)}
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(notification.releaseDate).toLocaleString()}
-                      </p>
                     </div>
                     <Button
                       variant="ghost"
@@ -198,6 +199,11 @@ export default function MyNotifications() {
                     className="flex items-center justify-between rounded-lg border p-4 hover:bg-gray-50"
                   >
                     <div className="space-y-1">
+                      <p className="text-sm font-bold text-gray-700">
+                        {new Date(
+                          notification.releaseDate,
+                        ).toLocaleDateString()}
+                      </p>
                       <div className="flex items-center space-x-2">
                         <Badge variant="outline">
                           <CountryFlag
@@ -212,9 +218,6 @@ export default function MyNotifications() {
                           {notification.company?.ticker}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(notification.releaseDate).toLocaleString()}
-                      </p>
                     </div>
                     <Button
                       variant="ghost"

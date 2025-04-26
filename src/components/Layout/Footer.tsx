@@ -5,7 +5,7 @@ export default function Footer() {
     <footer className="mt-8 flex w-full flex-col items-center border-t-2 bg-white p-4 text-gray-500">
       {/* 상단 영역: px-8로 좌우 여백을 맞춤 */}
       <div className="flex w-full items-center justify-between px-8 py-4">
-        <Logo divClassName="text-black" width="55px" height="55px" />
+        <Logo divClassName="text-black" height="44px" />
 
         <div className="flex space-x-4">
           <a href="/terms" className="hover:underline">

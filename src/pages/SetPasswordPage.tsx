@@ -20,11 +20,11 @@ export default function SetPasswordPage() {
   useEffect(() => {
     const tokenParam = searchParams.get('token');
     // 잘못된 접근: 이메일도 없고 토큰도 없는 경우
-    if (!location.state?.email && !tokenParam) {
-      alert('잘못된 접근입니다. 이메일 정보나 토큰이 없습니다.');
-      navigate('/login');
-      return;
-    }
+    // if (!location.state?.email && !tokenParam) {
+    //   alert('잘못된 접근입니다. 이메일 정보나 토큰이 없습니다.');
+    //   navigate('/login');
+    //   return;
+    // }
 
     if (tokenParam) {
       (async () => {
@@ -95,12 +95,7 @@ export default function SetPasswordPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-white p-6">
-      <Logo
-        width="44px"
-        height="44px"
-        divClassName="mb-6 text-black"
-        spanClassName="text-4xl font-jua font-bold pt-2"
-      />
+      <Logo height="55px" divClassName="mb-6 text-black" />
       <div className="mb-8 w-full max-w-md">
         <h2 className="text-2xl font-bold">비밀번호 설정</h2>
         <p className="mt-2 text-sm">새로운 비밀번호를 설정하세요.</p>

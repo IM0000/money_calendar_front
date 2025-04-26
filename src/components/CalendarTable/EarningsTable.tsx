@@ -228,7 +228,7 @@ function EarningRow({
             className={`${getColorClass(earning.actualEPS, earning.forecastEPS)}`}
           >
             {earning.actualEPS}
-          </span>
+          </span>{' '}
           / {earning.forecastEPS}
         </td>
         <td className="min-w-[10rem] px-4 py-2 text-sm text-gray-700">
@@ -236,7 +236,7 @@ function EarningRow({
             className={`${getColorClass(earning.actualRevenue, earning.forecastRevenue)}`}
           >
             {earning.actualRevenue}
-          </span>
+          </span>{' '}
           / {earning.forecastRevenue}
         </td>
         <td className="min-w-[8rem] px-4 py-2 text-sm text-gray-700">

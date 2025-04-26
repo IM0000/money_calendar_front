@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import logoBlack from '../assets/money-calendar-logo-b.png';
+import logoBlack from '../assets/moneycalendar_logo_cropped_55px.png';
 import logoWhite from '../assets/money-calendar-logo-w.png';
 
 interface LogoProps {
@@ -10,10 +10,9 @@ interface LogoProps {
 }
 
 export default function Logo({
-  width = '55px',
+  width = 'auto',
   height = '55px',
   divClassName = '',
-  spanClassName = '',
 }: LogoProps) {
   const isWhite = divClassName.includes('text-white');
   const logoSrc = isWhite ? logoWhite : logoBlack;
@@ -27,13 +26,6 @@ export default function Logo({
           className="block"
           style={{ width, height }}
         />
-        {spanClassName ? (
-          <span className={`${spanClassName} pt-2 leading-none`}>
-            머니캘린더
-          </span>
-        ) : (
-          ''
-        )}
       </div>
     </Link>
   );
