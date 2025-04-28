@@ -9,6 +9,7 @@ import {
   markAllNotificationsAsRead,
   markNotificationAsRead,
   deleteNotification,
+  deleteAllNotifications,
 } from '@/api/services/notificationService';
 import { Notification } from '@/types/notification';
 import { useState } from 'react';
@@ -34,7 +35,6 @@ export default function NotificationList() {
     mutationFn: (id: number) => markNotificationAsRead(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['unreadCount'] });
       queryClient.invalidateQueries({ queryKey: ['unreadNotificationsCount'] });
     },
     onError: (error) => {
@@ -48,7 +48,6 @@ export default function NotificationList() {
     mutationFn: () => markAllNotificationsAsRead(),
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['unreadCount'] });
       queryClient.invalidateQueries({ queryKey: ['unreadNotificationsCount'] });
       toast.success(
         `${response.data?.count || 0}개의 알림을 읽음으로 표시했습니다.`,
@@ -61,11 +60,25 @@ export default function NotificationList() {
     },
   });
 
+  // 전체 삭제 뮤테이션
+  const deleteAllMutation = useMutation({
+    mutationFn: () => deleteAllNotifications(),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['unreadNotificationsCount'] });
+      toast.success(`${response.data?.count || 0}개의 알림을 삭제했습니다.`);
+    },
+    onError: (error) => {
+      toast.error(
+        `알림 전체 삭제 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+      );
+    },
+  });
+
   const deleteNotificationMutation = useMutation({
     mutationFn: (id: number) => deleteNotification(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['unreadCount'] });
       queryClient.invalidateQueries({ queryKey: ['unreadNotificationsCount'] });
       toast.success('알림이 삭제되었습니다.');
     },
@@ -90,6 +103,7 @@ export default function NotificationList() {
       actualRevenue?: string;
       forecastRevenue?: string;
       releaseDate?: number;
+      createdAt: string;
     }
   >;
 
@@ -104,16 +118,30 @@ export default function NotificationList() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">알림 목록</h2>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => markAllAsReadMutation.mutate()}
-          disabled={
-            markAllAsReadMutation.isPending || notifications.length === 0
-          }
-        >
-          전체 읽음 처리
-        </Button>
+        <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => markAllAsReadMutation.mutate()}
+            disabled={
+              markAllAsReadMutation.isPending || notifications.length === 0
+            }
+          >
+            전체 읽음 처리
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              if (confirm('정말 모든 알림을 삭제하시겠습니까?')) {
+                deleteAllMutation.mutate();
+              }
+            }}
+            disabled={deleteAllMutation.isPending || notifications.length === 0}
+          >
+            전체 삭제
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4">
@@ -126,32 +154,34 @@ export default function NotificationList() {
             }`}
           >
             <CardHeader className="flex items-start justify-between pb-2">
-              <div>
-                <CardTitle className="text-lg font-semibold">
-                  {n.eventName}
-                </CardTitle>
-                <p className="text-xs text-gray-500">
-                  발표시간:{' '}
-                  {n.releaseDate
-                    ? new Date(n.releaseDate).toLocaleString()
-                    : '-'}
-                </p>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Badge variant={n.read ? 'secondary' : 'default'}>
-                  {n.read ? '읽음' : '새 알림'}
-                </Badge>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteNotificationMutation.mutate(n.id);
-                  }}
-                  disabled={deleteNotificationMutation.isPending}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+              <div className="flex w-full items-start justify-between">
+                <div>
+                  <CardTitle className="text-lg font-semibold">
+                    {n.eventName}
+                  </CardTitle>
+                  <p className="text-xs text-gray-500">
+                    발표시간:{' '}
+                    {n.releaseDate
+                      ? new Date(n.releaseDate).toLocaleString()
+                      : '-'}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Badge variant={n.read ? 'secondary' : 'default'}>
+                    {n.read ? '읽음' : '새 알림'}
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteNotificationMutation.mutate(n.id);
+                    }}
+                    disabled={deleteNotificationMutation.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </CardHeader>
 

@@ -151,7 +151,7 @@ export default function MyNotifications() {
                     className="flex items-center justify-between rounded-lg border p-4 hover:bg-gray-50"
                   >
                     <div className="space-y-1">
-                      <p className="text-sm font-bold text-blue-600">
+                      <p className="text-sm font-bold text-gray-700">
                         {new Date(notification.releaseDate).toLocaleString()}
                       </p>
                       <div className="flex items-center space-x-2">
