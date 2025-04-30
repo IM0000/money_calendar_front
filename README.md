@@ -15,19 +15,16 @@ Money Calendar는 실적, 배당, 경제지표 등의 금융 이벤트 일정을
 
 ## 🛠️ 기술 스택
 
-| 구분          | 기술 및 라이브러리        |
-| ------------- | ------------------------- |
-| Language      | TypeScript                |
-| Library       | React, React Router       |
-| State Mng.    | Zustand                   |
-| Data Fetch    | React Query, Axios        |
-| Styling       | Tailwind CSS              |
-| UI Components | Radix UI                  |
-| Icons         | Lucide React, React Icons |
-| Notifications | React Hot Toast           |
-| Bundle        | Vite                      |
-| Package Mng.  | pnpm                      |
-| Code Style    | ESLint, Prettier          |
+| 구분          | 기술 및 라이브러리  |
+| ------------- | ------------------- |
+| Language      | TypeScript          |
+| Library       | React, React Router |
+| State Mng.    | Zustand             |
+| Data Fetch    | React Query, Axios  |
+| Styling       | Tailwind CSS        |
+| Notifications | React Hot Toast     |
+| Package Mng.  | pnpm                |
+| Code Style    | ESLint, Prettier    |
 
 ## 🚀 설치 및 실행
 
