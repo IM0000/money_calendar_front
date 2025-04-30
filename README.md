@@ -23,6 +23,7 @@ Money Calendar는 실적, 배당, 경제지표 등의 금융 이벤트 일정을
 | Data Fetch    | React Query, Axios  |
 | Styling       | Tailwind CSS        |
 | Notifications | React Hot Toast     |
+| Bundle        | Vite                |
 | Package Mng.  | pnpm                |
 | Code Style    | ESLint, Prettier    |
 
