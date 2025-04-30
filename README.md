@@ -53,14 +53,6 @@ Money Calendar는 실적, 배당, 경제지표 등의 금융 이벤트 일정을
    pnpm dev   # http://localhost:5173 에서 실행
    ```
 
-## 📄 배포
-
-```bash
-pnpm build
-```
-
-빌드된 파일은 `dist/` 디렉토리에 생성됩니다.
-
 ## 🔍 주요 디렉토리 구조
 
 ```
