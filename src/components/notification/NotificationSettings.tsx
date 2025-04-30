@@ -72,12 +72,12 @@ export default function NotificationSettings() {
                 <Label htmlFor="push">PUSH 알림</Label>
               </div>
               <div className="flex items-center space-x-2">
-                <RadioGroupItem value="BOTH" id="both" />
-                <Label htmlFor="both">PUSH 알림 + 이메일</Label>
-              </div>
-              <div className="flex items-center space-x-2">
                 <RadioGroupItem value="EMAIL" id="email" />
                 <Label htmlFor="email">이메일 알림</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="BOTH" id="both" />
+                <Label htmlFor="both">PUSH 알림 + 이메일 알림</Label>
               </div>
             </RadioGroup>
           )}

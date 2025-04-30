@@ -319,3 +319,17 @@ export const restoreEarningsActual = withErrorHandling(
     return response.data;
   },
 );
+
+/**
+ * 모든 알림 삭제 API
+ * DELETE /api/v1/notifications/all
+ * @returns ApiResponse<{ count: number }>
+ */
+export const deleteAllNotifications = withErrorHandling(
+  async (): Promise<ApiResponse<{ count: number }>> => {
+    const response = await apiClient.delete('/api/v1/notifications/all', {
+      withAuth: true,
+    });
+    return response.data;
+  },
+);

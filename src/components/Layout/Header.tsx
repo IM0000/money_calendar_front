@@ -4,19 +4,64 @@ import { FaUser, FaBars, FaTimes, FaChevronDown } from 'react-icons/fa';
 import Logo from '../Logo';
 import { useAuthStore } from '../../zustand/useAuthStore';
 import { getUnreadNotificationsCount } from '@/api/services/notificationService';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { NewNotificationBubble } from '../notification/NotificationBubble';
+
+const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 export default function Header() {
   const navigate = useNavigate();
   const { isAuthenticated, logout, checkAuth } = useAuthStore();
+  const queryClient = useQueryClient();
+  const [showBubble, setShowBubble] = useState(false);
 
-  // 읽지 않은 알림 개수 쿼리
   const { data: unreadCountData } = useQuery({
     queryKey: ['unreadNotificationsCount'],
     queryFn: () => getUnreadNotificationsCount(),
     enabled: isAuthenticated,
     refetchOnMount: true,
   });
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const token = localStorage.getItem('accessToken');
+    const es = new EventSource(
+      `${VITE_BACKEND_URL}/api/v1/notifications/stream?token=${token}`,
+      {
+        withCredentials: true,
+      },
+    );
+
+    es.onmessage = (e) => {
+      try {
+        queryClient.setQueryData<{ data: { count: number } }>(
+          ['unreadNotificationsCount'],
+          (old) => ({
+            data: {
+              count: (old?.data.count || 0) + 1,
+            },
+          }),
+        );
+
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      } catch (err) {
+        console.error('SSE 데이터 파싱 실패:', e.data, err);
+        toast.error('알림 수신 중 문제가 발생했습니다.');
+      }
+
+      setShowBubble(true);
+    };
+
+    es.onerror = () => {
+      es.close();
+    };
+
+    return () => {
+      es.close();
+    };
+  }, [isAuthenticated, queryClient]);
 
   // 드롭다운 상태
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -94,7 +139,7 @@ export default function Header() {
                 />
               </button>
               {calendarDropdownOpen && (
-                <div className="absolute -left-6 top-full w-40 rounded-lg bg-white py-2 shadow-lg">
+                <div className="absolute -left-6 top-full z-10 w-40 rounded-lg bg-white py-2 shadow-lg">
                   <Link
                     to="/"
                     className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
@@ -119,13 +164,16 @@ export default function Header() {
             </li>
             <li>
               <NavLink to="/notifications" className={desktopLinkClass}>
-                알림
+                알림센터
                 {(unreadCountData?.data?.count || 0) > 0 && (
                   <span className="absolute -right-5 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
                     {unreadCountData?.data?.count}
                   </span>
                 )}
               </NavLink>
+              {showBubble && (
+                <NewNotificationBubble onClose={() => setShowBubble(false)} />
+              )}
             </li>
           </ul>
         </nav>
