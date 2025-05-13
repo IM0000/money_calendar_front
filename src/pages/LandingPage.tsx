@@ -7,15 +7,14 @@ export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-b from-blue-50 to-white">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* 내비게이션 바 */}
-      <nav className="container mx-auto flex items-center justify-between px-4 py-6">
+      <nav className="container flex items-center justify-between px-4 py-6 mx-auto">
         <div className="flex items-center">
           <Logo
             divClassName="text-black"
             spanClassName="bold logo"
-            width="44px"
-            height="44px"
+            height="32px"
           />
         </div>
 
@@ -29,7 +28,7 @@ export default function LandingPage() {
           </a>
           <Link
             to="/login"
-            className="rounded-full bg-blue-600 px-6 py-2 text-white hover:bg-blue-700"
+            className="px-6 py-2 text-white bg-blue-600 rounded-full hover:bg-blue-700"
           >
             시작하기
           </Link>
@@ -45,7 +44,7 @@ export default function LandingPage() {
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
-            className="h-6 w-6"
+            className="w-6 h-6"
           >
             <path
               strokeLinecap="round"
@@ -60,7 +59,7 @@ export default function LandingPage() {
       {/* 모바일 메뉴 */}
       {isMenuOpen && (
         <div className="md:hidden">
-          <div className="container mx-auto flex flex-col space-y-4 px-4 py-4">
+          <div className="container flex flex-col px-4 py-4 mx-auto space-y-4">
             <a href="#features" className="text-gray-600 hover:text-blue-600">
               기능
             </a>
@@ -72,7 +71,7 @@ export default function LandingPage() {
             </a>
             <Link
               to="/login"
-              className="rounded-full bg-blue-600 px-6 py-2 text-center text-white hover:bg-blue-700"
+              className="px-6 py-2 text-center text-white bg-blue-600 rounded-full hover:bg-blue-700"
             >
               시작하기
             </Link>
@@ -81,7 +80,7 @@ export default function LandingPage() {
       )}
 
       {/* 히어로 섹션 */}
-      <section className="container mx-auto px-4 py-16 md:py-24">
+      <section className="container px-4 py-16 mx-auto md:py-24">
         <div className="grid items-center gap-12 md:grid-cols-2">
           <div className="flex flex-col space-y-6">
             <h1 className="text-4xl font-bold leading-tight text-gray-900 md:text-5xl">
@@ -94,17 +93,17 @@ export default function LandingPage() {
               <br />
               중요한 투자 정보를 놓치지 마세요.
             </p>
-            <div className="flex flex-col space-y-3 pt-4 sm:flex-row sm:space-x-4 sm:space-y-0">
+            <div className="flex flex-col pt-4 space-y-3 sm:flex-row sm:space-x-4 sm:space-y-0">
               <Link
                 to="/sign-up"
-                className="inline-flex items-center justify-center rounded-full bg-blue-600 px-8 py-3 text-white hover:bg-blue-700"
+                className="inline-flex items-center justify-center px-8 py-3 text-white bg-blue-600 rounded-full hover:bg-blue-700"
               >
                 무료로 시작하기
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
               <Link
                 to="/login"
-                className="inline-flex items-center justify-center rounded-full border border-gray-300 bg-white px-8 py-3 text-gray-700 hover:bg-gray-50"
+                className="inline-flex items-center justify-center px-8 py-3 text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50"
               >
                 로그인
               </Link>
@@ -114,7 +113,7 @@ export default function LandingPage() {
       </section>
 
       {/* 기능 섹션 */}
-      <section id="features" className="container mx-auto px-4 py-16">
+      <section id="features" className="container px-4 py-16 mx-auto">
         <div className="mb-12 text-center">
           <h2 className="text-3xl font-bold text-gray-900">주요 기능</h2>
           <p className="mt-4 text-lg text-gray-600">
@@ -124,9 +123,9 @@ export default function LandingPage() {
 
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
           {/* 투자 캘린더 */}
-          <div className="rounded-xl bg-white p-6 shadow-md transition-transform hover:scale-105">
-            <div className="mb-4 inline-flex rounded-full bg-blue-100 p-3">
-              <Calendar className="h-6 w-6 text-blue-600" />
+          <div className="p-6 transition-transform bg-white shadow-md rounded-xl hover:scale-105">
+            <div className="inline-flex p-3 mb-4 bg-blue-100 rounded-full">
+              <Calendar className="w-6 h-6 text-blue-600" />
             </div>
             <h3 className="mb-2 text-xl font-bold">투자 캘린더</h3>
             <p className="text-gray-600">
@@ -136,9 +135,9 @@ export default function LandingPage() {
           </div>
 
           {/* 알림 센터 */}
-          <div className="rounded-xl bg-white p-6 shadow-md transition-transform hover:scale-105">
-            <div className="mb-4 inline-flex rounded-full bg-orange-100 p-3">
-              <Bell className="h-6 w-6 text-orange-500" />
+          <div className="p-6 transition-transform bg-white shadow-md rounded-xl hover:scale-105">
+            <div className="inline-flex p-3 mb-4 bg-orange-100 rounded-full">
+              <Bell className="w-6 h-6 text-orange-500" />
             </div>
             <h3 className="mb-2 text-xl font-bold">알림 센터</h3>
             <p className="text-gray-600">
@@ -148,9 +147,9 @@ export default function LandingPage() {
           </div>
 
           {/* 빠른 검색 */}
-          <div className="rounded-xl bg-white p-6 shadow-md transition-transform hover:scale-105">
-            <div className="mb-4 inline-flex rounded-full bg-green-100 p-3">
-              <Search className="h-6 w-6 text-green-600" />
+          <div className="p-6 transition-transform bg-white shadow-md rounded-xl hover:scale-105">
+            <div className="inline-flex p-3 mb-4 bg-green-100 rounded-full">
+              <Search className="w-6 h-6 text-green-600" />
             </div>
             <h3 className="mb-2 text-xl font-bold">빠른 검색</h3>
             <p className="text-gray-600">
@@ -160,9 +159,9 @@ export default function LandingPage() {
           </div>
 
           {/* 맞춤 프로필 */}
-          <div className="rounded-xl bg-white p-6 shadow-md transition-transform hover:scale-105">
-            <div className="mb-4 inline-flex rounded-full bg-purple-100 p-3">
-              <User className="h-6 w-6 text-purple-600" />
+          <div className="p-6 transition-transform bg-white shadow-md rounded-xl hover:scale-105">
+            <div className="inline-flex p-3 mb-4 bg-purple-100 rounded-full">
+              <User className="w-6 h-6 text-purple-600" />
             </div>
             <h3 className="mb-2 text-xl font-bold">맞춤 프로필</h3>
             <p className="text-gray-600">
@@ -174,8 +173,8 @@ export default function LandingPage() {
       </section>
 
       {/* 사용 방법 섹션 */}
-      <section id="how-it-works" className="bg-gray-50 py-16">
-        <div className="container mx-auto px-4">
+      <section id="how-it-works" className="py-16 bg-gray-50">
+        <div className="container px-4 mx-auto">
           <div className="mb-12 text-center">
             <h2 className="text-3xl font-bold text-gray-900">
               이렇게 사용하세요
@@ -187,7 +186,7 @@ export default function LandingPage() {
 
           <div className="grid gap-8 md:grid-cols-3">
             <div className="text-center">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-2xl font-bold text-white">
+              <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 text-2xl font-bold text-white bg-blue-600 rounded-full">
                 1
               </div>
               <h3 className="mb-2 text-xl font-bold">계정 만들기</h3>
@@ -197,7 +196,7 @@ export default function LandingPage() {
             </div>
 
             <div className="text-center">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-2xl font-bold text-white">
+              <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 text-2xl font-bold text-white bg-blue-600 rounded-full">
                 2
               </div>
               <h3 className="mb-2 text-xl font-bold">관심 일정 설정</h3>
@@ -207,7 +206,7 @@ export default function LandingPage() {
             </div>
 
             <div className="text-center">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-2xl font-bold text-white">
+              <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 text-2xl font-bold text-white bg-blue-600 rounded-full">
                 3
               </div>
               <h3 className="mb-2 text-xl font-bold">알림 받기</h3>
@@ -221,26 +220,26 @@ export default function LandingPage() {
       </section>
 
       {/* CTA 섹션 */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="rounded-2xl bg-blue-600 px-6 py-12 text-center text-white md:px-12">
+      <section className="container px-4 py-16 mx-auto">
+        <div className="px-6 py-12 text-center text-white bg-blue-600 rounded-2xl md:px-12">
           <h2 className="mb-4 text-3xl font-bold">지금 바로 시작하세요</h2>
           <p className="mb-8 text-lg">
             투자 일정을 효율적으로 관리하고 더 스마트한 투자 결정을 내리세요.
           </p>
           <Link
             to="/sign-up"
-            className="inline-flex items-center rounded-full bg-white px-8 py-3 font-medium text-blue-600 hover:bg-gray-100"
+            className="inline-flex items-center px-8 py-3 font-medium text-blue-600 bg-white rounded-full hover:bg-gray-100"
           >
             무료로 시작하기
-            <ArrowRight className="ml-2 h-4 w-4" />
+            <ArrowRight className="w-4 h-4 ml-2" />
           </Link>
         </div>
       </section>
 
       {/* 푸터 */}
-      <footer className="bg-gray-900 py-12 text-white">
-        <div className="container mx-auto px-4">
-          <div className="mb-8 flex items-center">
+      <footer className="py-12 text-white bg-gray-900">
+        <div className="container px-4 mx-auto">
+          <div className="flex items-center mb-8">
             <Logo
               divClassName="text-white"
               spanClassName="bold logo"
@@ -316,7 +315,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="mt-12 border-t border-gray-800 pt-8 text-center text-gray-400">
+          <div className="pt-8 mt-12 text-center text-gray-400 border-t border-gray-800">
             <p>
               © {new Date().getFullYear()} 머니캘린더. All rights reserved.
             </p>
