@@ -61,7 +61,7 @@ export default function CompanySearch({
     <div>
       {/* 검색 결과가 있는 경우 */}
       {localResults.length > 0 ? (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <div className="overflow-hidden bg-white border border-gray-200 rounded-lg">
           {/* 헤더 */}
           <div className="grid grid-cols-[1fr,5fr,1fr,1fr,1fr] gap-4 border-b border-gray-200 bg-gray-100 px-6 py-4 font-medium text-gray-700">
             <div>티커</div>
@@ -74,7 +74,11 @@ export default function CompanySearch({
           {/* 결과 목록 */}
           <div className="divide-y divide-gray-200">
             {localResults.map((company) => (
-              <div key={company.id} className="group">
+              <div
+                key={company.id}
+                className="group"
+                onClick={() => toggleExpandCompany(company.id)}
+              >
                 {/* 회사 기본 정보 행 */}
                 <div
                   className={`grid grid-cols-[1fr,5fr,1fr,1fr,1fr] gap-4 px-6 py-4 ${
@@ -84,12 +88,12 @@ export default function CompanySearch({
                   }`}
                 >
                   {/* 티커 */}
-                  <div className="cursor-pointer font-mono font-medium text-blue-600">
+                  <div className="font-mono font-medium text-blue-600 cursor-pointer">
                     {company.ticker}
                   </div>
 
                   {/* 기업명 */}
-                  <div className="cursor-pointer text-gray-800">
+                  <div className="text-gray-800 cursor-pointer">
                     {company.name}
                   </div>
 
@@ -108,7 +112,7 @@ export default function CompanySearch({
                     {/* 디테일 확장 화살표 */}
                     <button
                       onClick={() => toggleExpandCompany(company.id)}
-                      className="rounded p-1 text-gray-600 hover:bg-gray-200"
+                      className="p-1 text-gray-600 rounded hover:bg-gray-200"
                       aria-label={
                         expandedCompanyId === company.id
                           ? '상세 정보 접기'
@@ -128,7 +132,7 @@ export default function CompanySearch({
 
                 {/* 확장된 상세 정보 패널 */}
                 {expandedCompanyId === company.id && (
-                  <div className="border-t border-gray-100 bg-gray-50 px-6 py-4">
+                  <div className="px-6 py-4 border-t border-gray-100 bg-gray-50">
                     {/* 실적 정보 */}
                     <EarningsInfo
                       companyId={expandedCompanyId}
@@ -152,7 +156,7 @@ export default function CompanySearch({
 
           {/* 페이지네이션 */}
           {pagination.totalPages > 1 && (
-            <div className="border-t border-gray-200 px-6 py-4">
+            <div className="px-6 py-4 border-t border-gray-200">
               <Pagination
                 currentPage={pagination.page}
                 totalPages={pagination.totalPages}
@@ -162,7 +166,7 @@ export default function CompanySearch({
           )}
         </div>
       ) : (
-        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center">
+        <div className="p-8 text-center bg-white border border-gray-200 rounded-lg">
           <p className="text-gray-500">검색 결과가 없습니다.</p>
         </div>
       )}
