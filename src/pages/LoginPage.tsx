@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import googleLogo from '../assets/google/google-g-2015-logo-png-transparent.png';
 import kakaoLogo from '../assets/kakao/kakao_logo.webp';
-import appleLogo from '../assets/apple/apple-logo-bg.png'; // 애플 로고 경로
+// import appleLogo from '../assets/apple/apple-logo-bg.png'; // 애플 로고 경로
 import discordLogo from '../assets/discord/discord_logo.png'; // 디스코드 로고 경로
 import OAuthLoginButton from '../components/OAuthLoginButton';
 import Logo from '../components/Logo';
@@ -62,27 +62,27 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-white p-6">
+    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-white">
       <Logo height="55px" divClassName="mb-8 text-black" />
-      <div className="mb-8 flex w-80 flex-col items-center space-y-4">
+      <div className="flex flex-col items-center mb-8 space-y-4 w-80">
         <input
           type="email"
           placeholder="이메일 주소"
           value={email}
           onChange={handleEmailChange}
-          className="w-full rounded border border-gray-300 p-2"
+          className="w-full p-2 border border-gray-300 rounded"
         />
         <input
           type="password"
           placeholder="비밀번호"
           value={password}
           onChange={handlePasswordChange}
-          className="w-full rounded border border-gray-300 p-2"
+          className="w-full p-2 border border-gray-300 rounded"
         />
         {error && (
-          <div className="mt-2 w-full text-sm text-red-500">{error}</div>
+          <div className="w-full mt-2 text-sm text-red-500">{error}</div>
         )}
-        <div className="flex w-full justify-between text-sm">
+        <div className="flex justify-between w-full text-sm">
           {/* <div className="flex items-center">
                 <input type="checkbox" id="remember-me" className="mr-1" />
                 <label htmlFor="remember-me">로그인 상태 유지</label>
@@ -93,22 +93,22 @@ export default function LoginPage() {
         </div>
         <button
           onClick={handleLogin}
-          className="mt-2 w-full rounded bg-blue-400 px-4 py-2 text-white hover:bg-blue-500"
+          className="w-full px-4 py-2 mt-2 text-white bg-blue-400 rounded hover:bg-blue-500"
         >
           로그인
         </button>
       </div>
-      <div className="my-4 flex w-64 items-center">
+      <div className="flex items-center w-64 my-4">
         <hr className="flex-grow border-gray-300" />
         <span className="mx-2 text-gray-500">OR</span>
         <hr className="flex-grow border-gray-300" />
       </div>
-      <div className="mb-8 flex w-64 justify-around">
-        <OAuthLoginButton
+      <div className="flex justify-around w-64 mb-8">
+        {/*<OAuthLoginButton
           provider="애플"
           logo={appleLogo}
           onClick={handleAppleLogin}
-        />
+        />*/}
         <OAuthLoginButton
           provider="구글"
           logo={googleLogo}
@@ -125,7 +125,7 @@ export default function LoginPage() {
           onClick={handleDiscordLogin}
         />
       </div>
-      <div className="mt-4 flex space-x-4">
+      <div className="flex mt-4 space-x-4">
         <Link to="/" className="px-4 py-2 text-blue-400 hover:underline">
           비회원으로 이용하기
         </Link>
