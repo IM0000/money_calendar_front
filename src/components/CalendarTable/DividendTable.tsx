@@ -68,21 +68,21 @@ export default function DividendTable({
     <CalendarTableWrapper headerRefs={headerRefs}>
       <table className="min-w-full divide-y divide-gray-200">
         {/* 테이블 헤더 */}
-        <thead className="calendar-table-header sticky top-0 z-30 bg-gray-50">
+        <thead className="sticky top-0 z-30 calendar-table-header bg-gray-50">
           <tr className="h-[2.80rem]">
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               국가
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               회사
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               배당락일
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               배당금
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               배당지급일
             </th>
             <th className="min-w-[7rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
@@ -91,7 +91,7 @@ export default function DividendTable({
             <th className="min-w-[5.5rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               이전 발표
             </th>
-            <th className="w-10 px-2 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="w-10 px-2 py-2 text-sm font-medium text-left text-gray-700">
               {/* 알림추가 버튼 */}
             </th>
           </tr>
@@ -122,7 +122,7 @@ export default function DividendTable({
                   >
                     <td
                       colSpan={8}
-                      className="sticky-separator-td border-b px-4 py-2 text-sm font-semibold"
+                      className="px-4 py-2 text-sm font-semibold border-b sticky-separator-td"
                     >
                       {formattedGroupDate}
                     </td>
@@ -252,8 +252,8 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
       </tr>
       {showOlderPopup && (
         <tr>
-          <td colSpan={8} className="bg-gray-50 px-4 py-4">
-            <div className="rounded border border-gray-200 bg-white p-4">
+          <td colSpan={8} className="px-4 py-4 bg-gray-50">
+            <div className="p-4 bg-white border border-gray-200 rounded">
               <h3 className="mb-4 text-lg font-medium">
                 {dividend.company?.name ?? '정보 없음'} 이전 배당금 정보
               </h3>
