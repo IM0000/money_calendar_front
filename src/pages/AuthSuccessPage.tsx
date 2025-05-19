@@ -7,20 +7,23 @@ export default function AuthSuccess() {
   const location = useLocation();
 
   useEffect(() => {
-    // URL에서 토큰 추출
-    const params = new URLSearchParams(location.search);
+    const hash = location.hash || window.location.hash;
+    const [, fragment] = hash.split('#');
+    const params = new URLSearchParams(fragment);
     const token = params.get('token');
 
     if (token) {
-      // 토큰 저장
       localStorage.setItem('accessToken', token);
-      // 필요한 경우 사용자 상태 업데이트 (예: Context API, Redux 등)
-      // 예: setUserAuthenticated(true);
-      // 메인 페이지로 이동
-      navigate('/');
+
+      window.history.replaceState(
+        null,
+        '',
+        window.location.pathname + window.location.search,
+      );
+
+      navigate('/', { replace: true });
     } else {
-      // 토큰이 없으면 로그인 페이지로 이동
-      navigate('/login');
+      navigate('/login', { replace: true });
     }
   }, [location, navigate]);
 
