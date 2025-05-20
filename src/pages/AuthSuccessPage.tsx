@@ -25,7 +25,7 @@ export default function AuthSuccess() {
     } else {
       navigate('/login', { replace: true });
     }
-  }, [location, navigate]);
+  }, []);
 
   return (
     <div className="flex items-center justify-center min-h-screen">
