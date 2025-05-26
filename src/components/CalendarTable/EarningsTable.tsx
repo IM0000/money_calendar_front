@@ -77,7 +77,7 @@ export default function EarningsTable({
   return (
     <CalendarTableWrapper headerRefs={headerRefs}>
       <table className="min-w-full divide-y divide-gray-200">
-        <thead className="calendar-table-header sticky top-0 z-30 bg-gray-50">
+        <thead className="sticky top-0 z-30 calendar-table-header bg-gray-50">
           <tr className="h-[2.80rem]">
             <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               시간
@@ -85,22 +85,22 @@ export default function EarningsTable({
             <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               국가
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               회사명
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               EPS / 예측
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               매출 / 예측
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               시가총액
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               이전 발표
             </th>
-            <th className="w-10 px-2 py-2 text-left text-sm font-medium text-gray-700"></th>
+            <th className="w-10 px-2 py-2 text-sm font-medium text-left text-gray-700"></th>
           </tr>
         </thead>
         <tbody>
@@ -114,7 +114,15 @@ export default function EarningsTable({
           ) : (
             // 데이터가 있을 때 실제 테이블 내용 표시
             sortedGroupKeys.map((groupKey, index) => {
-              const groupEarnings = groups[groupKey] || [];
+              const groupEarnings = (groups[groupKey] || [])
+                .slice()
+                .sort((a, b) => {
+                  const parseValue = (val?: string) =>
+                    val ? parseInt(val.replace(/,/g, ''), 10) : 0;
+                  const aVal = parseValue(a.company?.marketValue);
+                  const bVal = parseValue(b.company?.marketValue);
+                  return bVal - aVal;
+                });
               const formattedGroupDate =
                 groupKey !== '날짜 없음'
                   ? (() => {
@@ -134,7 +142,7 @@ export default function EarningsTable({
                   >
                     <td
                       colSpan={9}
-                      className="sticky-separator-td px-4 py-2 text-sm font-semibold"
+                      className="px-4 py-2 text-sm font-semibold sticky-separator-td"
                     >
                       {formattedGroupDate}
                     </td>
@@ -267,8 +275,8 @@ function EarningRow({
       </tr>
       {showOlderPopup && (
         <tr>
-          <td colSpan={9} className="bg-gray-50 px-4 py-4">
-            <div className="rounded border border-gray-200 bg-white p-4">
+          <td colSpan={9} className="px-4 py-4 bg-gray-50">
+            <div className="p-4 bg-white border border-gray-200 rounded">
               <h3 className="mb-4 text-lg font-medium">
                 {earning.company.name} 이전 실적 정보
               </h3>

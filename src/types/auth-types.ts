@@ -19,7 +19,6 @@ export interface LoginDto {
 
 // 로그인 응답 데이터
 export interface LoginResponse {
-  accessToken: string;
   user: {
     id: number;
     email: string;

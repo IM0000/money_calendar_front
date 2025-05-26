@@ -130,6 +130,13 @@ export function setupGlobalErrorHandlers() {
   const ERROR_RESET_INTERVAL = 5000; // 5초
 
   window.addEventListener('unhandledrejection', (event) => {
+    const err = event.reason as Error;
+
+    // insertBefore DOM 오류면 무시
+    if (err.name === 'NotFoundError' && err.message.includes('insertBefore')) {
+      return;
+    }
+
     errorCount++;
 
     // 에러 카운트 리셋 타이머
@@ -155,6 +162,17 @@ export function setupGlobalErrorHandlers() {
 
   // 일반 런타임 에러 캐처
   window.addEventListener('error', (event) => {
+    const err = event.error || new Error(event.message);
+
+    // insertBefore DOM 오류면 무시
+    if (
+      err instanceof Error &&
+      err.name === 'NotFoundError' &&
+      err.message.includes('insertBefore')
+    ) {
+      return;
+    }
+
     // 에러 로깅
     logError(event.error || new Error(event.message), {
       context: 'Uncaught Error',
@@ -312,9 +330,6 @@ export function useApiErrorHandler() {
 
         // 인증 에러 (401) 처리
         if (status === 401) {
-          // 로컬 스토리지의 인증 토큰 제거
-          localStorage.removeItem('accessToken');
-
           // 현재 페이지 저장 (로그인 후 리디렉션용)
           localStorage.setItem('redirectUrl', window.location.pathname);
 

@@ -78,13 +78,8 @@ export default function SetPasswordPage() {
         throw Error();
       }
 
-      const response = await login({ email, password });
-      if (response.data?.accessToken) {
-        localStorage.setItem('accessToken', response.data.accessToken);
-        navigate('/');
-      } else {
-        navigate('/login');
-      }
+      await login({ email, password });
+      navigate('/');
     } catch (err: unknown) {
       alert('비밀번호 설정에 실패했습니다.');
       navigate('/login');
@@ -94,9 +89,9 @@ export default function SetPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-white p-6">
+    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-white">
       <Logo height="55px" divClassName="mb-6 text-black" />
-      <div className="mb-8 w-full max-w-md">
+      <div className="w-full max-w-md mb-8">
         <h2 className="text-2xl font-bold">비밀번호 설정</h2>
         <p className="mt-2 text-sm">새로운 비밀번호를 설정하세요.</p>
         {error && <p className="mt-2 text-red-500">{error}</p>}
@@ -106,7 +101,7 @@ export default function SetPasswordPage() {
             placeholder="새 비밀번호"
             value={password}
             onChange={handlePasswordChange}
-            className="w-full rounded border border-gray-300 p-2 text-black"
+            className="w-full p-2 text-black border border-gray-300 rounded"
           />
         </div>
         <div className="mt-2">
@@ -115,7 +110,7 @@ export default function SetPasswordPage() {
             placeholder="비밀번호 확인"
             value={confirmPassword}
             onChange={handleConfirmPasswordChange}
-            className="w-full rounded border border-gray-300 p-2 text-black"
+            className="w-full p-2 text-black border border-gray-300 rounded"
           />
         </div>
         {password !== confirmPassword && confirmPassword && (
@@ -125,17 +120,17 @@ export default function SetPasswordPage() {
         )}
         <button
           onClick={handleSetPassword}
-          className="mt-4 w-full rounded bg-blue-400 px-4 py-2 text-white hover:bg-blue-500"
+          className="w-full px-4 py-2 mt-4 text-white bg-blue-400 rounded hover:bg-blue-500"
         >
           {loading ? '설정 중...' : '비밀번호 설정'}
         </button>
       </div>
 
-      <div className="mt-8 text-center text-xs">
-        <span className="mr-2 cursor-pointer text-gray-400 hover:underline">
+      <div className="mt-8 text-xs text-center">
+        <span className="mr-2 text-gray-400 cursor-pointer hover:underline">
           이용약관
         </span>
-        <span className="cursor-pointer text-gray-400 hover:underline">
+        <span className="text-gray-400 cursor-pointer hover:underline">
           개인정보처리방침
         </span>
       </div>

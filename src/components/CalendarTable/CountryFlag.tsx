@@ -18,7 +18,7 @@ export const CountryFlag = ({
 
   return (
     <div className="flex items-center" title={countryCode}>
-      <span className="mr-2 text-xl">{flag}</span>
+      <span className="text-xl">{flag}</span>
       {showText && <span className="text-xs text-gray-600">{countryCode}</span>}
     </div>
   );

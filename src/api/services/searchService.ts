@@ -39,6 +39,8 @@ export const searchCompanies = withErrorHandling(
     });
     return response.data;
   },
+  undefined,
+  'CalendarService.searchCompanies',
 );
 
 /**
@@ -61,6 +63,8 @@ export const searchIndicators = withErrorHandling(
     });
     return response.data;
   },
+  undefined,
+  'CalendarService.searchIndicators',
 );
 
 /**
@@ -71,6 +75,8 @@ export const getCompanyById = withErrorHandling(
     const response = await apiClient.get(`/api/v1/companies/${companyId}`);
     return response.data;
   },
+  undefined,
+  'CalendarService.getCompanyById',
 );
 
 /**
@@ -83,6 +89,8 @@ export const addFavoriteCompanyEarnings = withErrorHandling(
     );
     return response.data;
   },
+  undefined,
+  'CalendarService.addFavoriteCompanyEarnings',
 );
 
 /**
@@ -95,6 +103,8 @@ export const addFavoriteCompanyDividend = withErrorHandling(
     );
     return response.data;
   },
+  undefined,
+  'CalendarService.addFavoriteCompanyDividend',
 );
 
 /**
@@ -107,6 +117,8 @@ export const removeFavoriteCompanyEarnings = withErrorHandling(
     );
     return response.data;
   },
+  undefined,
+  'CalendarService.removeFavoriteCompanyEarnings',
 );
 
 /**
@@ -119,6 +131,8 @@ export const removeFavoriteCompanyDividend = withErrorHandling(
     );
     return response.data;
   },
+  undefined,
+  'CalendarService.removeFavoriteCompanyDividend',
 );
 
 /**
@@ -142,6 +156,8 @@ export const getCompanyEarnings = withErrorHandling(
     );
     return response.data;
   },
+  undefined,
+  'CalendarService.getCompanyEarnings',
 );
 
 /**
@@ -165,4 +181,6 @@ export const getCompanyDividends = withErrorHandling(
     );
     return response.data;
   },
+  undefined,
+  'CalendarService.getCompanyDividends',
 );

@@ -28,9 +28,8 @@ export default function Header() {
     if (!isAuthenticated) return;
 
     esRef.current?.close();
-    const token = localStorage.getItem('accessToken');
     const es = new EventSource(
-      `${VITE_BACKEND_URL}/api/v1/notifications/stream?token=${token}`,
+      `${VITE_BACKEND_URL}/api/v1/notifications/stream`,
       {
         withCredentials: true,
       },

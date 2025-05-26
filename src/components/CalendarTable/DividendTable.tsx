@@ -9,6 +9,7 @@ import { TableGroupSkeleton } from '@/components/UI/Skeleton';
 import { CountryFlag } from './CountryFlag';
 import DividendHistoryTable from './DividendHistoryTable';
 import { useQuery } from '@tanstack/react-query';
+import { formatMarketCap } from '@/utils/formatUtils';
 
 interface DividendTableProps {
   events: DividendEvent[];
@@ -88,6 +89,9 @@ export default function DividendTable({
             <th className="min-w-[7rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               배당수익률
             </th>
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+              시가총액
+            </th>
             <th className="min-w-[5.5rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               이전 발표
             </th>
@@ -107,7 +111,15 @@ export default function DividendTable({
           ) : (
             // 데이터가 있을 때 실제 테이블 내용 표시
             sortedGroupKeys.map((groupKey, index) => {
-              const groupDividends = groups[groupKey] || [];
+              const groupDividends = (groups[groupKey] || [])
+                .slice()
+                .sort((a, b) => {
+                  const parseValue = (val?: string) =>
+                    val ? parseInt(val.replace(/,/g, ''), 10) : 0;
+                  const aVal = parseValue(a.company?.marketValue);
+                  const bVal = parseValue(b.company?.marketValue);
+                  return bVal - aVal;
+                });
               const dateObj = new Date(groupKey);
               const dayOfWeek = dayNames[dateObj.getDay()];
               const [year, month, day] = groupKey.split('-');
@@ -121,7 +133,7 @@ export default function DividendTable({
                     data-date={groupKey} // data-date를 tr에 직접 부여 (혹은 필요하다면 div로 옮길 수 있음)
                   >
                     <td
-                      colSpan={8}
+                      colSpan={9}
                       className="px-4 py-2 text-sm font-semibold border-b sticky-separator-td"
                     >
                       {formattedGroupDate}
@@ -229,6 +241,10 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
         {/* 배당수익률 */}
         <td className="px-4 py-2 text-sm text-gray-700">
           {dividend.dividendYield ? dividend.dividendYield : '-'}
+        </td>
+        {/* 회사 시가총액 */}
+        <td className="px-4 py-2 text-sm text-gray-700">
+          {formatMarketCap(dividend.company?.marketValue)}
         </td>
         {/* 이전 배당금값 (바로 직전 값) + 팝업 */}
         <td className="relative px-4 py-2 text-sm text-gray-700">
