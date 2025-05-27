@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CalendarPanel from '@/components/FilterPanel/CalendarPanel';
 import Layout from '../components/Layout/Layout';
 import EconomicIndicatorTable from '@/components/CalendarTable/EconomicIndicatorTable';
@@ -9,13 +9,14 @@ import useCalendarStore from '@/zustand/useCalendarDateStore';
 import { DateRange } from '@/types/calendar-date-range';
 import { getFavoriteCalendarEvents } from '@/api/services/calendarService';
 import { useQuery } from '@tanstack/react-query';
-import { extractErrorMessage } from '@/utils/errorHandler';
+import { useApiErrorHandler } from '@/utils/errorHandler';
 import { useAuthStore } from '@/zustand/useAuthStore';
 
 export default function FavoriteCalendarPage() {
   // 초기 선택 메뉴를 '경제지표'로 설정
   const [selectedMenu, setSelectedMenu] = useState('경제지표');
   const { isAuthenticated } = useAuthStore();
+  const { handleError } = useApiErrorHandler();
 
   const { subSelectedDates } = useCalendarStore();
   const initialDateRange: DateRange = {
@@ -47,6 +48,12 @@ export default function FavoriteCalendarPage() {
     retryDelay: 1000, // 재시도 간격 1초
   });
 
+  useEffect(() => {
+    if (error) {
+      handleError(error);
+    }
+  }, [error, handleError]);
+
   const earnings = data?.data?.earnings ?? [];
   const dividends = data?.data?.dividends ?? [];
   const economicIndicators = data?.data?.economicIndicators ?? [];
@@ -66,19 +73,14 @@ export default function FavoriteCalendarPage() {
 
   // 에러가 있을 때의 처리 (전체 페이지에 메시지 표시)
   if (error) {
-    const errorMessage =
-      error instanceof Error
-        ? extractErrorMessage(error)
-        : '데이터를 불러오는 중 오류가 발생했습니다.';
-
     return (
       <Layout>
         <div className="flex flex-col items-center justify-center p-8 text-red-500">
           <h3 className="mb-2 text-lg font-semibold">오류 발생</h3>
-          <p>{errorMessage}</p>
+          <p>데이터를 불러오는 중 오류가 발생했습니다.</p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+            className="px-4 py-2 mt-4 text-white bg-blue-500 rounded hover:bg-blue-600"
           >
             다시 시도
           </button>
@@ -108,7 +110,7 @@ export default function FavoriteCalendarPage() {
     <Layout>
       <div className="flex flex-col">
         {/* 페이지 헤더 */}
-        <div className="mb-4 px-8">
+        <div className="px-8 mb-4">
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             관심 일정 보기
           </h1>
@@ -127,7 +129,7 @@ export default function FavoriteCalendarPage() {
         </div>
 
         {/* 메뉴 버튼 영역 */}
-        <div className="mt-4 flex space-x-4 px-8 text-sm">
+        <div className="flex px-8 mt-4 space-x-4 text-sm">
           <button
             className={getButtonClass('경제지표')}
             onClick={() => handleMenuClick('경제지표')}
@@ -152,7 +154,7 @@ export default function FavoriteCalendarPage() {
         {getEmptyMessage()}
 
         {/* 선택된 메뉴에 따라 테이블 컴포넌트 렌더링 */}
-        <div className="mt-4 w-full overflow-x-auto border-gray-300 px-8">
+        <div className="w-full px-8 mt-4 overflow-x-auto border-gray-300">
           {selectedMenu === '경제지표' && (
             <EconomicIndicatorTable
               events={economicIndicators}

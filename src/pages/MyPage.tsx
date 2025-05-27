@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Layout from '../components/Layout/Layout';
 import { useAuthStore } from '../zustand/useAuthStore';
-import { getUserProfile } from '../api/services/userService';
 
 // 분리된 컴포넌트 임포트
 import BasicInfo from '../components/Account/BasicInfo';
@@ -11,7 +10,7 @@ import AccountLink from '../components/Account/AccountLink';
 import DeleteAccount from '../components/Account/DeleteAccount';
 
 export default function MyPage() {
-  const { user, logout, setUser } = useAuthStore();
+  const { user, logout, fetchUserProfile } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
@@ -45,43 +44,22 @@ export default function MyPage() {
   };
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    const loadProfile = async () => {
+      setIsLoading(true);
       try {
-        setIsLoading(true);
-        const response = await getUserProfile();
-
-        // 사용자 정보 업데이트
-        if (response?.data) {
-          // UserProfileResponse는 user 객체를 포함하지 않고 직접 필드를 가지고 있음
-          const profileData = response.data;
-
-          // 기존 유저 정보에 프로필 정보 병합
-          setUser({
-            ...user,
-            id: profileData.id,
-            email: profileData.email,
-            nickname: profileData.nickname,
-            verified: profileData.verified,
-            createdAt: profileData.createdAt,
-            updatedAt: profileData.updatedAt,
-            hasPassword: profileData.hasPassword,
-          });
-        }
+        await fetchUserProfile();
       } catch (err) {
-        console.error('프로필 정보 가져오기 실패:', err);
         setError('프로필 정보를 불러오는데 실패했습니다.');
       } finally {
         setIsLoading(false);
       }
     };
-
-    fetchUserProfile();
-  }, []);
+    loadProfile();
+  }, [user]);
 
   return (
     <Layout>

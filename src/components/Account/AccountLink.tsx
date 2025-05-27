@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaCheckCircle, FaTimes } from 'react-icons/fa';
-import {
-  disconnectOAuthAccount,
-  getUserProfile,
-} from '../../api/services/userService';
+import { disconnectOAuthAccount } from '../../api/services/userService';
 import { useAuthStore } from '../../zustand/useAuthStore';
 import { OAuthConnection } from '../../types/users-types';
 
@@ -33,7 +30,7 @@ const providerLogos = {
 };
 
 const AccountLink: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user, userProfile } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [linkedAccounts, setLinkedAccounts] = useState<LinkedAccounts>({
     google: { linked: false, email: '' },
@@ -43,43 +40,27 @@ const AccountLink: React.FC = () => {
   });
   const [error, setError] = useState('');
 
-  // 컴포넌트 마운트 시 또는 user 변경 시 OAuth 연동 상태 가져오기
+  // 컴포넌트 마운트 시 OAuth 연동 상태 userProfile에서 추출
   useEffect(() => {
-    const fetchOAuthStatus = async () => {
-      if (!user) return;
+    if (!userProfile) return;
+    if (!user) return;
 
-      try {
-        setIsLoading(true);
-        const response = await getUserProfile();
+    const { oauthConnections } = userProfile;
+    if (!oauthConnections) return;
 
-        if (response?.data?.oauthConnections) {
-          const { oauthConnections } = response.data;
-          const updatedAccounts = { ...linkedAccounts };
-
-          // 백엔드에서 돌려준 OAuth 연결 정보 순회하여 상태 업데이트
-          oauthConnections.forEach((connection: OAuthConnection) => {
-            const { provider, connected, oauthEmail } = connection;
-            if (provider in updatedAccounts) {
-              const key = provider as availableSNS;
-              updatedAccounts[key] = {
-                linked: connected,
-                email: oauthEmail || user.email || '',
-              };
-            }
-          });
-
-          setLinkedAccounts(updatedAccounts);
-        }
-      } catch (error) {
-        console.error('OAuth 연동 상태 가져오기 실패:', error);
-        setError('소셜 계정 연동 정보를 불러오는데 실패했습니다.');
-      } finally {
-        setIsLoading(false);
+    const updatedAccounts = { ...linkedAccounts };
+    oauthConnections.forEach((connection: OAuthConnection) => {
+      const { provider, connected, oauthEmail } = connection;
+      if (provider in updatedAccounts) {
+        const key = provider as availableSNS;
+        updatedAccounts[key] = {
+          linked: connected,
+          email: oauthEmail || user.email || '',
+        };
       }
-    };
-
-    fetchOAuthStatus();
-  }, []);
+    });
+    setLinkedAccounts(updatedAccounts);
+  }, [userProfile, user]);
 
   const toggleLink = async (provider: availableSNS) => {
     if (provider === 'apple') {

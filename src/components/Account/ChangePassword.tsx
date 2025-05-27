@@ -1,6 +1,6 @@
-import React, { useState, FormEvent, useEffect } from 'react';
+import React, { useState, FormEvent } from 'react';
 import { AxiosError } from 'axios';
-import { changePassword, getUserProfile } from '../../api/services/userService';
+import { changePassword } from '../../api/services/userService';
 import { useAuthStore } from '../../zustand/useAuthStore';
 import { FaKey, FaLock, FaShieldAlt } from 'react-icons/fa';
 
@@ -17,26 +17,11 @@ const ChangePassword: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [hasPassword, setHasPassword] = useState(true); // 기본값: 비밀번호 있음
-  const { user } = useAuthStore();
 
-  // 컴포넌트 마운트 시 사용자의 비밀번호 설정 여부 확인
-  useEffect(() => {
-    const checkPasswordStatus = async () => {
-      if (!user) return;
+  const { user, userProfile } = useAuthStore();
 
-      try {
-        const response = await getUserProfile();
-        if (response?.data) {
-          setHasPassword(response.data.hasPassword);
-        }
-      } catch (error) {
-        console.error('사용자 프로필 가져오기 실패:', error);
-      }
-    };
-
-    checkPasswordStatus();
-  }, [user]);
+  // userProfile에서 hasPassword 추출
+  const hasPassword = userProfile?.hasPassword ?? true;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
