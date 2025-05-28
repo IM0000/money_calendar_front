@@ -7,6 +7,14 @@ import { getUnreadNotificationsCount } from '@/api/services/notificationService'
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { NewNotificationBubble } from '../notification/NotificationBubble';
+import {
+  isRefreshInProgress,
+  startRefresh,
+  finishRefresh,
+  queueEventSource,
+} from '@/utils/refreshManager';
+import { refresh } from '@/api/services/authService';
+import { createRefreshEventSource } from '@/utils/refreshEventSource';
 
 const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -28,42 +36,59 @@ export default function Header() {
     if (!isAuthenticated) return;
 
     esRef.current?.close();
-    const es = new EventSource(
-      `${VITE_BACKEND_URL}/api/v1/notifications/stream`,
-      {
-        withCredentials: true,
-      },
-    );
-    esRef.current = es;
+    let cancelled = false;
 
-    es.onmessage = (e) => {
-      console.log('es onmessage');
+    const instantiate = async () => {
       try {
-        queryClient.setQueryData<{ data: { count: number } }>(
-          ['unreadNotificationsCount'],
-          (old) => ({
-            data: {
-              count: (old?.data.count || 0) + 1,
-            },
-          }),
+        const es = await createRefreshEventSource(
+          `${VITE_BACKEND_URL}/api/v1/notifications/stream`,
+          { withCredentials: true },
         );
 
-        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        if (cancelled) {
+          es.close();
+          return;
+        }
+        esRef.current = es;
+
+        es.onmessage = (e) => {
+          console.log('es onmessage');
+          try {
+            queryClient.setQueryData<{ data: { count: number } }>(
+              ['unreadNotificationsCount'],
+              (old) => ({ data: { count: (old?.data.count || 0) + 1 } }),
+            );
+            queryClient.invalidateQueries({ queryKey: ['notifications'] });
+          } catch (err) {
+            console.error('SSE 데이터 파싱 실패:', e.data, err);
+            toast.error('알림 수신 중 문제가 발생했습니다.');
+          }
+          setShowBubble(true);
+        };
+
+        es.onerror = () => {
+          console.log('es error, 재연결 큐잉');
+          es.close();
+          // 큐에 재연결 로직 추가
+          queueEventSource(instantiate);
+          // 리프레시가 진행 중이 아니면 직접 트리거
+          if (!isRefreshInProgress()) {
+            startRefresh();
+            refresh()
+              .then(() => finishRefresh(true))
+              .catch(() => finishRefresh(false));
+          }
+        };
       } catch (err) {
-        console.error('SSE 데이터 파싱 실패:', e.data, err);
-        toast.error('알림 수신 중 문제가 발생했습니다.');
+        console.error('EventSource 연결 실패:', err);
       }
-
-      setShowBubble(true);
     };
 
-    es.onerror = () => {
-      console.log('es error');
-      es.close();
-    };
+    instantiate();
 
     return () => {
-      es.close();
+      cancelled = true;
+      esRef.current?.close();
     };
   }, [isAuthenticated, queryClient]);
 
@@ -156,7 +181,7 @@ export default function Header() {
                   </Link>
                   <Link
                     to="/favorites/calendar"
-                    className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                    className="block px-4 py-2 text_gray-800 hover:bg-gray-100"
                     onClick={() => setCalendarDropdownOpen(false)}
                   >
                     관심 일정

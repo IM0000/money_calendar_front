@@ -134,18 +134,18 @@ const AccountLink: React.FC = () => {
   };
 
   return (
-    <div className="rounded-lg bg-white p-6 shadow">
-      <h3 className="mb-6 border-b border-gray-200 pb-2 text-xl font-bold text-gray-800">
+    <div className="p-6 bg-white rounded-lg shadow">
+      <h3 className="pb-2 mb-6 text-xl font-bold text-gray-800 border-b border-gray-200">
         계정 연동
       </h3>
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-4 text-red-700">
+        <div className="p-4 mb-4 text-red-700 rounded-md bg-red-50">
           <p>{error}</p>
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2">
         {Object.keys(linkedAccounts).map((provider) => {
           const providerKey = provider as availableSNS;
           const isLinked = linkedAccounts[providerKey].linked;
@@ -153,14 +153,14 @@ const AccountLink: React.FC = () => {
           return (
             <div
               key={provider}
-              className="flex flex-col overflow-hidden rounded-lg border border-gray-200 transition-all hover:shadow-md"
+              className="flex flex-col overflow-hidden transition-all border border-gray-200 rounded-lg hover:shadow-md"
             >
-              <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-4 py-3">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
                 <div className="flex items-center space-x-3">
                   <img
                     src={providerLogos[providerKey]}
                     alt={provider}
-                    className="h-5 w-5 object-contain"
+                    className="object-contain w-5 h-5"
                   />
                   <span className="font-medium text-gray-700">
                     {getProviderName(provider)}
@@ -200,7 +200,7 @@ const AccountLink: React.FC = () => {
                   ) : isLinked ? (
                     <span className="flex items-center">
                       <FaTimes className="mr-1" />
-                      연동 해제
+                      해제
                     </span>
                   ) : (
                     '연동하기'

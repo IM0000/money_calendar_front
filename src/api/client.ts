@@ -9,6 +9,12 @@ import { ApiResponse } from '../types/api-response';
 import { logError } from '../utils/errorHandler';
 import { ERROR_CODE_MAP } from '@/constants/error.constant';
 import { refresh } from './services/authService';
+import {
+  finishRefresh,
+  isRefreshInProgress,
+  queueRequest,
+  startRefresh,
+} from '@/utils/refreshManager';
 
 // 확장된 axios 요청 설정 타입
 interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
@@ -25,19 +31,6 @@ const apiClient: AxiosInstance = axios.create({
   timeout: 10000, // 요청 타임아웃 설정 (밀리초 단위)
   withCredentials: true,
 });
-
-let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (value?: any) => void;
-  reject: (error: any) => void;
-}> = [];
-
-const processQueue = (error: any, tokenUpdated = false) => {
-  failedQueue.forEach((prom) => {
-    tokenUpdated ? prom.resolve() : prom.reject(error);
-  });
-  failedQueue = [];
-};
 
 // 요청 인터셉터 - 모든 요청에 토큰 추가
 apiClient.interceptors.request.use(
@@ -94,33 +87,22 @@ apiClient.interceptors.response.use(
       !config._retry
     ) {
       config._retry = true;
-
-      if (isRefreshing) {
-        // 이미 리프레시 중이면 큐에 넣고 대기
-        return new Promise((resolve, reject) => {
-          failedQueue.push({
-            resolve: () => resolve(apiClient(config)),
-            reject,
-          });
-        });
+      if (isRefreshInProgress()) {
+        // 리프레시 중이면 큐에 넣고 대기
+        return queueRequest((resolve) => {
+          resolve();
+        }).then(() => apiClient(config));
       }
-
-      isRefreshing = true;
-
-      return new Promise((resolve, reject) => {
-        refresh()
-          .then(() => {
-            processQueue(null, true);
-            resolve(apiClient(config)); // 원래 요청 재시도
-          })
-          .catch((err) => {
-            processQueue(err, false);
-            reject(err);
-          })
-          .finally(() => {
-            isRefreshing = false;
-          });
-      });
+      startRefresh();
+      return refresh()
+        .then(() => {
+          finishRefresh(true);
+          return apiClient(config);
+        })
+        .catch((err) => {
+          finishRefresh(false);
+          return Promise.reject(err);
+        });
     }
 
     // 인터셉터가 에러를 처리하는 대신 에러를 그대로 전파

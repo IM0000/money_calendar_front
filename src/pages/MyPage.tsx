@@ -95,7 +95,7 @@ export default function MyPage() {
         ) : (
           <div className="flex flex-col gap-6 md:flex-row">
             {/* ============ 왼쪽 사이드 메뉴 (모바일에서는 상단에 표시) ============ */}
-            <aside className="self-start w-full mb-6 md:sticky md:top-6 md:mb-0 md:w-64 lg:w-72">
+            <aside className="self-start w-full mb-6 md:sticky md:top-16 md:mb-0 md:w-64 lg:w-72">
               <div className="p-6 bg-white rounded-lg shadow">
                 <h2 className="pb-2 mb-4 text-xl font-bold text-gray-800 border-b border-gray-200">
                   계정 설정
