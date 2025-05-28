@@ -69,31 +69,31 @@ export default function EconomicIndicatorTable({
     <CalendarTableWrapper headerRefs={headerRefs}>
       <table className="min-w-full divide-y divide-gray-200">
         {/* 메인 헤더: 스크롤 시 상단에 고정 (헤더 높이 약 2.80rem) */}
-        <thead className="calendar-table-header sticky top-0 z-30 bg-gray-50">
+        <thead className="sticky top-0 z-30 calendar-table-header bg-gray-50">
           <tr className="h-[2.80rem]">
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               시간
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               국가
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               이벤트
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
               중요도
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               실제
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               예측
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               이전
             </th>
             {/* 알림추가 버튼은 열 너비를 최소화 */}
-            <th className="w-10 px-2 py-2 text-left text-sm font-medium text-gray-700"></th>
+            <th className="w-10 px-2 py-2 text-sm font-medium text-left text-gray-700"></th>
           </tr>
         </thead>
         <tbody>
@@ -126,7 +126,7 @@ export default function EconomicIndicatorTable({
                   >
                     <td
                       colSpan={8}
-                      className="sticky-separator-td border-b px-4 py-2 text-sm font-semibold"
+                      className="px-4 py-2 text-sm font-semibold border-b sticky-separator-td"
                     >
                       {formattedGroupDate}
                     </td>
