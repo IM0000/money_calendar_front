@@ -28,8 +28,9 @@ jobs:
         run: npm install -g pnpm@9
 
       - name: Install & Build
+        env:
+          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
         run: |
-          npm install -g pnpm
           pnpm install --frozen-lockfile
           pnpm run build
 
