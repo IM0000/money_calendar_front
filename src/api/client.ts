@@ -80,6 +80,10 @@ apiClient.interceptors.response.use(
 
     const { config, response } = error;
 
+    if (config?.url?.endsWith('/api/v1/auth/refresh')) {
+      return Promise.reject(error);
+    }
+
     if (
       response?.status === 401 &&
       response.data.errorCode === ERROR_CODE_MAP.AUTH_001 &&
