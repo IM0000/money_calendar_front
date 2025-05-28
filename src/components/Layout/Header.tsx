@@ -7,13 +7,7 @@ import { getUnreadNotificationsCount } from '@/api/services/notificationService'
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { NewNotificationBubble } from '../notification/NotificationBubble';
-import {
-  isRefreshInProgress,
-  startRefresh,
-  finishRefresh,
-  queueEventSource,
-} from '@/utils/refreshManager';
-import { refresh } from '@/api/services/authService';
+import { queueEventSource } from '@/utils/refreshManager';
 import { createRefreshEventSource } from '@/utils/refreshEventSource';
 
 const VITE_BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -69,15 +63,7 @@ export default function Header() {
         es.onerror = () => {
           console.log('es error, 재연결 큐잉');
           es.close();
-          // 큐에 재연결 로직 추가
           queueEventSource(instantiate);
-          // 리프레시가 진행 중이 아니면 직접 트리거
-          if (!isRefreshInProgress()) {
-            startRefresh();
-            refresh()
-              .then(() => finishRefresh(true))
-              .catch(() => finishRefresh(false));
-          }
         };
       } catch (err) {
         console.error('EventSource 연결 실패:', err);
