@@ -32,9 +32,10 @@ jobs:
           pnpm run build
 
       - name: Deploy to S3
-        uses: aws-actions/s3-sync@v1
-        with:
-          args: --delete --acl public-read dist/ s3://${{ secrets.S3_BUCKET }}/
+        run: |
+          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET }}/ \
+            --delete \
+            --acl public-read
 
       - name: Invalidate CloudFront cache
         run: |
