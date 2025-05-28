@@ -23,12 +23,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
-          cache: 'pnpm'
 
-      - name: Set up pnpm CLI
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
+      - name: Install pnpm CLI
+        run: npm install -g pnpm@9
 
       - name: Install & Build
         run: |
