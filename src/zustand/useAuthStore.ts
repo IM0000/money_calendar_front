@@ -1,55 +1,62 @@
 import { create } from 'zustand';
-import { UserDto } from '../types/users-types';
-import apiClient from '../api/client';
+import { UserDto, UserProfileResponse } from '../types/users-types';
+import { LoginDto } from '@/types/auth-types';
+import { login, logout, status } from '@/api/services/authService';
+import { getUserProfile } from '../api/services/userService';
 
 interface AuthState {
   isAuthenticated: boolean;
   user: UserDto | null;
-  token: string | null;
-  login: (user: UserDto, token: string) => void;
-  logout: () => void;
-  checkAuth: () => void;
+  userProfile: UserProfileResponse | null;
+  login: (dto: LoginDto) => Promise<void>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
   setUser: (user: UserDto) => void;
+  setUserProfile: (profile: UserProfileResponse) => void;
+  fetchUserProfile: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
   user: null,
-  token: localStorage.getItem('accessToken'),
-  login: (user, token) => {
-    localStorage.setItem('accessToken', token);
-    set({ isAuthenticated: true, user, token });
+  userProfile: null,
+
+  login: async (dto) => {
+    const res = await login(dto);
+    set({ isAuthenticated: true, user: res.data?.user });
   },
-  logout: () => {
-    localStorage.removeItem('accessToken'); // 로컬 스토리지의 토큰 제거
-    set({ isAuthenticated: false, user: null, token: null });
+
+  logout: async () => {
+    await logout();
+    set({ isAuthenticated: false, user: null, userProfile: null });
   },
-  setUser: (user) => {
-    set((state) => ({
-      ...state,
-      user,
-    }));
-  },
+
   checkAuth: async () => {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      set({ isAuthenticated: false, user: null, token: null });
-      return;
-    }
-
     try {
-      const response = await apiClient.get('/api/v1/auth/status', {
-        headers: { Authorization: `Bearer ${token}` }, // 헤더에 토큰 추가
-      });
-
-      set({
-        isAuthenticated: response.data.data.isAuthenticated,
-        user: response.data.data.user,
-        token,
-      });
+      const res = await status();
+      set({ isAuthenticated: true, user: res.data?.user });
     } catch {
-      localStorage.removeItem('accessToken'); // 인증 실패 시 토큰 제거
-      set({ isAuthenticated: false, user: null, token: null });
+      set({ isAuthenticated: false, user: null });
+    }
+  },
+
+  setUser: (user) => {
+    set({ user });
+  },
+
+  setUserProfile: (profile) => {
+    set({ userProfile: profile });
+  },
+
+  fetchUserProfile: async () => {
+    try {
+      const response = await getUserProfile();
+      if (response?.data) {
+        set({ userProfile: response.data });
+      }
+    } catch (e) {
+      set({ userProfile: null });
+      throw e;
     }
   },
 }));

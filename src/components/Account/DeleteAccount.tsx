@@ -1,10 +1,6 @@
-import React, { useState, FormEvent, useEffect } from 'react';
+import React, { useState, FormEvent } from 'react';
 import { AxiosError } from 'axios';
-import {
-  deleteAccount,
-  getUserProfile,
-  verifyPassword,
-} from '../../api/services/userService';
+import { deleteAccount, verifyPassword } from '../../api/services/userService';
 import { useAuthStore } from '../../zustand/useAuthStore';
 import { useNavigate } from 'react-router-dom';
 import { FaExclamationTriangle, FaUserMinus, FaLock } from 'react-icons/fa';
@@ -20,28 +16,11 @@ const DeleteAccount: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [hasPassword, setHasPassword] = useState(true); // 기본적으로 비밀번호가 있다고 가정
-  const { user, logout } = useAuthStore();
+  const { user, logout, userProfile } = useAuthStore();
   const navigate = useNavigate();
 
-  // 컴포넌트 마운트 시 사용자의 비밀번호 설정 여부 확인
-  useEffect(() => {
-    const checkPasswordStatus = async () => {
-      if (!user) return;
-
-      try {
-        const response = await getUserProfile();
-        if (response?.data) {
-          // hasPassword 값을 가져오거나 찾을 수 없는 경우 기본값 true 사용
-          setHasPassword(response.data.hasPassword);
-        }
-      } catch (error) {
-        console.error('사용자 프로필 가져오기 실패:', error);
-      }
-    };
-
-    checkPasswordStatus();
-  }, [user]);
+  // userProfile에서 hasPassword 추출
+  const hasPassword = userProfile?.hasPassword ?? true;
 
   // 비밀번호 확인 함수
   const checkPassword = async (): Promise<boolean> => {

@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaCheckCircle, FaTimes } from 'react-icons/fa';
-import {
-  disconnectOAuthAccount,
-  getUserProfile,
-} from '../../api/services/userService';
+import { disconnectOAuthAccount } from '../../api/services/userService';
 import { useAuthStore } from '../../zustand/useAuthStore';
 import { OAuthConnection } from '../../types/users-types';
 
@@ -33,7 +30,7 @@ const providerLogos = {
 };
 
 const AccountLink: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user, userProfile } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [linkedAccounts, setLinkedAccounts] = useState<LinkedAccounts>({
     google: { linked: false, email: '' },
@@ -43,43 +40,27 @@ const AccountLink: React.FC = () => {
   });
   const [error, setError] = useState('');
 
-  // 컴포넌트 마운트 시 또는 user 변경 시 OAuth 연동 상태 가져오기
+  // 컴포넌트 마운트 시 OAuth 연동 상태 userProfile에서 추출
   useEffect(() => {
-    const fetchOAuthStatus = async () => {
-      if (!user) return;
+    if (!userProfile) return;
+    if (!user) return;
 
-      try {
-        setIsLoading(true);
-        const response = await getUserProfile();
+    const { oauthConnections } = userProfile;
+    if (!oauthConnections) return;
 
-        if (response?.data?.oauthConnections) {
-          const { oauthConnections } = response.data;
-          const updatedAccounts = { ...linkedAccounts };
-
-          // 백엔드에서 돌려준 OAuth 연결 정보 순회하여 상태 업데이트
-          oauthConnections.forEach((connection: OAuthConnection) => {
-            const { provider, connected, oauthEmail } = connection;
-            if (provider in updatedAccounts) {
-              const key = provider as availableSNS;
-              updatedAccounts[key] = {
-                linked: connected,
-                email: oauthEmail || user.email || '',
-              };
-            }
-          });
-
-          setLinkedAccounts(updatedAccounts);
-        }
-      } catch (error) {
-        console.error('OAuth 연동 상태 가져오기 실패:', error);
-        setError('소셜 계정 연동 정보를 불러오는데 실패했습니다.');
-      } finally {
-        setIsLoading(false);
+    const updatedAccounts = { ...linkedAccounts };
+    oauthConnections.forEach((connection: OAuthConnection) => {
+      const { provider, connected, oauthEmail } = connection;
+      if (provider in updatedAccounts) {
+        const key = provider as availableSNS;
+        updatedAccounts[key] = {
+          linked: connected,
+          email: oauthEmail || user.email || '',
+        };
       }
-    };
-
-    fetchOAuthStatus();
-  }, []);
+    });
+    setLinkedAccounts(updatedAccounts);
+  }, [userProfile, user]);
 
   const toggleLink = async (provider: availableSNS) => {
     if (provider === 'apple') {
@@ -153,18 +134,18 @@ const AccountLink: React.FC = () => {
   };
 
   return (
-    <div className="rounded-lg bg-white p-6 shadow">
-      <h3 className="mb-6 border-b border-gray-200 pb-2 text-xl font-bold text-gray-800">
+    <div className="p-6 bg-white rounded-lg shadow">
+      <h3 className="pb-2 mb-6 text-xl font-bold text-gray-800 border-b border-gray-200">
         계정 연동
       </h3>
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-4 text-red-700">
+        <div className="p-4 mb-4 text-red-700 rounded-md bg-red-50">
           <p>{error}</p>
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2">
         {Object.keys(linkedAccounts).map((provider) => {
           const providerKey = provider as availableSNS;
           const isLinked = linkedAccounts[providerKey].linked;
@@ -172,14 +153,14 @@ const AccountLink: React.FC = () => {
           return (
             <div
               key={provider}
-              className="flex flex-col overflow-hidden rounded-lg border border-gray-200 transition-all hover:shadow-md"
+              className="flex flex-col overflow-hidden transition-all border border-gray-200 rounded-lg hover:shadow-md"
             >
-              <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-4 py-3">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50">
                 <div className="flex items-center space-x-3">
                   <img
                     src={providerLogos[providerKey]}
                     alt={provider}
-                    className="h-5 w-5 object-contain"
+                    className="object-contain w-5 h-5"
                   />
                   <span className="font-medium text-gray-700">
                     {getProviderName(provider)}
@@ -219,7 +200,7 @@ const AccountLink: React.FC = () => {
                   ) : isLinked ? (
                     <span className="flex items-center">
                       <FaTimes className="mr-1" />
-                      연동 해제
+                      해제
                     </span>
                   ) : (
                     '연동하기'

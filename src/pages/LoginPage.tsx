@@ -8,22 +8,27 @@ import OAuthLoginButton from '../components/OAuthLoginButton';
 import Logo from '../components/Logo';
 import { AxiosError } from 'axios';
 import { useAuthStore } from '../zustand/useAuthStore';
-import { login } from '../api/services/authService';
-import { ErrorCodes } from '../types/error-codes';
+import { ERROR_CODE_MAP } from '@/constants/error.constant';
 
 const { VITE_BACKEND_URL } = import.meta.env;
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login: authStoreLogin } = useAuthStore();
   const [error, setError] = useState(''); // 에러 메시지 상태 추가
   const navigate = useNavigate();
-  const { user, isAuthenticated, checkAuth } = useAuthStore();
+  const {
+    login: storeLogin,
+    checkAuth,
+    user,
+    isAuthenticated,
+  } = useAuthStore();
 
   useEffect(() => {
     checkAuth();
+  }, []);
 
+  useEffect(() => {
     if (user && isAuthenticated) {
       navigate('/');
     }
@@ -38,18 +43,15 @@ export default function LoginPage() {
   };
 
   const handleLogin = async () => {
+    setError('');
     try {
-      const res = await login({ email, password });
-
-      if (res.statusCode === 201 && res.data) {
-        authStoreLogin(res.data.user, res.data.accessToken);
-        navigate('/');
-      }
+      await storeLogin({ email, password });
+      navigate('/');
     } catch (error: unknown) {
       if (error instanceof AxiosError && error.response?.data) {
         const { errorCode, errorMessage, data } = error.response.data;
         if (errorCode && errorMessage) {
-          if (errorCode === ErrorCodes.ACCOUNT_001) {
+          if (errorCode === ERROR_CODE_MAP.ACCOUNT_001) {
             alert(errorMessage);
             navigate('/users/password', {
               state: { email: data?.email },

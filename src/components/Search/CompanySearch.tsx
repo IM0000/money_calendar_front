@@ -63,11 +63,11 @@ export default function CompanySearch({
       {localResults.length > 0 ? (
         <div className="overflow-hidden bg-white border border-gray-200 rounded-lg">
           {/* 헤더 */}
-          <div className="grid grid-cols-[1fr,5fr,1fr,1fr,1fr] gap-4 border-b border-gray-200 bg-gray-100 px-6 py-4 font-medium text-gray-700">
-            <div>티커</div>
+          <div className="grid grid-cols-[0.8fr,4fr,0.8fr,1fr,0.5fr] gap-4 border-b border-gray-200 bg-gray-100 px-2 py-4 font-medium text-gray-700">
+            <div className="text-center">티커</div>
             <div>기업명</div>
             <div className="text-center">국가</div>
-            <div>시가총액</div>
+            <div className="text-center">시가총액</div>
             <div className="text-center">정보</div>
           </div>
 
@@ -81,14 +81,14 @@ export default function CompanySearch({
               >
                 {/* 회사 기본 정보 행 */}
                 <div
-                  className={`grid grid-cols-[1fr,5fr,1fr,1fr,1fr] gap-4 px-6 py-4 ${
+                  className={`grid grid-cols-[0.8fr,4fr,0.8fr,1fr,0.5fr] gap-4 px-2 py-4 ${
                     expandedCompanyId === company.id
                       ? 'bg-blue-50'
                       : 'hover:bg-gray-50'
                   }`}
                 >
                   {/* 티커 */}
-                  <div className="font-mono font-medium text-blue-600 cursor-pointer">
+                  <div className="font-mono font-medium text-center text-blue-600 cursor-pointer">
                     {company.ticker}
                   </div>
 
@@ -103,7 +103,7 @@ export default function CompanySearch({
                   </div>
 
                   {/* 시가총액 */}
-                  <div className="text-gray-700">
+                  <div className="text-right text-gray-700">
                     {formatMarketCap(company.marketValue)}
                   </div>
 

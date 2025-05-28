@@ -1,32 +1,29 @@
-// src/pages/AuthSuccess.tsx
 import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../zustand/useAuthStore';
 
 export default function AuthSuccess() {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { checkAuth, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
-    // URL에서 토큰 추출
-    const params = new URLSearchParams(location.search);
-    const token = params.get('token');
-
-    if (token) {
-      // 토큰 저장
-      localStorage.setItem('accessToken', token);
-      // 필요한 경우 사용자 상태 업데이트 (예: Context API, Redux 등)
-      // 예: setUserAuthenticated(true);
-      // 메인 페이지로 이동
-      navigate('/');
-    } else {
-      // 토큰이 없으면 로그인 페이지로 이동
-      navigate('/login');
-    }
-  }, [location, navigate]);
+    (async () => {
+      try {
+        await checkAuth();
+        if (isAuthenticated) {
+          navigate('/', { replace: true });
+        } else {
+          navigate('/login', { replace: true });
+        }
+      } catch {
+        navigate('/login', { replace: true });
+      }
+    })();
+  }, []);
 
   return (
     <div className="flex items-center justify-center min-h-screen">
-      <p>로그인 중입니다...</p>
+      <p>로그인 처리 중입니다...</p>
     </div>
   );
 }

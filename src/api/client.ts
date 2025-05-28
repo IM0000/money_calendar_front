@@ -7,13 +7,20 @@ import axios, {
 } from 'axios';
 import { ApiResponse } from '../types/api-response';
 import { logError } from '../utils/errorHandler';
+import { ERROR_CODE_MAP } from '@/constants/error.constant';
+import { refresh } from './services/authService';
+import {
+  finishRefresh,
+  isRefreshInProgress,
+  queueRequest,
+  startRefresh,
+} from '@/utils/refreshManager';
 
 // 확장된 axios 요청 설정 타입
 interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
   metadata?: {
     startTime?: number;
   };
-  withAuth?: boolean;
 }
 
 const apiClient: AxiosInstance = axios.create({
@@ -22,6 +29,7 @@ const apiClient: AxiosInstance = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 10000, // 요청 타임아웃 설정 (밀리초 단위)
+  withCredentials: true,
 });
 
 // 요청 인터셉터 - 모든 요청에 토큰 추가
@@ -29,11 +37,6 @@ apiClient.interceptors.request.use(
   (config: ExtendedAxiosRequestConfig) => {
     const startTime = new Date().getTime();
     config.metadata = { startTime };
-
-    const token = localStorage.getItem('accessToken');
-    if (token && config.headers) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
 
     return config;
   },
@@ -61,8 +64,11 @@ apiClient.interceptors.response.use(
 
     return response;
   },
-  (error: AxiosError<ApiResponse<unknown>>) => {
-    // 에러 로깅 (상세 정보 포함)
+  (
+    error: AxiosError<ApiResponse<unknown>> & {
+      config?: InternalAxiosRequestConfig & { _retry?: boolean };
+    },
+  ) => {
     logError(error, {
       context: 'API Response Interceptor',
       request: {
@@ -72,14 +78,31 @@ apiClient.interceptors.response.use(
       },
     });
 
-    // 401 에러(인증 실패) 처리
-    if (error.response && error.response.status === 401) {
-      localStorage.removeItem('accessToken');
+    const { config, response } = error;
 
-      // 로그인 페이지로 리다이렉트
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+    if (
+      response?.status === 401 &&
+      response.data.errorCode === ERROR_CODE_MAP.AUTH_001 &&
+      config &&
+      !config._retry
+    ) {
+      config._retry = true;
+      if (isRefreshInProgress()) {
+        // 리프레시 중이면 큐에 넣고 대기
+        return queueRequest((resolve) => {
+          resolve();
+        }).then(() => apiClient(config));
       }
+      startRefresh();
+      return refresh()
+        .then(() => {
+          finishRefresh(true);
+          return apiClient(config);
+        })
+        .catch((err) => {
+          finishRefresh(false);
+          return Promise.reject(err);
+        });
     }
 
     // 인터셉터가 에러를 처리하는 대신 에러를 그대로 전파

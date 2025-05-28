@@ -9,6 +9,7 @@ import { TableGroupSkeleton } from '@/components/UI/Skeleton';
 import { CountryFlag } from './CountryFlag';
 import DividendHistoryTable from './DividendHistoryTable';
 import { useQuery } from '@tanstack/react-query';
+import { formatMarketCap } from '@/utils/formatUtils';
 
 interface DividendTableProps {
   events: DividendEvent[];
@@ -68,30 +69,33 @@ export default function DividendTable({
     <CalendarTableWrapper headerRefs={headerRefs}>
       <table className="min-w-full divide-y divide-gray-200">
         {/* 테이블 헤더 */}
-        <thead className="sticky top-0 z-30 calendar-table-header bg-gray-50">
+        <thead className="calendar-table-header sticky top-0 z-30 bg-gray-50">
           <tr className="h-[2.80rem]">
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="min-w-[4rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               국가
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               회사
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               배당락일
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               배당금
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               배당지급일
             </th>
             <th className="min-w-[7rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               배당수익률
             </th>
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+              시가총액
+            </th>
             <th className="min-w-[5.5rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               이전 발표
             </th>
-            <th className="w-10 px-2 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="w-10 px-2 py-2 text-left text-sm font-medium text-gray-700">
               {/* 알림추가 버튼 */}
             </th>
           </tr>
@@ -107,7 +111,15 @@ export default function DividendTable({
           ) : (
             // 데이터가 있을 때 실제 테이블 내용 표시
             sortedGroupKeys.map((groupKey, index) => {
-              const groupDividends = groups[groupKey] || [];
+              const groupDividends = (groups[groupKey] || [])
+                .slice()
+                .sort((a, b) => {
+                  const parseValue = (val?: string) =>
+                    val ? parseInt(val.replace(/,/g, ''), 10) : 0;
+                  const aVal = parseValue(a.company?.marketValue);
+                  const bVal = parseValue(b.company?.marketValue);
+                  return bVal - aVal;
+                });
               const dateObj = new Date(groupKey);
               const dayOfWeek = dayNames[dateObj.getDay()];
               const [year, month, day] = groupKey.split('-');
@@ -121,8 +133,8 @@ export default function DividendTable({
                     data-date={groupKey} // data-date를 tr에 직접 부여 (혹은 필요하다면 div로 옮길 수 있음)
                   >
                     <td
-                      colSpan={8}
-                      className="px-4 py-2 text-sm font-semibold border-b sticky-separator-td"
+                      colSpan={9}
+                      className="sticky-separator-td border-b px-4 py-2 text-sm font-semibold"
                     >
                       {formattedGroupDate}
                     </td>
@@ -230,6 +242,10 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
         <td className="px-4 py-2 text-sm text-gray-700">
           {dividend.dividendYield ? dividend.dividendYield : '-'}
         </td>
+        {/* 회사 시가총액 */}
+        <td className="px-4 py-2 text-sm text-gray-700">
+          {formatMarketCap(dividend.company?.marketValue)}
+        </td>
         {/* 이전 배당금값 (바로 직전 값) + 팝업 */}
         <td className="relative px-4 py-2 text-sm text-gray-700">
           <button
@@ -252,8 +268,8 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
       </tr>
       {showOlderPopup && (
         <tr>
-          <td colSpan={8} className="px-4 py-4 bg-gray-50">
-            <div className="p-4 bg-white border border-gray-200 rounded">
+          <td colSpan={8} className="bg-gray-50 px-4 py-4">
+            <div className="rounded border border-gray-200 bg-white p-4">
               <h3 className="mb-4 text-lg font-medium">
                 {dividend.company?.name ?? '정보 없음'} 이전 배당금 정보
               </h3>

@@ -164,19 +164,19 @@ export default function IndicatorSearch({
   };
 
   return (
-    <div className="rounded-lg bg-white">
-      <div className="grid grid-cols-[1fr,5fr,1fr,1.5fr,1fr] gap-4 border-b bg-gray-50 px-4 py-3 font-medium text-gray-700">
-        <div>국가</div>
+    <div className="bg-white rounded-lg">
+      <div className="grid grid-cols-[1fr,4fr,1fr,1.5fr,1fr] gap-4 border-b bg-gray-50 px-1 py-3 font-medium text-gray-700">
+        <div className="text-center">국가</div>
         <div>지표명</div>
-        <div>중요도</div>
-        <div>발표일</div>
-        <div>작업</div>
+        <div className="text-center">중요도</div>
+        <div className="text-center">발표일</div>
+        <div className="text-center">작업</div>
       </div>
 
       {localResults.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-12 text-center text-gray-500">
           <svg
-            className="h-12 w-12 text-gray-400"
+            className="w-12 h-12 text-gray-400"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -198,22 +198,22 @@ export default function IndicatorSearch({
           {localResults.map((indicator) => (
             <div
               key={indicator.id}
-              className="grid grid-cols-[1fr,5fr,1fr,1.5fr,1fr] gap-4 border-b px-4 py-3 transition-colors hover:bg-gray-50"
+              className="grid grid-cols-[1fr,4fr,1fr,1.5fr,1fr] gap-4 border-b px-1 py-3 transition-colors hover:bg-gray-50"
             >
-              <div className="flex items-center">
+              <div className="flex items-center justify-center">
                 <CountryFlag countryCode={indicator.country} />
                 <span className="ml-2 text-gray-700">
                   {getCountryName(indicator.country)}
                 </span>
               </div>
               <div className="font-medium text-gray-800">{indicator.name}</div>
-              <div className="flex">
+              <div className="flex items-center justify-center">
                 {renderImportanceStars(indicator.importance)}
               </div>
-              <div className="text-gray-700">
+              <div className="text-center text-gray-700">
                 {formatDate(indicator.releaseDate)}
               </div>
-              <div className="flex">
+              <div className="flex items-center justify-center">
                 <EventAddButton
                   isAdded={!!indicator.isFavorite}
                   onClick={() =>
