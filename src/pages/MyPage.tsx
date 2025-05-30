@@ -8,32 +8,39 @@ import BasicInfo from '../components/Account/BasicInfo';
 import ChangePassword from '../components/Account/ChangePassword';
 import AccountLink from '../components/Account/AccountLink';
 import DeleteAccount from '../components/Account/DeleteAccount';
+import toast from 'react-hot-toast';
 
 export default function MyPage() {
   const { user, logout, fetchUserProfile } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // URL에서 성공 또는 오류 메시지 파라미터 확인
   useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
+    const hash = location.hash.startsWith('#')
+      ? location.hash.slice(1)
+      : location.hash;
+    const queryParams = new URLSearchParams(hash);
+
     const message = queryParams.get('message');
     const errorParam = queryParams.get('errorMessage');
     const hasError = queryParams.get('errorCode') !== null;
 
     if (message) {
-      setSuccessMessage(message);
+      toast.success(decodeURIComponent(message), {
+        duration: 5000,
+      });
       navigate('/mypage', { replace: true });
     }
 
     if (hasError && errorParam) {
-      setError(decodeURIComponent(errorParam));
+      toast.error(decodeURIComponent(errorParam), {
+        duration: 5000,
+      });
       navigate('/mypage', { replace: true });
     }
-  }, [location.search, navigate]);
+  }, [location.hash]);
 
   // 로그아웃 처리
   const handleLogout = () => {
@@ -53,7 +60,7 @@ export default function MyPage() {
       try {
         await fetchUserProfile();
       } catch (err) {
-        setError('프로필 정보를 불러오는데 실패했습니다.');
+        toast.error('프로필 정보를 불러오는데 실패했습니다.');
       } finally {
         setIsLoading(false);
       }
@@ -64,30 +71,6 @@ export default function MyPage() {
   return (
     <Layout>
       <div className="container px-4 py-8 mx-auto">
-        {error && (
-          <div className="p-4 mb-4 text-red-700 rounded-md bg-red-50">
-            <p>{error}</p>
-            <button
-              className="mt-2 text-sm text-red-500 hover:underline"
-              onClick={() => setError(null)}
-            >
-              닫기
-            </button>
-          </div>
-        )}
-
-        {successMessage && (
-          <div className="p-4 mb-4 text-green-700 rounded-md bg-green-50">
-            <p>{successMessage}</p>
-            <button
-              className="mt-2 text-sm text-green-500 hover:underline"
-              onClick={() => setSuccessMessage(null)}
-            >
-              닫기
-            </button>
-          </div>
-        )}
-
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <p className="text-gray-600">프로필 정보를 불러오는 중...</p>
