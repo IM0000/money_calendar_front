@@ -61,9 +61,9 @@ export default function CompanySearch({
     <div>
       {/* 검색 결과가 있는 경우 */}
       {localResults.length > 0 ? (
-        <div className="overflow-hidden bg-white border border-gray-200 rounded-lg">
+        <div className="overflow-hidden border-gray-200 bg-white">
           {/* 헤더 */}
-          <div className="grid grid-cols-[0.8fr,4fr,0.8fr,1fr,0.5fr] gap-4 border-b border-gray-200 bg-gray-100 px-2 py-4 font-medium text-gray-700">
+          <div className="grid grid-cols-[0.8fr,4fr,0.8fr,1fr,0.5fr] gap-4 border-b border-gray-200 bg-gray-50 px-2 py-3 font-medium text-gray-700">
             <div className="text-center">티커</div>
             <div>기업명</div>
             <div className="text-center">국가</div>
@@ -88,12 +88,12 @@ export default function CompanySearch({
                   }`}
                 >
                   {/* 티커 */}
-                  <div className="font-mono font-medium text-center text-blue-600 cursor-pointer">
+                  <div className="cursor-pointer text-center font-mono font-medium text-blue-600">
                     {company.ticker}
                   </div>
 
                   {/* 기업명 */}
-                  <div className="text-gray-800 cursor-pointer">
+                  <div className="cursor-pointer text-gray-800">
                     {company.name}
                   </div>
 
@@ -112,7 +112,7 @@ export default function CompanySearch({
                     {/* 디테일 확장 화살표 */}
                     <button
                       onClick={() => toggleExpandCompany(company.id)}
-                      className="p-1 text-gray-600 rounded hover:bg-gray-200"
+                      className="rounded p-1 text-gray-600 hover:bg-gray-200"
                       aria-label={
                         expandedCompanyId === company.id
                           ? '상세 정보 접기'
@@ -132,7 +132,7 @@ export default function CompanySearch({
 
                 {/* 확장된 상세 정보 패널 */}
                 {expandedCompanyId === company.id && (
-                  <div className="px-6 py-4 border-t border-gray-100 bg-gray-50">
+                  <div className="border-t border-gray-100 bg-gray-50 px-6 py-4">
                     {/* 실적 정보 */}
                     <EarningsInfo
                       companyId={expandedCompanyId}
@@ -156,7 +156,7 @@ export default function CompanySearch({
 
           {/* 페이지네이션 */}
           {pagination.totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-gray-200">
+            <div className="mt-6 flex justify-center border-t border-gray-200 px-6 py-4">
               <Pagination
                 currentPage={pagination.page}
                 totalPages={pagination.totalPages}
@@ -166,7 +166,7 @@ export default function CompanySearch({
           )}
         </div>
       ) : (
-        <div className="p-8 text-center bg-white border border-gray-200 rounded-lg">
+        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center">
           <p className="text-gray-500">검색 결과가 없습니다.</p>
         </div>
       )}

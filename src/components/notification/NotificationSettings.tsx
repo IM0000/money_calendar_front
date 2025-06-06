@@ -1,39 +1,52 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
+import { Card, CardContent, CardFooter } from '@/components/UI/card';
 import { Label } from '@/components/UI/label';
-import { RadioGroup, RadioGroupItem } from '@/components/UI/radio-group';
+import { Switch } from '@/components/UI/switch';
+import { Input } from '@/components/UI/input';
+import { Button } from '@/components/UI/button';
+import { Skeleton } from '@/components/UI/Skeleton';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import {
   getNotificationSettings,
   updateNotificationSettings,
 } from '@/api/services/notificationService';
 
-export default function NotificationSettings() {
+const NotificationSettings = () => {
   const queryClient = useQueryClient();
-  const [preferredMethod, setPreferredMethod] = useState<
-    'EMAIL' | 'PUSH' | 'BOTH'
-  >('BOTH');
 
-  // 알림 설정 조회
+  const [emailEnabled, setEmailEnabled] = useState<boolean>(false);
+  const [slackEnabled, setSlackEnabled] = useState<boolean>(false);
+  const [slackWebhookUrl, setSlackWebhookUrl] = useState<string | undefined>(
+    undefined,
+  );
+
   const { data, isLoading } = useQuery({
     queryKey: ['notificationSettings'],
-    queryFn: () => getNotificationSettings(),
+    queryFn: getNotificationSettings,
   });
 
-  // 초기 값 설정
   useEffect(() => {
     if (data?.data) {
-      setPreferredMethod(data.data.preferredMethod);
+      setEmailEnabled(data.data.emailEnabled);
+      setSlackEnabled(data.data.slackEnabled);
+      setSlackWebhookUrl(data.data.slackWebhookUrl || undefined);
     }
   }, [data]);
 
-  // 알림 설정 업데이트 mutation
   const updateSettingsMutation = useMutation({
-    mutationFn: (settings: { preferredMethod: 'EMAIL' | 'PUSH' | 'BOTH' }) =>
-      updateNotificationSettings(settings),
-    onSuccess: () => {
+    mutationFn: (settings: {
+      emailEnabled: boolean;
+      slackEnabled: boolean;
+      slackWebhookUrl?: string;
+    }) => updateNotificationSettings(settings),
+    onSuccess: (responseData) => {
       queryClient.invalidateQueries({ queryKey: ['notificationSettings'] });
+      if (responseData?.data) {
+        setEmailEnabled(responseData.data.emailEnabled);
+        setSlackEnabled(responseData.data.slackEnabled);
+        setSlackWebhookUrl(responseData.data.slackWebhookUrl || undefined);
+      }
       toast.success('알림 설정이 업데이트되었습니다.');
     },
     onError: (error) => {
@@ -43,46 +56,102 @@ export default function NotificationSettings() {
     },
   });
 
-  // 설정 변경 핸들러
-  const handleMethodChange = (value: string) => {
-    const method = value as 'EMAIL' | 'PUSH' | 'BOTH';
-    setPreferredMethod(method);
-    updateSettingsMutation.mutate({ preferredMethod: method });
+  const handleSubmit = () => {
+    if (slackEnabled && !slackWebhookUrl?.trim()) {
+      toast.error('Slack 알림을 사용하려면 웹훅 URL을 입력해야 합니다.');
+      return;
+    }
+
+    const settingsToUpdate: {
+      emailEnabled: boolean;
+      slackEnabled: boolean;
+      slackWebhookUrl?: string;
+    } = {
+      emailEnabled,
+      slackEnabled,
+      slackWebhookUrl: slackEnabled ? slackWebhookUrl?.trim() : undefined,
+    };
+
+    updateSettingsMutation.mutate(settingsToUpdate);
   };
 
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
-          <CardTitle>알림 설정</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           {isLoading ? (
-            <div className="py-4 text-center">
-              <p className="text-sm text-muted-foreground">로딩 중...</p>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-6 w-10" />
+              </div>
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-6 w-10" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-10 w-full" />
+              </div>
             </div>
           ) : (
-            <RadioGroup
-              value={preferredMethod}
-              onValueChange={handleMethodChange}
-              className="space-y-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="PUSH" id="push" />
-                <Label htmlFor="push">PUSH 알림</Label>
+            <>
+              <div className="flex items-center justify-between rounded-lg p-5">
+                <Label htmlFor="email-notifications" className="font-medium">
+                  이메일 알림
+                </Label>
+                <Switch
+                  id="email-notifications"
+                  checked={emailEnabled}
+                  onCheckedChange={setEmailEnabled}
+                  disabled={updateSettingsMutation.isPending}
+                />
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="EMAIL" id="email" />
-                <Label htmlFor="email">이메일 알림</Label>
+
+              <div className="flex items-center justify-between rounded-lg p-5">
+                <Label htmlFor="slack-notifications" className="font-medium">
+                  Slack 알림
+                </Label>
+                <Switch
+                  id="slack-notifications"
+                  checked={slackEnabled}
+                  onCheckedChange={setSlackEnabled}
+                  disabled={updateSettingsMutation.isPending}
+                />
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="BOTH" id="both" />
-                <Label htmlFor="both">PUSH 알림 + 이메일 알림</Label>
-              </div>
-            </RadioGroup>
+
+              {slackEnabled && (
+                <div className="space-y-2 rounded-lg border p-4">
+                  <Label htmlFor="slack-webhook-url" className="font-medium">
+                    Slack 웹훅 URL
+                  </Label>
+                  <Input
+                    id="slack-webhook-url"
+                    value={slackWebhookUrl}
+                    onChange={(e) => setSlackWebhookUrl(e.target.value)}
+                    placeholder="https://hooks.slack.com/services/..."
+                    disabled={updateSettingsMutation.isPending}
+                    required
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Slack 알림을 받기 위해 웹훅 URL을 입력해주세요.
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
+        <CardFooter className="flex justify-end space-x-2 p-4">
+          <Button
+            onClick={handleSubmit}
+            disabled={isLoading || updateSettingsMutation.isPending}
+          >
+            {updateSettingsMutation.isPending ? '적용 중...' : '적용'}
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   );
-}
+};
+
+export default NotificationSettings;

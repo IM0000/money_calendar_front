@@ -6,7 +6,7 @@ import { useAuthStore } from '../../zustand/useAuthStore';
 import { getUnreadNotificationsCount } from '@/api/services/notificationService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { NewNotificationBubble } from '../notification/NotificationBubble';
+import { NewNotificationBubble } from '../Notification/NotificationBubble';
 import { queueEventSource } from '@/utils/refreshManager';
 import { createRefreshEventSource } from '@/utils/refreshEventSource';
 
@@ -35,7 +35,7 @@ export default function Header() {
     const instantiate = async () => {
       try {
         const es = await createRefreshEventSource(
-          `${VITE_BACKEND_URL}/api/v1/notifications/stream`,
+          `${VITE_BACKEND_URL}/api/v1/notification/stream`,
           { withCredentials: true },
         );
 
@@ -125,12 +125,12 @@ export default function Header() {
       : 'relative hover:text-gray-500';
 
   return (
-    <header className="fixed top-0 z-50 w-full bg-white shadow-md bg-opacity-90">
+    <header className="fixed top-0 z-50 w-full bg-white bg-opacity-90 shadow-md">
       <div className="flex w-full items-center justify-between px-8 py-[0.8rem]">
         <div className="flex items-center">
           <button
             onClick={toggleMobileMenu}
-            className="p-2 mr-4 text-black md:hidden"
+            className="mr-4 p-2 text-black md:hidden"
           >
             {mobileMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
           </button>
@@ -139,7 +139,7 @@ export default function Header() {
 
         {/* 데스크탑 네비게이션 */}
         <nav className="hidden md:block">
-          <ul className="flex space-x-8 text-black text-md">
+          <ul className="text-md flex space-x-8 text-black">
             <li
               className="relative"
               onMouseEnter={() => setCalendarDropdownOpen(true)}
@@ -157,7 +157,7 @@ export default function Header() {
                 />
               </button>
               {calendarDropdownOpen && (
-                <div className="absolute z-10 w-40 py-2 bg-white rounded-lg shadow-lg -left-6 top-full">
+                <div className="absolute -left-6 top-full z-10 w-40 rounded-lg bg-white py-2 shadow-lg">
                   <Link
                     to="/"
                     className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
@@ -167,7 +167,7 @@ export default function Header() {
                   </Link>
                   <Link
                     to="/favorites/calendar"
-                    className="block px-4 py-2 text_gray-800 hover:bg-gray-100"
+                    className="text_gray-800 block px-4 py-2 hover:bg-gray-100"
                     onClick={() => setCalendarDropdownOpen(false)}
                   >
                     관심 일정
@@ -184,7 +184,7 @@ export default function Header() {
               <NavLink to="/notifications" className={desktopLinkClass}>
                 알림센터
                 {(unreadCountData?.data?.count || 0) > 0 && (
-                  <span className="absolute flex items-center justify-center w-5 h-5 text-xs text-white bg-red-500 rounded-full -right-5 -top-2">
+                  <span className="absolute -right-5 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
                     {unreadCountData?.data?.count}
                   </span>
                 )}
@@ -202,12 +202,12 @@ export default function Header() {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="p-2 text-black rounded-full hover:bg-gray-200"
+                className="rounded-full p-2 text-black hover:bg-gray-200"
               >
                 <FaUser size={20} />
               </button>
               {dropdownOpen && (
-                <div className="absolute right-0 w-32 py-2 bg-white rounded-lg shadow-lg">
+                <div className="absolute right-0 w-32 rounded-lg bg-white py-2 shadow-lg">
                   <Link
                     to="/mypage"
                     className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
@@ -226,12 +226,12 @@ export default function Header() {
           ) : (
             <div className="flex space-x-2">
               <Link to="/login">
-                <button className="p-2 text-black bg-white border rounded-lg hover:bg-gray-200">
+                <button className="rounded-lg border bg-white p-2 text-black hover:bg-gray-200">
                   로그인
                 </button>
               </Link>
               <Link to="/sign-up">
-                <button className="p-2 text-white bg-blue-400 rounded-lg hover:bg-blue-500">
+                <button className="rounded-lg bg-blue-400 p-2 text-white hover:bg-blue-500">
                   회원가입
                 </button>
               </Link>
@@ -243,7 +243,7 @@ export default function Header() {
       {/* 모바일 메뉴 */}
       {mobileMenuOpen && (
         <nav className="bg-white shadow-md md:hidden">
-          <ul className="flex flex-col px-4 py-2 space-y-2 text-sm text-black">
+          <ul className="flex flex-col space-y-2 px-4 py-2 text-sm text-black">
             <li>
               <NavLink
                 to="/calendar"
@@ -295,7 +295,7 @@ export default function Header() {
               >
                 알림센터
                 {(unreadCountData?.data?.count || 0) > 0 && (
-                  <span className="absolute flex items-center justify-center w-5 h-5 text-xs text-white bg-red-500 rounded-full -right-4 -top-2">
+                  <span className="absolute -right-4 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
                     {unreadCountData?.data?.count}
                   </span>
                 )}

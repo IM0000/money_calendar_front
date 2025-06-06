@@ -90,7 +90,11 @@ export default function NotificationList() {
   });
 
   if (isLoading) {
-    return <p className="py-8 text-center">로딩 중...</p>;
+    return (
+      <div className="min-h-screen bg-slate-50 p-4 py-8 text-center md:p-6">
+        로딩 중...
+      </div>
+    );
   }
 
   const notifications = data?.data?.notifications as Array<
@@ -111,13 +115,21 @@ export default function NotificationList() {
   const totalPages = Math.ceil(totalCount / limit);
 
   if (notifications.length === 0) {
-    return <EmptyState message="알림이 없습니다." />;
+    return (
+      <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+        <h1 className="mb-6 text-2xl font-bold text-gray-800">알림 현황</h1>
+        <EmptyState message="알림이 없습니다." />
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen space-y-6 bg-slate-50 p-4 md:p-6">
+      <h1 className="mb-6 text-2xl font-bold text-gray-800">알림 현황</h1>
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">알림 목록</h2>
+        <p className="text-sm text-gray-600">
+          총 {totalCount}개의 알림이 있습니다.
+        </p>
         <div className="flex space-x-2">
           <Button
             variant="outline"
@@ -149,11 +161,11 @@ export default function NotificationList() {
           <Card
             key={n.id}
             onClick={() => markAsReadMutation.mutate(n.id)}
-            className={`rounded-lg border border-gray-200 p-4 shadow-sm transition-shadow hover:shadow-lg ${
+            className={`rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-shadow duration-300 hover:shadow-md ${
               n.read ? '' : 'ring-2 ring-blue-300'
             }`}
           >
-            <CardHeader className="flex items-start justify-between pb-2">
+            <CardHeader className="flex items-start justify-between p-0 pb-2">
               <div className="flex w-full items-start justify-between">
                 <div>
                   <CardTitle className="text-lg font-semibold">
@@ -185,7 +197,7 @@ export default function NotificationList() {
               </div>
             </CardHeader>
 
-            <CardContent className="grid grid-cols-2 gap-4 text-sm">
+            <CardContent className="grid grid-cols-2 gap-4 p-0 pt-2 text-sm">
               {n.contentType === 'EARNINGS' ? (
                 <>
                   <div>

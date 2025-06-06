@@ -1,8 +1,4 @@
 /**
- * 날짜 관련 유틸리티 함수들을 모아둔 파일입니다.
- */
-
-/**
  * 날짜를 'YYYY-MM-DD' 형식으로 포맷팅합니다.
  */
 export function formatDate(date: Date, delimiter: string = '-'): string {
@@ -53,4 +49,31 @@ export function formatDateWithDayOfWeek(date: Date): string {
   const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
   const dayOfWeek = dayNames[date.getDay()];
   return `${formatDateKorean(date)} (${dayOfWeek})`;
+}
+
+/**
+ * 밀리초 단위 timestamp를 받아 "YYYY-MM-DD" 형식의 문자열로 반환합니다.
+ */
+export function formatDateFromTimestamp(timestamp: number): string {
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * 밀리초 단위 timestamp를 받아 "YYYY년 MM월 DD일 (요일)" 형식의 문자열로 반환합니다.
+ */
+export function formatKoreanDateWithWeekday(timestamp: number): string {
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  // 요일 배열 (0: 일요일, 1: 월요일, …, 6: 토요일)
+  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+  const weekday = weekdays[date.getDay()];
+
+  return `${year}년 ${month}월 ${day}일 (${weekday})`;
 }

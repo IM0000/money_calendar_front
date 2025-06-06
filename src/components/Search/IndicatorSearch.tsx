@@ -1,6 +1,5 @@
 import { FaStar } from 'react-icons/fa';
 import { CountryFlag } from '../CalendarTable/CountryFlag';
-import { getCountryName } from '../../utils/formatUtils';
 import Pagination from '../UI/Pagination';
 import { toast } from 'react-hot-toast';
 import {
@@ -164,7 +163,7 @@ export default function IndicatorSearch({
   };
 
   return (
-    <div className="bg-white rounded-lg">
+    <div className="bg-white">
       <div className="grid grid-cols-[1fr,4fr,1fr,1.5fr,1fr] gap-4 border-b bg-gray-50 px-1 py-3 font-medium text-gray-700">
         <div className="text-center">국가</div>
         <div>지표명</div>
@@ -176,7 +175,7 @@ export default function IndicatorSearch({
       {localResults.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-12 text-center text-gray-500">
           <svg
-            className="w-12 h-12 text-gray-400"
+            className="h-12 w-12 text-gray-400"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -202,9 +201,6 @@ export default function IndicatorSearch({
             >
               <div className="flex items-center justify-center">
                 <CountryFlag countryCode={indicator.country} />
-                <span className="ml-2 text-gray-700">
-                  {getCountryName(indicator.country)}
-                </span>
               </div>
               <div className="font-medium text-gray-800">{indicator.name}</div>
               <div className="flex items-center justify-center">

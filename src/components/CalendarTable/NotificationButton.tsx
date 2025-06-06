@@ -8,10 +8,10 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import {
-  addEarningsNotification,
-  removeEarningsNotification,
-  addIndicatorNotification,
-  removeIndicatorNotification,
+  addIndicatorSubscription,
+  addEarningsSubscription,
+  removeEarningsSubscription,
+  removeIndicatorSubscription,
 } from '@/api/services/notificationService';
 
 export type EventType = 'earnings' | 'economicIndicator';
@@ -33,32 +33,32 @@ export default function NotificationButton({
 
   const [isActive, setIsActive] = useState(initialIsActive);
 
-  // 알림 추가 API 호출 함수 선택
-  const getAddNotificationFunction = (eventType: EventType) => {
+  // 구독 추가 API 호출 함수 선택
+  const getAddSubscriptionFunction = (eventType: EventType) => {
     switch (eventType) {
       case 'earnings':
-        return addEarningsNotification;
+        return addEarningsSubscription;
       case 'economicIndicator':
-        return addIndicatorNotification;
+        return addIndicatorSubscription;
     }
   };
 
-  // 알림 제거 API 호출 함수 선택
-  const getRemoveNotificationFunction = (eventType: EventType) => {
+  // 구독 해제 API 호출 함수 선택
+  const getRemoveSubscriptionFunction = (eventType: EventType) => {
     switch (eventType) {
       case 'earnings':
-        return removeEarningsNotification;
+        return removeEarningsSubscription;
       case 'economicIndicator':
-        return removeIndicatorNotification;
+        return removeIndicatorSubscription;
     }
   };
 
-  // 알림 추가 mutation
-  const addNotificationMutation = useMutation({
-    mutationFn: () => getAddNotificationFunction(eventType)(id),
+  // 구독 추가 mutation
+  const addSubscriptionMutation = useMutation({
+    mutationFn: () => getAddSubscriptionFunction(eventType)(id),
     onSuccess: () => {
       setIsActive(true);
-      toast.success('알림이 설정되었습니다.');
+      toast.success('구독이 설정되었습니다.');
       // 캐시 업데이트 - calendarEvents도 무효화
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['calendarEvents'] });
@@ -71,9 +71,9 @@ export default function NotificationButton({
     },
   });
 
-  // 알림 제거 mutation
-  const removeNotificationMutation = useMutation({
-    mutationFn: () => getRemoveNotificationFunction(eventType)(id),
+  // 구독 제거 mutation
+  const removeSubscriptionMutation = useMutation({
+    mutationFn: () => getRemoveSubscriptionFunction(eventType)(id),
     onSuccess: () => {
       setIsActive(false);
       toast.success('알림이 해제되었습니다.');
@@ -102,10 +102,10 @@ export default function NotificationButton({
 
     if (isActive) {
       // 제거 요청
-      removeNotificationMutation.mutate();
+      removeSubscriptionMutation.mutate();
     } else {
       // 추가 요청
-      addNotificationMutation.mutate();
+      addSubscriptionMutation.mutate();
     }
   };
 
@@ -116,7 +116,7 @@ export default function NotificationButton({
 
   // 요청 중인지 여부
   const isLoading =
-    addNotificationMutation.isPending || removeNotificationMutation.isPending;
+    addSubscriptionMutation.isPending || removeSubscriptionMutation.isPending;
 
   return (
     <Tippy content={getTipContent()} delay={[0, 0]} duration={[0, 0]}>

@@ -48,6 +48,7 @@ export interface EconomicIndicatorEvent {
   releaseDate: number; // 밀리초 단위
   country: string; // 경제지표 이벤트의 나라 (EconomicIndicator 모델의 country)
   name: string;
+  baseName?: string;
   importance: number;
   actual: string;
   forecast: string;

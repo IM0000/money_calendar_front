@@ -1,91 +1,76 @@
 import apiClient from '../client';
 import { withErrorHandling } from '../../utils/errorHandler';
 import { ApiResponse } from '../../types/api-response';
-import { Notification } from '@/types/notification';
+import { Notification, UserSubscriptionsResponse } from '@/types/notification';
 import { EarningsEvent, EconomicIndicatorEvent } from '@/types/calendar-event';
 
+export const getUserSubscriptions = withErrorHandling(
+  async (): Promise<ApiResponse<UserSubscriptionsResponse>> => {
+    const response = await apiClient.get(`/api/v1/notification/subscriptions`);
+    return response.data;
+  },
+  undefined,
+  'NotificationService.getUserSubscriptions',
+);
+
 /**
- * 알림 추가 API
+ * 실적 구독 추가 API
  */
-export const addEarningsNotification = withErrorHandling(
+export const addEarningsSubscription = withErrorHandling(
   async (earningsId: number): Promise<ApiResponse<{ success: boolean }>> => {
     const response = await apiClient.post(
-      `/api/v1/notifications/earnings/${earningsId}`,
+      `/api/v1/notification/earnings/${earningsId}`,
     );
     return response.data;
   },
   undefined,
-  'NotificationService.addEarningsNotification',
+  'NotificationService.addEarningsSubscription',
 );
 
 /**
- * 알림 제거 API
+ * 실적 구독 제거 API
  */
-export const removeEarningsNotification = withErrorHandling(
-  async (earningsId: number): Promise<ApiResponse<{ success: boolean }>> => {
+export const removeEarningsSubscription = withErrorHandling(
+  async (
+    subscriptionId: number,
+  ): Promise<ApiResponse<{ success: boolean }>> => {
     const response = await apiClient.delete(
-      `/api/v1/notifications/earnings/${earningsId}`,
+      `/api/v1/notification/earnings/subscription/${subscriptionId}`,
     );
     return response.data;
   },
   undefined,
-  'NotificationService.removeEarningsNotification',
+  'NotificationService.removeEarningsSubscription',
 );
 
 /**
- * 배당 알림 추가 API
+ * 경제지표 구독 추가 API
  */
-export const addDividendNotification = withErrorHandling(
-  async (dividendId: number): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await apiClient.post(
-      `/api/v1/notifications/dividends/${dividendId}`,
-    );
-    return response.data;
-  },
-  undefined,
-  'NotificationService.addDividendNotification',
-);
-
-/**
- * 배당 알림 제거 API
- */
-export const removeDividendNotification = withErrorHandling(
-  async (dividendId: number): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await apiClient.delete(
-      `/api/v1/notifications/dividends/${dividendId}`,
-    );
-    return response.data;
-  },
-  undefined,
-  'NotificationService.removeDividendNotification',
-);
-
-/**
- * 경제지표 알림 추가 API
- */
-export const addIndicatorNotification = withErrorHandling(
+export const addIndicatorSubscription = withErrorHandling(
   async (indicatorId: number): Promise<ApiResponse<{ success: boolean }>> => {
     const response = await apiClient.post(
-      `/api/v1/notifications/economic-indicators/${indicatorId}`,
+      `/api/v1/notification/economic-indicators/${indicatorId}`,
     );
     return response.data;
   },
   undefined,
-  'NotificationService.addIndicatorNotification',
+  'NotificationService.addIndicatorSubscription',
 );
 
 /**
- * 경제지표 알림 제거 API
+ * 경제지표 구독 제거 API
  */
-export const removeIndicatorNotification = withErrorHandling(
-  async (indicatorId: number): Promise<ApiResponse<{ success: boolean }>> => {
+export const removeIndicatorSubscription = withErrorHandling(
+  async (
+    subscriptionId: number,
+  ): Promise<ApiResponse<{ success: boolean }>> => {
     const response = await apiClient.delete(
-      `/api/v1/notifications/economic-indicators/${indicatorId}`,
+      `/api/v1/notification/economic-indicators/subscription/${subscriptionId}`,
     );
     return response.data;
   },
   undefined,
-  'NotificationService.removeIndicatorNotification',
+  'NotificationService.removeIndicatorSubscription',
 );
 
 /**
@@ -101,7 +86,7 @@ export const getNotifications = withErrorHandling(
       total: number;
     }>
   > => {
-    const response = await apiClient.get('/api/v1/notifications', {
+    const response = await apiClient.get('/api/v1/notification', {
       params: { page, limit },
     });
     return response.data;
@@ -111,11 +96,27 @@ export const getNotifications = withErrorHandling(
 );
 
 /**
+ * 알림 제거 API
+ */
+export const removeNotification = withErrorHandling(
+  async (
+    notificationId: number,
+  ): Promise<ApiResponse<{ success: boolean }>> => {
+    const response = await apiClient.delete(
+      `/api/v1/notification/${notificationId}`,
+    );
+    return response.data;
+  },
+  undefined,
+  'NotificationService.removeNotification',
+);
+
+/**
  * 읽지 않은 알림 개수 조회 API
  */
 export const getUnreadNotificationsCount = withErrorHandling(
   async (): Promise<ApiResponse<{ count: number }>> => {
-    const response = await apiClient.get('/api/v1/notifications/unread/count');
+    const response = await apiClient.get('/api/v1/notification/unread/count');
     return response.data;
   },
   undefined,
@@ -128,7 +129,7 @@ export const getUnreadNotificationsCount = withErrorHandling(
 export const markNotificationAsRead = withErrorHandling(
   async (notificationId: number): Promise<ApiResponse<{ message: string }>> => {
     const response = await apiClient.put(
-      `/api/v1/notifications/${notificationId}/read`,
+      `/api/v1/notification/${notificationId}/read`,
     );
     return response.data;
   },
@@ -141,7 +142,7 @@ export const markNotificationAsRead = withErrorHandling(
  */
 export const markAllNotificationsAsRead = withErrorHandling(
   async (): Promise<ApiResponse<{ message: string; count: number }>> => {
-    const response = await apiClient.put('/api/v1/notifications/read/all');
+    const response = await apiClient.put('/api/v1/notification/read/all');
     return response.data;
   },
   undefined,
@@ -154,7 +155,7 @@ export const markAllNotificationsAsRead = withErrorHandling(
 export const deleteNotification = withErrorHandling(
   async (notificationId: number): Promise<ApiResponse<{ message: string }>> => {
     const response = await apiClient.delete(
-      `/api/v1/notifications/${notificationId}`,
+      `/api/v1/notification/${notificationId}`,
     );
     return response.data;
   },
@@ -169,11 +170,11 @@ export const getNotificationSettings = withErrorHandling(
   async (): Promise<
     ApiResponse<{
       emailEnabled: boolean;
-      pushEnabled: boolean;
-      preferredMethod: 'EMAIL' | 'PUSH' | 'BOTH';
+      slackEnabled: boolean;
+      slackWebhookUrl?: string;
     }>
   > => {
-    const response = await apiClient.get('/api/v1/notifications/settings');
+    const response = await apiClient.get('/api/v1/notification/settings');
     return response.data;
   },
   undefined,
@@ -186,17 +187,17 @@ export const getNotificationSettings = withErrorHandling(
 export const updateNotificationSettings = withErrorHandling(
   async (settings: {
     emailEnabled?: boolean;
-    pushEnabled?: boolean;
-    preferredMethod?: 'EMAIL' | 'PUSH' | 'BOTH';
+    slackEnabled?: boolean;
+    slackWebhookUrl?: string;
   }): Promise<
     ApiResponse<{
       emailEnabled: boolean;
-      pushEnabled: boolean;
-      preferredMethod: 'EMAIL' | 'PUSH' | 'BOTH';
+      slackEnabled: boolean;
+      slackWebhookUrl?: string;
     }>
   > => {
     const response = await apiClient.put(
-      '/api/v1/notifications/settings',
+      '/api/v1/notification/settings',
       settings,
     );
     return response.data;
@@ -215,7 +216,7 @@ export const getNotificationCalendar = withErrorHandling(
       earnings: Array<EarningsEvent>;
     }>
   > => {
-    const response = await apiClient.get('/api/v1/notifications/calendar');
+    const response = await apiClient.get('/api/v1/notification/calendar');
     return response.data;
   },
   undefined,
@@ -228,7 +229,7 @@ export const getNotificationCalendar = withErrorHandling(
 export const testIndicatorActual = withErrorHandling(
   async (indicatorId: number): Promise<ApiResponse<{ success: boolean }>> => {
     const response = await apiClient.post(
-      `/api/v1/notifications/test-indicator/${indicatorId}`,
+      `/api/v1/notification/test-indicator/${indicatorId}`,
     );
     return response.data;
   },
@@ -242,7 +243,7 @@ export const testIndicatorActual = withErrorHandling(
 export const restoreIndicatorActual = withErrorHandling(
   async (indicatorId: number): Promise<ApiResponse<{ success: boolean }>> => {
     const response = await apiClient.post(
-      `/api/v1/notifications/restore-indicator/${indicatorId}`,
+      `/api/v1/notification/restore-indicator/${indicatorId}`,
     );
     return response.data;
   },
@@ -256,7 +257,7 @@ export const restoreIndicatorActual = withErrorHandling(
 export const testEarningsActual = withErrorHandling(
   async (earningsId: number): Promise<ApiResponse<{ success: boolean }>> => {
     const response = await apiClient.post(
-      `/api/v1/notifications/test-earnings/${earningsId}`,
+      `/api/v1/notification/test-earnings/${earningsId}`,
     );
     return response.data;
   },
@@ -270,7 +271,7 @@ export const testEarningsActual = withErrorHandling(
 export const restoreEarningsActual = withErrorHandling(
   async (earningsId: number): Promise<ApiResponse<{ success: boolean }>> => {
     const response = await apiClient.post(
-      `/api/v1/notifications/restore-earnings/${earningsId}`,
+      `/api/v1/notification/restore-earnings/${earningsId}`,
     );
     return response.data;
   },
@@ -283,9 +284,43 @@ export const restoreEarningsActual = withErrorHandling(
  */
 export const deleteAllNotifications = withErrorHandling(
   async (): Promise<ApiResponse<{ count: number }>> => {
-    const response = await apiClient.delete('/api/v1/notifications/all');
+    const response = await apiClient.delete('/api/v1/notification/all');
     return response.data;
   },
   undefined,
   'NotificationService.deleteAllNotifications',
+);
+
+/**
+ * 특정 기업의 모든 실적 알림 해제 API
+ */
+export const unsubscribeCompanyEarnings = withErrorHandling(
+  async (
+    companyId: number,
+  ): Promise<ApiResponse<{ message: string; count: number }>> => {
+    const response = await apiClient.delete(
+      `/api/v1/notification/company/${companyId}/earnings`,
+    );
+    return response.data;
+  },
+  undefined,
+  'NotificationService.unsubscribeCompanyEarnings',
+);
+
+/**
+ * 특정 국가의 특정 경제지표 유형 모든 알림 해제 API
+ */
+export const unsubscribeBaseNameIndicator = withErrorHandling(
+  async (
+    baseName: string,
+    country: string,
+  ): Promise<ApiResponse<{ message: string; count: number }>> => {
+    const response = await apiClient.delete(
+      `/api/v1/notification/base-name-indicator`,
+      { data: { baseName, country } },
+    );
+    return response.data;
+  },
+  undefined,
+  'NotificationService.unsubscribeBaseNameIndicator',
 );
