@@ -77,3 +77,26 @@ export function formatKoreanDateWithWeekday(timestamp: number): string {
 
   return `${year}년 ${month}월 ${day}일 (${weekday})`;
 }
+
+/**
+ * 타임스탬프를 한국 날짜 형식으로 변환 (검색 컴포넌트용)
+ */
+export const formatSearchDate = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+};
+
+/**
+ * 타임스탬프를 한국 시간 형식으로 변환
+ */
+export const formatSearchTime = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};

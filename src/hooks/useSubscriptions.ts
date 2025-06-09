@@ -33,8 +33,21 @@ export function useSubscriptions() {
   const unsubscribeCompanyMutation = useMutation({
     mutationFn: (companyId: number) => unsubscribeCompany(companyId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['companySubscriptions'] });
-      queryClient.invalidateQueries({ queryKey: ['calendarEvents'] });
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey[0] as string;
+          return [
+            'companySubscriptions',
+            'calendarEvents',
+            'searchCompanies',
+            'searchIndicators',
+            'companyEarnings',
+            'companyDividends',
+            'indicatorGroupHistory',
+            'userSubscriptions',
+          ].includes(key);
+        },
+      });
       toast.success('회사 구독이 해제되었습니다.');
     },
     onError: (error) => {
@@ -55,9 +68,20 @@ export function useSubscriptions() {
     }) => unsubscribeIndicatorGroup(baseName, country),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['indicatorGroupSubscriptions'],
+        predicate: (query) => {
+          const key = query.queryKey[0] as string;
+          return [
+            'indicatorGroupSubscriptions',
+            'calendarEvents',
+            'searchCompanies',
+            'searchIndicators',
+            'companyEarnings',
+            'companyDividends',
+            'indicatorGroupHistory',
+            'userSubscriptions',
+          ].includes(key);
+        },
       });
-      queryClient.invalidateQueries({ queryKey: ['calendarEvents'] });
       toast.success('지표 그룹 구독이 해제되었습니다.');
     },
     onError: (error) => {

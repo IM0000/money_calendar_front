@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
-import { FaStar, FaRegStar, FaSpinner } from 'react-icons/fa';
+import { FaBookmark, FaRegBookmark, FaSpinner } from 'react-icons/fa';
 import { useAuthStore } from '@/zustand/useAuthStore';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -35,6 +35,11 @@ export default function FavoriteButton({
 
   const [isAdded, setIsAdded] = useState(initialIsFavorite);
 
+  // props 변경 시 내부 상태 동기화
+  useEffect(() => {
+    setIsAdded(initialIsFavorite);
+  }, [initialIsFavorite]);
+
   // 관심 추가 mutation
   const addFavoriteMutation = useMutation({
     mutationFn: async () => {
@@ -54,10 +59,23 @@ export default function FavoriteButton({
     onSuccess: () => {
       setIsAdded(true);
       toast.success('관심 일정에 추가되었습니다.');
-      // 캐시 업데이트
-      queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
-      queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
-      queryClient.invalidateQueries({ queryKey: ['calendarEvents'] });
+
+      // 더 광범위한 캐시 무효화 - predicate 패턴 사용
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey[0] as string;
+          return [
+            'favoriteCalendarEvents',
+            'favoriteCount',
+            'calendarEvents',
+            'searchCompanies',
+            'searchIndicators',
+            'companyEarnings',
+            'companyDividends',
+            'indicatorGroupHistory',
+          ].includes(key);
+        },
+      });
     },
     onError: (error) => {
       toast.error(
@@ -85,10 +103,23 @@ export default function FavoriteButton({
     onSuccess: () => {
       setIsAdded(false);
       toast.success('관심 일정에서 제거되었습니다.');
-      // 캐시 업데이트
-      queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
-      queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
-      queryClient.invalidateQueries({ queryKey: ['calendarEvents'] });
+
+      // 더 광범위한 캐시 무효화 - predicate 패턴 사용
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey[0] as string;
+          return [
+            'favoriteCalendarEvents',
+            'favoriteCount',
+            'calendarEvents',
+            'searchCompanies',
+            'searchIndicators',
+            'companyEarnings',
+            'companyDividends',
+            'indicatorGroupHistory',
+          ].includes(key);
+        },
+      });
     },
     onError: (error) => {
       toast.error(
@@ -149,9 +180,12 @@ export default function FavoriteButton({
         {isLoading ? (
           <FaSpinner className="animate-spin text-gray-500" size={16} />
         ) : isAdded ? (
-          <FaStar size={16} className="text-yellow-500" />
+          <FaBookmark size={16} className="text-blue-500" />
         ) : (
-          <FaRegStar size={16} className="text-gray-400" />
+          <FaRegBookmark
+            size={16}
+            className="text-gray-400 hover:text-blue-300"
+          />
         )}
       </button>
     </Tippy>

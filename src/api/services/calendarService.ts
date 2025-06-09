@@ -194,3 +194,52 @@ export const getCompanyDividendHistory = withErrorHandling(
   undefined,
   'CalendarService.getCompanyDividendHistory',
 );
+
+/**
+ * 특정 지표 그룹의 경제지표 히스토리 조회
+ */
+export const getIndicatorGroupHistory = withErrorHandling(
+  async (
+    baseName: string,
+    country?: string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<
+    ApiResponse<{
+      items: EconomicIndicatorEvent[];
+      pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+      };
+    }>
+  > => {
+    const params: {
+      baseName: string;
+      page: number;
+      limit: number;
+      country?: string;
+    } = { baseName, page, limit };
+    if (country) {
+      params.country = country;
+    }
+
+    const response = await apiClient.get<
+      ApiResponse<{
+        items: EconomicIndicatorEvent[];
+        pagination: {
+          total: number;
+          page: number;
+          limit: number;
+          totalPages: number;
+        };
+      }>
+    >('/api/v1/calendar/indicators/history', {
+      params,
+    });
+    return response.data;
+  },
+  undefined,
+  'CalendarService.getIndicatorGroupHistory',
+);

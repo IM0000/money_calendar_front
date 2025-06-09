@@ -13,6 +13,7 @@ interface EconomicIndicatorTableProps {
   dateRange: DateRange;
   isLoading?: boolean;
   isFavoritePage?: boolean;
+  selectedImportance?: number[];
 }
 
 export default function EconomicIndicatorTable({
@@ -20,7 +21,18 @@ export default function EconomicIndicatorTable({
   dateRange,
   isLoading = false,
   isFavoritePage = false,
+  selectedImportance = [],
 }: EconomicIndicatorTableProps) {
+  // 중요도 필터링된 이벤트
+  const filteredEvents = useMemo(() => {
+    if (selectedImportance.length === 0) {
+      return events; // 필터가 없으면 모든 이벤트 반환
+    }
+    return events.filter((event) =>
+      selectedImportance.includes(event.importance),
+    );
+  }, [events, selectedImportance]);
+
   // dateRange를 활용하여 모든 날짜 생성
   const allDates = useMemo(() => {
     const dates: string[] = [];
@@ -37,8 +49,8 @@ export default function EconomicIndicatorTable({
     return dates;
   }, [dateRange]);
 
-  // releaseDate를 기준으로 "YYYY-MM-DD" 문자열 그룹으로 묶기
-  const groups = events.reduce(
+  // releaseDate를 기준으로 "YYYY-MM-DD" 문자열 그룹으로 묶기 (필터링된 이벤트 사용)
+  const groups = filteredEvents.reduce(
     (acc, indicator) => {
       const dateObj = new Date(indicator.releaseDate);
       const groupKey = formatLocalISOString(dateObj).slice(0, 10);

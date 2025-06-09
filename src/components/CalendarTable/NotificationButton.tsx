@@ -1,5 +1,5 @@
 // NotificationButton.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import { FaBell, FaBellSlash, FaSpinner } from 'react-icons/fa';
@@ -36,6 +36,11 @@ export default function NotificationButton({
 
   const [isActive, setIsActive] = useState(initialIsActive);
 
+  // props 변경 시 내부 상태 동기화
+  useEffect(() => {
+    setIsActive(initialIsActive);
+  }, [initialIsActive]);
+
   // 구독 추가 mutation
   const addSubscriptionMutation = useMutation({
     mutationFn: async () => {
@@ -55,13 +60,24 @@ export default function NotificationButton({
     onSuccess: () => {
       setIsActive(true);
       toast.success('알림이 설정되었습니다.');
-      // 캐시 업데이트
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['calendarEvents'] });
-      queryClient.invalidateQueries({ queryKey: ['userSubscriptions'] });
-      queryClient.invalidateQueries({ queryKey: ['companySubscriptions'] });
+
+      // 더 광범위한 캐시 무효화 - prefix 패턴 사용
       queryClient.invalidateQueries({
-        queryKey: ['indicatorGroupSubscriptions'],
+        predicate: (query) => {
+          const key = query.queryKey[0] as string;
+          return [
+            'notifications',
+            'calendarEvents',
+            'userSubscriptions',
+            'companySubscriptions',
+            'indicatorGroupSubscriptions',
+            'searchCompanies',
+            'searchIndicators',
+            'companyEarnings',
+            'companyDividends',
+            'indicatorGroupHistory',
+          ].includes(key);
+        },
       });
     },
     onError: (error) => {
@@ -90,13 +106,24 @@ export default function NotificationButton({
     onSuccess: () => {
       setIsActive(false);
       toast.success('알림이 해제되었습니다.');
-      // 캐시 업데이트
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['calendarEvents'] });
-      queryClient.invalidateQueries({ queryKey: ['userSubscriptions'] });
-      queryClient.invalidateQueries({ queryKey: ['companySubscriptions'] });
+
+      // 더 광범위한 캐시 무효화 - prefix 패턴 사용
       queryClient.invalidateQueries({
-        queryKey: ['indicatorGroupSubscriptions'],
+        predicate: (query) => {
+          const key = query.queryKey[0] as string;
+          return [
+            'notifications',
+            'calendarEvents',
+            'userSubscriptions',
+            'companySubscriptions',
+            'indicatorGroupSubscriptions',
+            'searchCompanies',
+            'searchIndicators',
+            'companyEarnings',
+            'companyDividends',
+            'indicatorGroupHistory',
+          ].includes(key);
+        },
       });
     },
     onError: (error) => {
@@ -157,7 +184,10 @@ export default function NotificationButton({
         ) : isActive ? (
           <FaBell size={16} className="text-green-500" />
         ) : (
-          <FaBellSlash size={16} className="text-gray-500" />
+          <FaBellSlash
+            size={16}
+            className="text-gray-500 hover:text-green-300"
+          />
         )}
       </button>
     </Tippy>
