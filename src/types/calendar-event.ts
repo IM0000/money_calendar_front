@@ -18,8 +18,8 @@ export interface EarningsEvent {
   };
   createdAt: string;
   updatedAt: string;
-  isFavorite?: boolean; // 관심 목록에 추가되어 있는지 여부
-  hasNotification?: boolean;
+  isFavorite?: boolean; // 회사 단위 관심 등록 여부 (백엔드에서 계산됨)
+  hasNotification?: boolean; // 회사 단위 구독 여부 (백엔드에서 계산됨)
 }
 
 export interface DividendEvent {
@@ -39,8 +39,8 @@ export interface DividendEvent {
   };
   createdAt: string; // 생성일자 (ISO 문자열)
   updatedAt: string; // 수정일자 (ISO 문자열)
-  isFavorite?: boolean; // 관심 목록에 추가되어 있는지 여부
-  hasNotification?: boolean;
+  isFavorite?: boolean; // 회사 단위 관심 등록 여부 (백엔드에서 계산됨)
+  hasNotification?: boolean; // 회사 단위 구독 여부 (백엔드에서 계산됨)
 }
 
 export interface EconomicIndicatorEvent {
@@ -55,8 +55,8 @@ export interface EconomicIndicatorEvent {
   previous: string;
   createdAt: string;
   updatedAt: string;
-  isFavorite?: boolean; // 관심 목록에 추가되어 있는지 여부
-  hasNotification?: boolean;
+  isFavorite?: boolean; // 지표 그룹(baseName + country) 단위 관심 등록 여부 (백엔드에서 계산됨)
+  hasNotification?: boolean; // 지표 그룹(baseName + country) 단위 구독 여부 (백엔드에서 계산됨)
 }
 
 export interface Company {
@@ -65,6 +65,6 @@ export interface Company {
   name: string;
   country: string;
   marketValue: string;
-  isFavoriteEarnings?: boolean;
-  isFavoriteDividend?: boolean;
+  isFavorite?: boolean; // 회사 단위 관심 등록 여부 (실적과 배당 통합)
+  hasSubscription?: boolean; // 회사 단위 구독 여부 (실적과 배당 통합)
 }

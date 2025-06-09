@@ -82,7 +82,7 @@ export default function MainPage() {
         {/* {import.meta.env.DEV && <TestErrorButton />} */}
 
         {/* 메뉴 버튼 영역 */}
-        <div className="flex px-8 mt-4 space-x-4 text-sm">
+        <div className="mt-4 flex space-x-4 px-8 text-sm">
           <button
             className={getButtonClass('경제지표')}
             onClick={() => handleMenuClick('경제지표')}
@@ -104,7 +104,7 @@ export default function MainPage() {
         </div>
 
         {/* 선택된 메뉴에 따라 테이블 컴포넌트 렌더링 */}
-        <div className="w-full px-8 mt-4 overflow-x-auto border-gray-300">
+        <div className="mt-4 w-full overflow-x-auto border-gray-300 px-8">
           {selectedMenu === '경제지표' && (
             <EconomicIndicatorTable
               events={economicIndicators}

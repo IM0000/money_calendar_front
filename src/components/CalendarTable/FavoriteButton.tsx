@@ -1,32 +1,33 @@
 import { useState } from 'react';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
-import { FaPlusSquare, FaRegPlusSquare, FaSpinner } from 'react-icons/fa';
+import { FaStar, FaRegStar, FaSpinner } from 'react-icons/fa';
 import { useAuthStore } from '@/zustand/useAuthStore';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import {
-  addFavoriteDividend,
-  removeFavoriteDividend,
-  addFavoriteEarnings,
-  removeFavoriteEarnings,
-  addFavoriteEconomicIndicator,
-  removeFavoriteEconomicIndicator,
-} from '@/api/services/calendarService';
-
-export type EventType = 'dividend' | 'earnings' | 'economicIndicator';
+  addFavoriteCompany,
+  removeFavoriteCompany,
+  addFavoriteIndicatorGroup,
+  removeFavoriteIndicatorGroup,
+} from '@/api/services/favoriteService';
+import { EventType } from '@/types/event-type';
 
 interface FavoriteButtonProps {
-  id: number;
   eventType: EventType;
   isFavorite: boolean;
+  companyId?: number;
+  baseName?: string;
+  country?: string;
 }
 
 export default function FavoriteButton({
-  id,
   eventType,
   isFavorite: initialIsFavorite,
+  companyId,
+  baseName,
+  country,
 }: FavoriteButtonProps) {
   const { isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
@@ -34,37 +35,26 @@ export default function FavoriteButton({
 
   const [isAdded, setIsAdded] = useState(initialIsFavorite);
 
-  // 관심 추가 API 호출 함수 선택
-  const getAddFavoriteFunction = (eventType: EventType) => {
-    switch (eventType) {
-      case 'dividend':
-        return addFavoriteDividend;
-      case 'earnings':
-        return addFavoriteEarnings;
-      case 'economicIndicator':
-        return addFavoriteEconomicIndicator;
-    }
-  };
-
-  // 관심 제거 API 호출 함수 선택
-  const getRemoveFavoriteFunction = (eventType: EventType) => {
-    switch (eventType) {
-      case 'dividend':
-        return removeFavoriteDividend;
-      case 'earnings':
-        return removeFavoriteEarnings;
-      case 'economicIndicator':
-        return removeFavoriteEconomicIndicator;
-    }
-  };
-
   // 관심 추가 mutation
   const addFavoriteMutation = useMutation({
-    mutationFn: () => getAddFavoriteFunction(eventType)(id),
+    mutationFn: async () => {
+      if (eventType === 'indicatorGroup') {
+        if (!baseName) {
+          throw new Error('경제지표의 baseName이 필요합니다.');
+        }
+        return addFavoriteIndicatorGroup(baseName, country);
+      } else {
+        // company (earnings 또는 dividend)
+        if (!companyId) {
+          throw new Error('회사 ID가 필요합니다.');
+        }
+        return addFavoriteCompany(companyId);
+      }
+    },
     onSuccess: () => {
       setIsAdded(true);
       toast.success('관심 일정에 추가되었습니다.');
-      // 캐시 업데이트 - calendarEvents도 무효화
+      // 캐시 업데이트
       queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
       queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
       queryClient.invalidateQueries({ queryKey: ['calendarEvents'] });
@@ -78,11 +68,24 @@ export default function FavoriteButton({
 
   // 관심 제거 mutation
   const removeFavoriteMutation = useMutation({
-    mutationFn: () => getRemoveFavoriteFunction(eventType)(id),
+    mutationFn: async () => {
+      if (eventType === 'indicatorGroup') {
+        if (!baseName) {
+          throw new Error('경제지표의 baseName이 필요합니다.');
+        }
+        return removeFavoriteIndicatorGroup(baseName, country);
+      } else {
+        // company (earnings 또는 dividend)
+        if (!companyId) {
+          throw new Error('회사 ID가 필요합니다.');
+        }
+        return removeFavoriteCompany(companyId);
+      }
+    },
     onSuccess: () => {
       setIsAdded(false);
       toast.success('관심 일정에서 제거되었습니다.');
-      // 캐시 업데이트 - calendarEvents도 무효화
+      // 캐시 업데이트
       queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
       queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
       queryClient.invalidateQueries({ queryKey: ['calendarEvents'] });
@@ -104,6 +107,17 @@ export default function FavoriteButton({
       ) {
         navigate('/login');
       }
+      return;
+    }
+
+    // 필수 파라미터 검증
+    if (eventType === 'indicatorGroup' && !baseName) {
+      toast.error('경제지표 정보가 부족합니다.');
+      return;
+    }
+
+    if (eventType === 'company' && !companyId) {
+      toast.error('회사 정보가 부족합니다.');
       return;
     }
 
@@ -135,9 +149,9 @@ export default function FavoriteButton({
         {isLoading ? (
           <FaSpinner className="animate-spin text-gray-500" size={16} />
         ) : isAdded ? (
-          <FaPlusSquare size={16} className="text-blue-500" />
+          <FaStar size={16} className="text-yellow-500" />
         ) : (
-          <FaRegPlusSquare size={16} className="text-gray-500" />
+          <FaRegStar size={16} className="text-gray-400" />
         )}
       </button>
     </Tippy>

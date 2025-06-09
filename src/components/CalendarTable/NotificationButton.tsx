@@ -8,24 +8,27 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import {
-  addIndicatorSubscription,
-  addEarningsSubscription,
-  removeEarningsSubscription,
-  removeIndicatorSubscription,
-} from '@/api/services/notificationService';
-
-export type EventType = 'earnings' | 'economicIndicator';
+  subscribeCompany,
+  unsubscribeCompany,
+  subscribeIndicatorGroup,
+  unsubscribeIndicatorGroup,
+} from '@/api/services/subscriptionService';
+import { EventType } from '@/types/event-type';
 
 interface NotificationButtonProps {
-  id: number;
   eventType: EventType;
   isActive: boolean;
+  companyId?: number;
+  baseName?: string;
+  country?: string;
 }
 
 export default function NotificationButton({
-  id,
   eventType,
   isActive: initialIsActive,
+  companyId,
+  baseName,
+  country,
 }: NotificationButtonProps) {
   const { isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
@@ -33,36 +36,33 @@ export default function NotificationButton({
 
   const [isActive, setIsActive] = useState(initialIsActive);
 
-  // 구독 추가 API 호출 함수 선택
-  const getAddSubscriptionFunction = (eventType: EventType) => {
-    switch (eventType) {
-      case 'earnings':
-        return addEarningsSubscription;
-      case 'economicIndicator':
-        return addIndicatorSubscription;
-    }
-  };
-
-  // 구독 해제 API 호출 함수 선택
-  const getRemoveSubscriptionFunction = (eventType: EventType) => {
-    switch (eventType) {
-      case 'earnings':
-        return removeEarningsSubscription;
-      case 'economicIndicator':
-        return removeIndicatorSubscription;
-    }
-  };
-
   // 구독 추가 mutation
   const addSubscriptionMutation = useMutation({
-    mutationFn: () => getAddSubscriptionFunction(eventType)(id),
+    mutationFn: async () => {
+      if (eventType === 'indicatorGroup') {
+        if (!baseName) {
+          throw new Error('경제지표의 baseName이 필요합니다.');
+        }
+        return subscribeIndicatorGroup(baseName, country);
+      } else {
+        // company
+        if (!companyId) {
+          throw new Error('회사 ID가 필요합니다.');
+        }
+        return subscribeCompany(companyId);
+      }
+    },
     onSuccess: () => {
       setIsActive(true);
-      toast.success('구독이 설정되었습니다.');
-      // 캐시 업데이트 - calendarEvents도 무효화
+      toast.success('알림이 설정되었습니다.');
+      // 캐시 업데이트
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['calendarEvents'] });
-      queryClient.invalidateQueries({ queryKey: ['notificationCalendar'] });
+      queryClient.invalidateQueries({ queryKey: ['userSubscriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['companySubscriptions'] });
+      queryClient.invalidateQueries({
+        queryKey: ['indicatorGroupSubscriptions'],
+      });
     },
     onError: (error) => {
       toast.error(
@@ -73,14 +73,31 @@ export default function NotificationButton({
 
   // 구독 제거 mutation
   const removeSubscriptionMutation = useMutation({
-    mutationFn: () => getRemoveSubscriptionFunction(eventType)(id),
+    mutationFn: async () => {
+      if (eventType === 'indicatorGroup') {
+        if (!baseName) {
+          throw new Error('경제지표의 baseName이 필요합니다.');
+        }
+        return unsubscribeIndicatorGroup(baseName, country);
+      } else {
+        // company
+        if (!companyId) {
+          throw new Error('회사 ID가 필요합니다.');
+        }
+        return unsubscribeCompany(companyId);
+      }
+    },
     onSuccess: () => {
       setIsActive(false);
       toast.success('알림이 해제되었습니다.');
-      // 캐시 업데이트 - calendarEvents도 무효화
+      // 캐시 업데이트
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
       queryClient.invalidateQueries({ queryKey: ['calendarEvents'] });
-      queryClient.invalidateQueries({ queryKey: ['notificationCalendar'] });
+      queryClient.invalidateQueries({ queryKey: ['userSubscriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['companySubscriptions'] });
+      queryClient.invalidateQueries({
+        queryKey: ['indicatorGroupSubscriptions'],
+      });
     },
     onError: (error) => {
       toast.error(
@@ -97,6 +114,16 @@ export default function NotificationButton({
       ) {
         navigate('/login');
       }
+      return;
+    }
+
+    if (eventType === 'indicatorGroup' && !baseName) {
+      toast.error('경제지표 정보가 부족합니다.');
+      return;
+    }
+
+    if (eventType === 'company' && !companyId) {
+      toast.error('회사 정보가 부족합니다.');
       return;
     }
 

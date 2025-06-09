@@ -1,6 +1,6 @@
 import { Badge } from '@/components/UI/badge';
 import { useSubscriptions } from '@/hooks/useSubscriptions';
-import EarningsSubscriptions from './MySubscriptionList/EarningsSubscriptions';
+import CompanySubscriptions from './MySubscriptionList/CompanySubscriptions';
 import IndicatorSubscriptions from './MySubscriptionList/IndicatorSubscriptions';
 
 /**
@@ -8,34 +8,41 @@ import IndicatorSubscriptions from './MySubscriptionList/IndicatorSubscriptions'
  */
 export default function MySubscriptionList() {
   const {
-    subscriptions,
+    companySubscriptions,
+    indicatorGroupSubscriptions,
     isLoading,
-    removeIndicator,
-    removeEarnings,
     unsubscribeCompany,
-    unsubscribeBaseNameIndicator,
+    unsubscribeIndicatorGroup,
+    isUnsubscribingCompany,
+    isUnsubscribingIndicatorGroup,
   } = useSubscriptions();
 
   // 기업 구독 해제 핸들러
   const handleUnsubscribeCompany = (companyName: string, companyId: number) => {
-    if (window.confirm(`${companyName}의 모든 실적 알림을 해제하시겠습니까?`)) {
+    if (
+      window.confirm(`${companyName}의 모든 실적/배당 알림을 해제하시겠습니까?`)
+    ) {
       unsubscribeCompany(companyId);
     }
   };
 
-  // 경제지표 유형 구독 해제 핸들러
-  const handleUnsubscribeBaseNameIndicator = (
+  // 지표 그룹 구독 해제 핸들러
+  const handleUnsubscribeIndicatorGroup = (
     baseName: string,
-    country: string,
+    country?: string,
   ) => {
+    const countryText = country ? `${country} 국가의 ` : '';
     if (
       window.confirm(
-        `${country} 국가의 ${baseName} 유형 모든 알림을 해제하시겠습니까?`,
+        `${countryText}${baseName} 지표 그룹의 모든 알림을 해제하시겠습니까?`,
       )
     ) {
-      unsubscribeBaseNameIndicator({ baseName, country });
+      unsubscribeIndicatorGroup({ baseName, country });
     }
   };
+
+  const totalCount =
+    companySubscriptions.length + indicatorGroupSubscriptions.length;
 
   return (
     <div className="min-h-screen space-y-10 bg-slate-50 p-4 md:p-6">
@@ -44,27 +51,25 @@ export default function MySubscriptionList() {
           내 알림구독 관리
         </h1>
         <Badge variant="secondary" className="px-4 py-2 text-sm">
-          총 {subscriptions?.totalCount || 0}개 알림 구독 중
+          총 {totalCount}개 알림 구독 중
         </Badge>
       </div>
 
       <div className="flex flex-row space-x-8">
         <div className="w-1/2">
-          <EarningsSubscriptions
+          <CompanySubscriptions
             isLoading={isLoading}
-            companies={subscriptions?.earnings?.companies}
-            earnings={subscriptions?.earnings?.individual}
+            companySubscriptions={companySubscriptions}
             onUnsubscribeCompany={handleUnsubscribeCompany}
-            onRemoveEarnings={removeEarnings}
+            isUnsubscribing={isUnsubscribingCompany}
           />
         </div>
         <div className="w-1/2">
           <IndicatorSubscriptions
             isLoading={isLoading}
-            baseNameIndicators={subscriptions?.indicators?.baseNames}
-            indicators={subscriptions?.indicators?.individual}
-            onUnsubscribeBaseNameIndicator={handleUnsubscribeBaseNameIndicator}
-            onRemoveIndicator={removeIndicator}
+            indicatorGroupSubscriptions={indicatorGroupSubscriptions}
+            onUnsubscribeIndicatorGroup={handleUnsubscribeIndicatorGroup}
+            isUnsubscribing={isUnsubscribingIndicatorGroup}
           />
         </div>
       </div>

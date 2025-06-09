@@ -11,7 +11,7 @@ import {
   deleteNotification,
   deleteAllNotifications,
 } from '@/api/services/notificationService';
-import { Notification } from '@/types/notification';
+import { Notification, NotificationResponse } from '@/types/notification';
 import { useState } from 'react';
 
 const EmptyState = ({ message }: { message: string }) => (
@@ -97,21 +97,10 @@ export default function NotificationList() {
     );
   }
 
-  const notifications = data?.data?.notifications as Array<
-    Notification & {
-      eventName: string;
-      actual?: string;
-      forecast?: string;
-      actualEPS?: string;
-      forecastEPS?: string;
-      actualRevenue?: string;
-      forecastRevenue?: string;
-      releaseDate?: number;
-      createdAt: string;
-    }
-  >;
+  const responseData = data?.data as unknown as NotificationResponse;
 
-  const totalCount = data?.data?.total || 0;
+  const notifications = responseData?.notifications || [];
+  const totalCount = responseData?.pagination?.total || 0;
   const totalPages = Math.ceil(totalCount / limit);
 
   if (notifications.length === 0) {
@@ -122,6 +111,42 @@ export default function NotificationList() {
       </div>
     );
   }
+
+  // 알림 제목 생성 함수
+  const getNotificationTitle = (notification: Notification): string => {
+    const { contentType, contentDetails } = notification;
+
+    if (!contentDetails) return '알림';
+
+    switch (contentType) {
+      case 'EARNINGS':
+        return `${contentDetails.company?.name || '회사'} 실적 발표`;
+      case 'DIVIDEND':
+        return `${contentDetails.company?.name || '회사'} 배당 정보`;
+      case 'ECONOMIC_INDICATOR':
+        return contentDetails.name || '경제지표 발표';
+      default:
+        return '알림';
+    }
+  };
+
+  // 발표 시간 가져오기 함수
+  const getReleaseDate = (notification: Notification): number | null => {
+    const { contentType, contentDetails } = notification;
+
+    if (!contentDetails) return null;
+
+    switch (contentType) {
+      case 'EARNINGS':
+        return contentDetails.releaseDate || null;
+      case 'DIVIDEND':
+        return contentDetails.exDividendDate || null;
+      case 'ECONOMIC_INDICATOR':
+        return contentDetails.releaseDate || null;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="min-h-screen space-y-6 bg-slate-50 p-4 md:p-6">
@@ -157,100 +182,157 @@ export default function NotificationList() {
       </div>
 
       <div className="grid gap-4">
-        {notifications.map((n) => (
-          <Card
-            key={n.id}
-            onClick={() => markAsReadMutation.mutate(n.id)}
-            className={`rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-shadow duration-300 hover:shadow-md ${
-              n.read ? '' : 'ring-2 ring-blue-300'
-            }`}
-          >
-            <CardHeader className="flex items-start justify-between p-0 pb-2">
-              <div className="flex w-full items-start justify-between">
-                <div>
-                  <CardTitle className="text-lg font-semibold">
-                    {n.eventName}
-                  </CardTitle>
-                  <p className="text-xs text-gray-500">
-                    발표시간:{' '}
-                    {n.releaseDate
-                      ? new Date(n.releaseDate).toLocaleString()
-                      : '-'}
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Badge variant={n.read ? 'secondary' : 'default'}>
-                    {n.read ? '읽음' : '새 알림'}
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteNotificationMutation.mutate(n.id);
-                    }}
-                    disabled={deleteNotificationMutation.isPending}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
+        {notifications.map((n) => {
+          const title = getNotificationTitle(n);
+          const releaseDate = getReleaseDate(n);
 
-            <CardContent className="grid grid-cols-2 gap-4 p-0 pt-2 text-sm">
-              {n.contentType === 'EARNINGS' ? (
-                <>
+          return (
+            <Card
+              key={n.id}
+              onClick={() => markAsReadMutation.mutate(n.id)}
+              className={`rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-shadow duration-300 hover:shadow-md ${
+                n.isRead ? '' : 'ring-2 ring-blue-300'
+              }`}
+            >
+              <CardHeader className="flex items-start justify-between p-0 pb-2">
+                <div className="flex w-full items-start justify-between">
                   <div>
-                    <p className="font-medium">실제 EPS</p>
-                    <p>{n.actualEPS ?? '-'}</p>
+                    <CardTitle className="text-lg font-semibold">
+                      {title}
+                    </CardTitle>
+                    <p className="text-xs text-gray-500">
+                      발표시간:{' '}
+                      {releaseDate
+                        ? new Date(releaseDate).toLocaleString()
+                        : '-'}
+                    </p>
                   </div>
-                  <div>
-                    <p className="font-medium">예측 EPS</p>
-                    <p>{n.forecastEPS ?? '-'}</p>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant={n.isRead ? 'secondary' : 'default'}>
+                      {n.isRead ? '읽음' : '새 알림'}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteNotificationMutation.mutate(n.id);
+                      }}
+                      disabled={deleteNotificationMutation.isPending}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <div>
-                    <p className="font-medium">실제 매출</p>
-                    <p>{n.actualRevenue ?? '-'}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium">예측 매출</p>
-                    <p>{n.forecastRevenue ?? '-'}</p>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <p className="font-medium">실제</p>
-                    <p>{n.actual === '' ? '-' : n.actual}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium">예측</p>
-                    <p>{n.forecast === '' ? '-' : n.forecast}</p>
-                  </div>
-                </>
-              )}
-              <div className="col-span-2 text-xs text-gray-500">
-                알림시간: {new Date(n.createdAt).toLocaleString()}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                </div>
+              </CardHeader>
+
+              <CardContent className="grid grid-cols-2 gap-4 p-0 pt-2 text-sm">
+                {n.contentType === 'EARNINGS' && n.contentDetails && (
+                  <>
+                    <div>
+                      <p className="font-medium">실제 EPS</p>
+                      <p>{n.contentDetails.actualEPS ?? '-'}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">예측 EPS</p>
+                      <p>{n.contentDetails.forecastEPS ?? '-'}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">실제 매출</p>
+                      <p>{n.contentDetails.actualRevenue ?? '-'}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">예측 매출</p>
+                      <p>{n.contentDetails.forecastRevenue ?? '-'}</p>
+                    </div>
+                  </>
+                )}
+
+                {n.contentType === 'DIVIDEND' && n.contentDetails && (
+                  <>
+                    <div>
+                      <p className="font-medium">배당금</p>
+                      <p>{n.contentDetails.dividendAmount ?? '-'}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">이전 배당금</p>
+                      <p>{n.contentDetails.previousDividendAmount ?? '-'}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">배당 수익률</p>
+                      <p>{n.contentDetails.dividendYield ?? '-'}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">지급일</p>
+                      <p>
+                        {n.contentDetails.paymentDate
+                          ? new Date(
+                              n.contentDetails.paymentDate,
+                            ).toLocaleDateString()
+                          : '-'}
+                      </p>
+                    </div>
+                  </>
+                )}
+
+                {n.contentType === 'ECONOMIC_INDICATOR' && n.contentDetails && (
+                  <>
+                    <div>
+                      <p className="font-medium">실제</p>
+                      <p>
+                        {n.contentDetails.actual === ''
+                          ? '-'
+                          : n.contentDetails.actual}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-medium">예측</p>
+                      <p>
+                        {n.contentDetails.forecast === ''
+                          ? '-'
+                          : n.contentDetails.forecast}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-medium">이전</p>
+                      <p>
+                        {n.contentDetails.previous === ''
+                          ? '-'
+                          : n.contentDetails.previous}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="font-medium">중요도</p>
+                      <p>{n.contentDetails.importance ?? '-'}</p>
+                    </div>
+                  </>
+                )}
+
+                <div className="col-span-2 text-xs text-gray-500">
+                  알림시간: {new Date(n.createdAt).toLocaleString()}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center space-x-2">
-        {Array.from({ length: totalPages }, (_, i) => (
-          <Button
-            key={i}
-            size="sm"
-            variant={page === i + 1 ? 'default' : 'outline'}
-            onClick={() => setPage(i + 1)}
-            disabled={isFetching}
-          >
-            {i + 1}
-          </Button>
-        ))}
-      </div>
+      {totalPages > 1 && (
+        <div className="flex justify-center space-x-2">
+          {Array.from({ length: totalPages }, (_, i) => (
+            <Button
+              key={i}
+              size="sm"
+              variant={page === i + 1 ? 'default' : 'outline'}
+              onClick={() => setPage(i + 1)}
+              disabled={isFetching}
+            >
+              {i + 1}
+            </Button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

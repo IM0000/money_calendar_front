@@ -2,74 +2,53 @@ import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/UI/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { CountryFlag } from '@/components/CalendarTable/CountryFlag';
-import {
-  CompanySubscription,
-  EarningsSubscription,
-  SubscriptionType,
-} from '@/types/notification';
+import { CompanySubscription } from '@/types/notification';
 import { EmptyState } from './EmptyState';
 import { Trash2 } from 'lucide-react';
-import { formatKoreanDateWithWeekday } from '@/utils/dateUtils';
 import { Input } from '@/components/UI/input';
-import { Badge } from '@/components/UI/badge';
 
-interface EarningsSubscriptionsProps {
+interface CompanySubscriptionsProps {
   isLoading: boolean;
-  companies?: CompanySubscription[];
-  earnings?: EarningsSubscription[];
+  companySubscriptions: CompanySubscription[];
   onUnsubscribeCompany: (companyName: string, companyId: number) => void;
-  onRemoveEarnings: (id: number) => void;
+  isUnsubscribing: boolean;
 }
 
-const EarningsSubscriptions: React.FC<EarningsSubscriptionsProps> = ({
+const CompanySubscriptions: React.FC<CompanySubscriptionsProps> = ({
   isLoading,
-  companies = [],
-  earnings = [],
+  companySubscriptions = [],
   onUnsubscribeCompany,
-  onRemoveEarnings,
+  isUnsubscribing,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const unifiedAndSortedEarnings = useMemo(() => {
-    const mappedCompanies: CompanySubscription[] = companies.map((sub) => ({
-      ...sub,
-      type: SubscriptionType.COMPANY,
-    }));
-
-    const mappedEarnings: EarningsSubscription[] = earnings.map((sub) => ({
-      ...sub,
-      type: SubscriptionType.EARNINGS,
-    }));
-
-    return [...mappedCompanies, ...mappedEarnings].sort(
+  const sortedCompanies = useMemo(() => {
+    return [...companySubscriptions].sort(
       (a, b) =>
-        new Date(b.subscribedAt).getTime() - new Date(a.subscribedAt).getTime(),
+        new Date(b.subscribedAt || 0).getTime() -
+        new Date(a.subscribedAt || 0).getTime(),
     );
-  }, [companies, earnings]);
+  }, [companySubscriptions]);
 
   const filteredItems = useMemo(() => {
-    if (!searchTerm) return unifiedAndSortedEarnings;
+    if (!searchTerm) return sortedCompanies;
     const lowerSearchTerm = searchTerm.toLowerCase();
-    return unifiedAndSortedEarnings.filter(
+    return sortedCompanies.filter(
       (item) =>
         item.company.name.toLowerCase().includes(lowerSearchTerm) ||
         item.company.ticker.toLowerCase().includes(lowerSearchTerm),
     );
-  }, [searchTerm, unifiedAndSortedEarnings]);
+  }, [searchTerm, sortedCompanies]);
 
-  const hasRealSubscriptions = companies.length > 0 || earnings.length > 0;
-  const shouldShowEmptyState =
-    !isLoading && !hasRealSubscriptions && !searchTerm;
+  const hasSubscriptions = companySubscriptions.length > 0;
+  const shouldShowEmptyState = !isLoading && !hasSubscriptions && !searchTerm;
 
   return (
     <Card className="flex h-[700px] flex-col rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow duration-300 hover:shadow-md">
       <CardHeader className="border-b border-gray-200 px-6 py-4">
         <CardTitle className="text-lg font-semibold text-gray-800">
-          실적 구독 현황
+          회사 구독 현황
         </CardTitle>
-        <p className="mt-1 text-sm text-gray-600">
-          구독 중인 기업 및 개별 실적 발표 알림을 관리합니다.
-        </p>
         <div className="mt-4">
           <Input
             type="text"
@@ -94,9 +73,9 @@ const EarningsSubscriptions: React.FC<EarningsSubscriptionsProps> = ({
           </div>
         ) : shouldShowEmptyState ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
-            <EmptyState message="구독 중인 실적 알림이 없습니다." />
+            <EmptyState message="구독 중인 회사가 없습니다." />
             <p className="mt-2 text-sm text-gray-500">
-              새로운 알림을 추가해보세요.
+              새로운 회사 알림을 추가해보세요.
             </p>
           </div>
         ) : filteredItems.length === 0 && searchTerm ? (
@@ -116,33 +95,6 @@ const EarningsSubscriptions: React.FC<EarningsSubscriptionsProps> = ({
                 className="shadow-xs flex items-center justify-between rounded-md border border-gray-200 bg-white p-3.5 transition-all duration-150 hover:border-gray-300 hover:shadow-sm"
               >
                 <div className="flex flex-grow items-center space-x-3 overflow-hidden">
-                  <Badge
-                    variant={
-                      item.type === SubscriptionType.COMPANY
-                        ? 'secondary'
-                        : 'outline'
-                    }
-                    className={`min-w-[40px] flex-shrink-0 justify-center whitespace-nowrap rounded-md px-2.5 py-0.5 text-xs font-semibold ${
-                      item.type === SubscriptionType.COMPANY
-                        ? 'border-green-300 bg-green-100 text-green-700 hover:bg-green-200'
-                        : 'border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100'
-                    }`}
-                  >
-                    {item.type === SubscriptionType.COMPANY ? (
-                      <>
-                        전체
-                        <br />
-                        구독
-                      </>
-                    ) : (
-                      <>
-                        단일
-                        <br />
-                        구독
-                      </>
-                    )}
-                  </Badge>
-
                   {item.company.country && (
                     <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center overflow-hidden rounded-full">
                       <CountryFlag
@@ -161,21 +113,17 @@ const EarningsSubscriptions: React.FC<EarningsSubscriptionsProps> = ({
                         ({item.company.ticker})
                       </span>
                     </span>
-                    {item.type === SubscriptionType.EARNINGS &&
-                    typeof item.earnings?.releaseDate === 'number' ? (
-                      <p className="mt-0.5 text-xs text-gray-500">
-                        발표일:{' '}
-                        {formatKoreanDateWithWeekday(item.earnings.releaseDate)}
-                      </p>
-                    ) : item.type === SubscriptionType.COMPANY ? (
-                      <p className="mt-0.5 text-xs text-gray-500">
-                        모든 분기 실적 알림
-                      </p>
-                    ) : null}
                     <p className="mt-0.5 text-xs text-gray-500">
-                      구독일:{' '}
-                      {new Date(item.subscribedAt).toLocaleDateString('ko-KR')}
+                      모든 실적/배당 알림 구독 중
                     </p>
+                    {item.subscribedAt && (
+                      <p className="mt-0.5 text-xs text-gray-500">
+                        구독일:{' '}
+                        {new Date(item.subscribedAt).toLocaleDateString(
+                          'ko-KR',
+                        )}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -183,19 +131,11 @@ const EarningsSubscriptions: React.FC<EarningsSubscriptionsProps> = ({
                   variant="ghost"
                   size="icon"
                   className="ml-2 flex-shrink-0 rounded-full p-1.5 text-gray-500 hover:bg-red-100 hover:text-red-600 focus-visible:ring-1 focus-visible:ring-red-500 focus-visible:ring-offset-1"
-                  onClick={() => {
-                    if (item.type === SubscriptionType.COMPANY) {
-                      onUnsubscribeCompany(item.company.name, item.company.id);
-                    } else {
-                      // item.id is EarningsSubscription.id which is what onRemoveEarnings expects
-                      onRemoveEarnings(item.id);
-                    }
-                  }}
-                  aria-label={
-                    item.type === SubscriptionType.COMPANY
-                      ? `${item.company.name} 전체 구독 해제`
-                      : `${item.company.name} 개별 실적 알림 해제`
+                  onClick={() =>
+                    onUnsubscribeCompany(item.company.name, item.companyId)
                   }
+                  disabled={isUnsubscribing}
+                  aria-label={`${item.company.name} 구독 해제`}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -208,4 +148,4 @@ const EarningsSubscriptions: React.FC<EarningsSubscriptionsProps> = ({
   );
 };
 
-export default EarningsSubscriptions;
+export default CompanySubscriptions;

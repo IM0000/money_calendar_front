@@ -3,9 +3,9 @@ import { CountryFlag } from '../CalendarTable/CountryFlag';
 import Pagination from '../UI/Pagination';
 import { toast } from 'react-hot-toast';
 import {
-  addFavoriteEconomicIndicator,
-  removeFavoriteEconomicIndicator,
-} from '../../api/services/calendarService';
+  addFavoriteIndicatorGroup,
+  removeFavoriteIndicatorGroup,
+} from '../../api/services/favoriteService';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import EventAddButton from '../CalendarTable/EventAddButton';
 import { useState, useEffect } from 'react';
@@ -36,17 +36,22 @@ export default function IndicatorSearch({
     setLocalResults(results);
   }, [results]);
 
-  // QueryClient 가져오기
   const queryClient = useQueryClient();
 
   // 관심 등록 mutation
   const addFavoriteMutation = useMutation({
-    mutationFn: addFavoriteEconomicIndicator,
-    onMutate: async (indicatorId) => {
+    mutationFn: ({
+      baseName,
+      country,
+    }: {
+      baseName: string;
+      country?: string;
+    }) => addFavoriteIndicatorGroup(baseName, country),
+    onMutate: async ({ baseName, country }) => {
       // 즉시 UI 업데이트 (낙관적 업데이트)
       setLocalResults((prev) =>
         prev.map((indicator) =>
-          indicator.id === indicatorId
+          indicator.baseName === baseName && indicator.country === country
             ? { ...indicator, isFavorite: true }
             : indicator,
         ),
@@ -58,7 +63,7 @@ export default function IndicatorSearch({
       queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
       queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
     },
-    onError: (error, indicatorId) => {
+    onError: (error, { baseName, country }) => {
       // 에러 메시지에 "이미 즐겨찾기에 추가되어 있습니다" 포함되어 있으면 추가된 것으로 간주
       const errorMessage =
         error instanceof Error ? error.message : '알 수 없는 오류';
@@ -67,7 +72,7 @@ export default function IndicatorSearch({
         // 이미 추가된 경우 UI 업데이트만 하고 에러 메시지 표시하지 않음
         setLocalResults((prev) =>
           prev.map((indicator) =>
-            indicator.id === indicatorId
+            indicator.baseName === baseName && indicator.country === country
               ? { ...indicator, isFavorite: true }
               : indicator,
           ),
@@ -77,7 +82,7 @@ export default function IndicatorSearch({
         toast.error(`추가 실패: ${errorMessage}`);
         setLocalResults((prev) =>
           prev.map((indicator) =>
-            indicator.id === indicatorId
+            indicator.baseName === baseName && indicator.country === country
               ? { ...indicator, isFavorite: false }
               : indicator,
           ),
@@ -88,12 +93,18 @@ export default function IndicatorSearch({
 
   // 관심 제거 mutation
   const removeFavoriteMutation = useMutation({
-    mutationFn: removeFavoriteEconomicIndicator,
-    onMutate: async (indicatorId) => {
+    mutationFn: ({
+      baseName,
+      country,
+    }: {
+      baseName: string;
+      country?: string;
+    }) => removeFavoriteIndicatorGroup(baseName, country),
+    onMutate: async ({ baseName, country }) => {
       // 즉시 UI 업데이트 (낙관적 업데이트)
       setLocalResults((prev) =>
         prev.map((indicator) =>
-          indicator.id === indicatorId
+          indicator.baseName === baseName && indicator.country === country
             ? { ...indicator, isFavorite: false }
             : indicator,
         ),
@@ -105,14 +116,14 @@ export default function IndicatorSearch({
       queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
       queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
     },
-    onError: (error, indicatorId) => {
+    onError: (error, { baseName, country }) => {
       // 에러 발생 시 UI 되돌리기
       toast.error(
         `제거 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
       );
       setLocalResults((prev) =>
         prev.map((indicator) =>
-          indicator.id === indicatorId
+          indicator.baseName === baseName && indicator.country === country
             ? { ...indicator, isFavorite: true }
             : indicator,
         ),
@@ -121,11 +132,20 @@ export default function IndicatorSearch({
   });
 
   // 관심 등록/해제 핸들러
-  const handleToggleFavorite = (indicatorId: number, isFavorite: boolean) => {
+  const handleToggleFavorite = (
+    baseName: string,
+    country: string,
+    isFavorite: boolean,
+  ) => {
+    if (!baseName) {
+      toast.error('지표 정보가 부족합니다.');
+      return;
+    }
+
     if (isFavorite) {
-      removeFavoriteMutation.mutate(indicatorId);
+      removeFavoriteMutation.mutate({ baseName, country });
     } else {
-      addFavoriteMutation.mutate(indicatorId);
+      addFavoriteMutation.mutate({ baseName, country });
     }
   };
 
@@ -141,11 +161,13 @@ export default function IndicatorSearch({
   };
 
   // 현재 진행 중인 mutation이 있는지 확인
-  const isLoading = (indicatorId: number) => {
+  const isLoading = (baseName: string, country: string) => {
     return (
       (addFavoriteMutation.isPending || removeFavoriteMutation.isPending) &&
-      (addFavoriteMutation.variables === indicatorId ||
-        removeFavoriteMutation.variables === indicatorId)
+      ((addFavoriteMutation.variables?.baseName === baseName &&
+        addFavoriteMutation.variables?.country === country) ||
+        (removeFavoriteMutation.variables?.baseName === baseName &&
+          removeFavoriteMutation.variables?.country === country))
     );
   };
 
@@ -213,14 +235,22 @@ export default function IndicatorSearch({
                 <EventAddButton
                   isAdded={!!indicator.isFavorite}
                   onClick={() =>
-                    handleToggleFavorite(indicator.id, !!indicator.isFavorite)
+                    handleToggleFavorite(
+                      indicator.baseName || '',
+                      indicator.country,
+                      !!indicator.isFavorite,
+                    )
                   }
-                  isLoading={isLoading(indicator.id)}
+                  isLoading={isLoading(
+                    indicator.baseName || '',
+                    indicator.country,
+                  )}
                 />
                 <NotificationButton
-                  id={indicator.id}
-                  eventType="economicIndicator"
+                  eventType="indicatorGroup"
                   isActive={indicator.hasNotification || false}
+                  baseName={indicator.baseName}
+                  country={indicator.country}
                 />
               </div>
             </div>

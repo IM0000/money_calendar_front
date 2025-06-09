@@ -1,5 +1,6 @@
 import React, { createRef, useMemo, useState } from 'react';
 import FavoriteButton from './FavoriteButton';
+import NotificationButton from './NotificationButton';
 import CalendarTableWrapper from './CalendarTableWrapper';
 import { DateRange } from '@/types/calendar-date-range';
 import { getCompanyDividendHistory } from '@/api/services/calendarService';
@@ -75,28 +76,25 @@ export default function DividendTable({
               국가
             </th>
             <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
-              회사
+              회사명
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">
               배당락일
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">
               배당금
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">
               배당지급일
             </th>
-            <th className="min-w-[7rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="min-w-[7rem] px-4 py-2 text-right text-sm font-medium text-gray-700">
               배당수익률
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">
               시가총액
             </th>
             <th className="min-w-[5.5rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               이전 발표
-            </th>
-            <th className="w-10 px-2 py-2 text-left text-sm font-medium text-gray-700">
-              {/* 알림추가 버튼 */}
             </th>
           </tr>
         </thead>
@@ -104,9 +102,9 @@ export default function DividendTable({
           {isLoading ? (
             // 로딩 중일 때 스켈레톤 UI 표시
             <>
-              <TableGroupSkeleton columns={8} rows={3} />
-              <TableGroupSkeleton columns={8} rows={2} />
-              <TableGroupSkeleton columns={8} rows={2} />
+              <TableGroupSkeleton columns={7} rows={3} />
+              <TableGroupSkeleton columns={7} rows={2} />
+              <TableGroupSkeleton columns={7} rows={2} />
             </>
           ) : (
             // 데이터가 있을 때 실제 테이블 내용 표시
@@ -133,7 +131,7 @@ export default function DividendTable({
                     data-date={groupKey} // data-date를 tr에 직접 부여 (혹은 필요하다면 div로 옮길 수 있음)
                   >
                     <td
-                      colSpan={9}
+                      colSpan={8}
                       className="sticky-separator-td border-b px-4 py-2 text-sm font-semibold"
                     >
                       {formattedGroupDate}
@@ -151,7 +149,7 @@ export default function DividendTable({
                   ) : (
                     <tr>
                       <td
-                        colSpan={8}
+                        colSpan={7}
                         className="px-4 py-6 text-center text-gray-500"
                       >
                         예약된 일정이 없습니다.
@@ -221,29 +219,45 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
         <td className="px-4 py-2 text-sm text-gray-700">
           <CountryFlag countryCode={dividend.country} />
         </td>
-        {/* 회사명(티커) */}
+        {/* 회사명(티커) + 관심/알림 버튼 */}
         <td className="px-4 py-2 text-sm text-gray-700">
-          {dividend.company?.name ?? '정보 없음'} (
-          {dividend.company?.ticker ?? '-'})
+          <div className="flex items-center justify-between">
+            <span>
+              {dividend.company?.name ?? '정보 없음'} (
+              {dividend.company?.ticker ?? '-'})
+            </span>
+            <div className="ml-2 flex items-center space-x-1">
+              <FavoriteButton
+                eventType="company"
+                isFavorite={isFavorite}
+                companyId={dividend.company?.id}
+              />
+              <NotificationButton
+                eventType="company"
+                isActive={dividend.hasNotification || false}
+                companyId={dividend.company?.id}
+              />
+            </div>
+          </div>
         </td>
         {/* 배당락일 */}
-        <td className="min-w-[9rem] px-4 py-2 text-sm text-gray-700">
+        <td className="min-w-[9rem] px-4 py-2 text-center text-sm text-gray-700">
           {exDividendDisplay}
         </td>
         {/* 배당금 */}
-        <td className="px-4 py-2 text-sm text-gray-700">
-          {dividend.dividendAmount}
+        <td className="px-4 py-2 text-right text-sm text-gray-700">
+          ${dividend.dividendAmount}
         </td>
         {/* 배당지급일 */}
-        <td className="min-w-[9rem] px-4 py-2 text-sm text-gray-700">
+        <td className="min-w-[9rem] px-4 py-2 text-center text-sm text-gray-700">
           {paymentDateDisplay}
         </td>
         {/* 배당수익률 */}
-        <td className="px-4 py-2 text-sm text-gray-700">
+        <td className="px-4 py-2 text-right text-sm text-gray-700">
           {dividend.dividendYield ? dividend.dividendYield : '-'}
         </td>
         {/* 회사 시가총액 */}
-        <td className="px-4 py-2 text-sm text-gray-700">
+        <td className="px-4 py-2 text-right text-sm text-gray-700">
           {formatMarketCap(dividend.company?.marketValue)}
         </td>
         {/* 이전 배당금값 (바로 직전 값) + 팝업 */}
@@ -254,16 +268,6 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
           >
             {showOlderPopup ? '접기' : '상세보기'}
           </button>
-        </td>
-        {/* 이벤트 추가 + 알림 버튼 */}
-        <td className="w-10 px-2 py-2 text-sm text-gray-700">
-          <div className="flex items-center space-x-1">
-            <FavoriteButton
-              id={dividend.id}
-              eventType="dividend"
-              isFavorite={isFavorite}
-            />
-          </div>
         </td>
       </tr>
       {showOlderPopup && (

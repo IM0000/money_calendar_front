@@ -6,9 +6,9 @@ import NotificationButton from '../CalendarTable/NotificationButton';
 import Pagination from '../UI/Pagination';
 import { getCompanyEarnings } from '../../api/services/searchService';
 import {
-  addFavoriteEarnings,
-  removeFavoriteEarnings,
-} from '../../api/services/calendarService';
+  addFavoriteCompany,
+  removeFavoriteCompany,
+} from '../../api/services/favoriteService';
 import { getColorClass } from '@/utils/colorUtils';
 
 // 실적 정보 인터페이스
@@ -91,15 +91,22 @@ export default function EarningsInfo({
     enabled: !!companyId,
   });
 
-  // 관심 추가 mutation
+  // 관심 추가 mutation (회사 단위)
   const addFavoriteMutation = useMutation({
-    mutationFn: addFavoriteEarnings,
+    mutationFn: () => {
+      if (!companyId) {
+        throw new Error('회사 ID가 필요합니다.');
+      }
+      return addFavoriteCompany(companyId);
+    },
     onSuccess: () => {
       toast.success('관심 일정에 추가되었습니다.');
       // 캐시 업데이트
       queryClient.invalidateQueries({
         queryKey: ['companyEarnings', companyId],
       });
+      queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
+      queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
     },
     onError: (error) => {
       toast.error(
@@ -108,15 +115,22 @@ export default function EarningsInfo({
     },
   });
 
-  // 관심 제거 mutation
+  // 관심 제거 mutation (회사 단위)
   const removeFavoriteMutation = useMutation({
-    mutationFn: removeFavoriteEarnings,
+    mutationFn: () => {
+      if (!companyId) {
+        throw new Error('회사 ID가 필요합니다.');
+      }
+      return removeFavoriteCompany(companyId);
+    },
     onSuccess: () => {
       toast.success('관심 일정에서 제거되었습니다.');
       // 캐시 업데이트
       queryClient.invalidateQueries({
         queryKey: ['companyEarnings', companyId],
       });
+      queryClient.invalidateQueries({ queryKey: ['favoriteCalendarEvents'] });
+      queryClient.invalidateQueries({ queryKey: ['favoriteCount'] });
     },
     onError: (error) => {
       toast.error(
@@ -125,15 +139,17 @@ export default function EarningsInfo({
     },
   });
 
-  // 관심 등록/해제 핸들러
-  const handleFavoriteToggle = (
-    earningsId: number,
-    isCurrentlyAdded: boolean,
-  ) => {
+  // 관심 등록/해제 핸들러 (회사 단위)
+  const handleFavoriteToggle = (isCurrentlyAdded: boolean) => {
+    if (!companyId) {
+      toast.error('회사 정보가 부족합니다.');
+      return;
+    }
+
     if (isCurrentlyAdded) {
-      removeFavoriteMutation.mutate(earningsId);
+      removeFavoriteMutation.mutate();
     } else {
-      addFavoriteMutation.mutate(earningsId);
+      addFavoriteMutation.mutate();
     }
   };
 
@@ -241,10 +257,7 @@ export default function EarningsInfo({
                         <EventAddButton
                           isAdded={!!earnings.isFavorite}
                           onClick={() =>
-                            handleFavoriteToggle(
-                              earnings.id,
-                              !!earnings.isFavorite,
-                            )
+                            handleFavoriteToggle(!!earnings.isFavorite)
                           }
                           isLoading={
                             addFavoriteMutation.isPending ||
@@ -252,9 +265,9 @@ export default function EarningsInfo({
                           }
                         />
                         <NotificationButton
-                          id={earnings.id}
-                          eventType="earnings"
+                          eventType="company"
                           isActive={!!earnings.hasNotification}
+                          companyId={companyId}
                         />
                       </div>
                     </td>
