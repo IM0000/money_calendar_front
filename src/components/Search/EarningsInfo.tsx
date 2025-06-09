@@ -1,46 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-hot-toast';
+import { useQuery } from '@tanstack/react-query';
 import MarketIcon from '../CalendarTable/MarketIcon';
-import EventAddButton from '../CalendarTable/EventAddButton';
-import NotificationButton from '../CalendarTable/NotificationButton';
-import Pagination from '../UI/Pagination';
 import { getCompanyEarnings } from '../../api/services/searchService';
-import {
-  addFavoriteEarnings,
-  removeFavoriteEarnings,
-} from '../../api/services/calendarService';
-import { getColorClass } from '@/utils/colorUtils';
-
-// 실적 정보 인터페이스
-interface Earnings {
-  id: number;
-  releaseDate: number;
-  releaseTiming: 'PRE_MARKET' | 'POST_MARKET' | 'UNKNOWN';
-  actualEPS: string;
-  forecastEPS: string;
-  previousEPS: string;
-  actualRevenue: string;
-  forecastRevenue: string;
-  previousRevenue: string;
-  isFavorite?: boolean;
-  hasNotification?: boolean;
-}
-
-// API 응답 인터페이스
-interface ApiResponseData {
-  items: Earnings[];
-  pagination: {
-    total: number;
-    totalPages: number;
-    page: number;
-    limit: number;
-  };
-}
-
-interface EarningsResponse {
-  statusCode: number;
-  data: ApiResponseData;
-}
+import { EarningsEvent } from '@/types/calendar-event';
+import { formatSearchDate } from '../../utils/dateUtils';
+import DataTableBase from './shared/DataTableBase';
 
 interface EarningsInfoProps {
   companyId?: number;
@@ -55,90 +18,27 @@ export default function EarningsInfo({
   limit,
   onPageChange,
 }: EarningsInfoProps) {
-  const queryClient = useQueryClient();
-
-  // 날짜 포맷팅 함수
-  const formatDate = (timestamp: number) => {
-    if (!timestamp) return '-';
-    const date = new Date(timestamp);
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
-  // 실적 데이터 쿼리
+  // 실적 데이터 조회
   const { data: earningsData, isLoading: isEarningsDataLoading } = useQuery({
     queryKey: ['companyEarnings', companyId, page, limit],
-    queryFn: async () => {
-      if (!companyId) {
-        return {
-          statusCode: 200,
-          data: {
-            items: [] as Earnings[],
-            pagination: { total: 0, totalPages: 0, page: 1, limit: 5 },
-          },
-        } as EarningsResponse;
-      }
-      const response = await getCompanyEarnings({
-        companyId,
-        page,
-        limit,
-      });
-      return response;
-    },
+    queryFn: () => getCompanyEarnings({ companyId: companyId!, page, limit }),
     enabled: !!companyId,
   });
 
-  // 관심 추가 mutation
-  const addFavoriteMutation = useMutation({
-    mutationFn: addFavoriteEarnings,
-    onSuccess: () => {
-      toast.success('관심 일정에 추가되었습니다.');
-      // 캐시 업데이트
-      queryClient.invalidateQueries({
-        queryKey: ['companyEarnings', companyId],
-      });
-    },
-    onError: (error) => {
-      toast.error(
-        `추가 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-      );
-    },
-  });
+  // 실적/예상 비교 색상 클래스 반환
+  const getColorClass = (actual: string, forecast: string) => {
+    if (!actual || !forecast) return '';
 
-  // 관심 제거 mutation
-  const removeFavoriteMutation = useMutation({
-    mutationFn: removeFavoriteEarnings,
-    onSuccess: () => {
-      toast.success('관심 일정에서 제거되었습니다.');
-      // 캐시 업데이트
-      queryClient.invalidateQueries({
-        queryKey: ['companyEarnings', companyId],
-      });
-    },
-    onError: (error) => {
-      toast.error(
-        `제거 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
-      );
-    },
-  });
+    const actualValue = parseFloat(actual.replace(/[^-0-9.]/g, ''));
+    const forecastValue = parseFloat(forecast.replace(/[^-0-9.]/g, ''));
 
-  // 관심 등록/해제 핸들러
-  const handleFavoriteToggle = (
-    earningsId: number,
-    isCurrentlyAdded: boolean,
-  ) => {
-    if (isCurrentlyAdded) {
-      removeFavoriteMutation.mutate(earningsId);
-    } else {
-      addFavoriteMutation.mutate(earningsId);
-    }
+    if (actualValue > forecastValue) return 'text-green-600';
+    if (actualValue < forecastValue) return 'text-red-600';
+    return '';
   };
 
   // 데이터 추출 헬퍼 함수
-  const getItems = (): Earnings[] => earningsData?.data?.items || [];
+  const getItems = (): EarningsEvent[] => earningsData?.data?.items || [];
   const getPagination = () =>
     earningsData?.data?.pagination || {
       total: 0,
@@ -148,134 +48,85 @@ export default function EarningsInfo({
     };
 
   return (
-    <div className="mb-8">
-      <h3 className="mb-3 text-lg font-semibold text-gray-800">실적 정보</h3>
-
-      {isEarningsDataLoading ? (
-        <div className="flex items-center justify-center p-8">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
-        </div>
-      ) : getItems().length === 0 ? (
-        <div className="rounded-lg border border-gray-200 bg-white p-6 text-center text-gray-500">
-          실적 정보가 없습니다.
-        </div>
-      ) : (
-        <div>
-          <div className="overflow-hidden rounded-lg border border-gray-200">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
-                  >
-                    발표일
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
-                  >
-                    시간
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
-                  >
-                    EPS (실적/예상)
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
-                  >
-                    매출 (실적/예상)
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500"
-                  >
-                    작업
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
-                {getItems().map((earnings) => (
-                  <tr key={earnings.id} className="hover:bg-gray-50">
-                    <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
-                      {formatDate(earnings.releaseDate)}
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                      <MarketIcon releaseTiming={earnings.releaseTiming} />
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                      <div className="flex flex-col">
-                        <span
-                          className={`font-medium text-gray-900 ${getColorClass(
-                            earnings.actualEPS,
-                            earnings.forecastEPS,
-                          )}`}
-                        >
-                          {earnings.actualEPS || '-'}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          예상: {earnings.forecastEPS || '-'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                      <div className="flex flex-col">
-                        <span
-                          className={`font-medium text-gray-900 ${getColorClass(
-                            earnings.actualRevenue,
-                            earnings.forecastRevenue,
-                          )}`}
-                        >
-                          {earnings.actualRevenue || '-'}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          예상: {earnings.forecastRevenue || '-'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-4 text-center text-sm text-gray-500">
-                      <div className="flex justify-center space-x-2">
-                        <EventAddButton
-                          isAdded={!!earnings.isFavorite}
-                          onClick={() =>
-                            handleFavoriteToggle(
-                              earnings.id,
-                              !!earnings.isFavorite,
-                            )
-                          }
-                          isLoading={
-                            addFavoriteMutation.isPending ||
-                            removeFavoriteMutation.isPending
-                          }
-                        />
-                        <NotificationButton
-                          id={earnings.id}
-                          eventType="earnings"
-                          isActive={!!earnings.hasNotification}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* 실적 페이지네이션 */}
-          {getPagination().totalPages > 1 && (
-            <div className="flex justify-center p-4">
-              <Pagination
-                currentPage={page}
-                totalPages={getPagination().totalPages}
-                onPageChange={onPageChange}
-              />
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+    <DataTableBase
+      title="실적 정보"
+      isLoading={isEarningsDataLoading}
+      isEmpty={getItems().length === 0}
+      emptyMessage="실적 정보가 없습니다."
+      currentPage={page}
+      totalPages={getPagination().totalPages}
+      onPageChange={onPageChange}
+    >
+      <thead className="bg-gray-50">
+        <tr>
+          <th
+            scope="col"
+            className="min-w-[120px] px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 lg:w-auto"
+          >
+            발표일
+          </th>
+          <th
+            scope="col"
+            className="min-w-[80px] px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 lg:w-auto"
+          >
+            시간
+          </th>
+          <th
+            scope="col"
+            className="min-w-[180px] px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 lg:w-auto"
+          >
+            EPS (실적/예상)
+          </th>
+          <th
+            scope="col"
+            className="min-w-[180px] px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 lg:w-auto"
+          >
+            매출 (실적/예상)
+          </th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-gray-200 bg-white">
+        {getItems().map((earnings) => (
+          <tr key={earnings.id} className="hover:bg-gray-50">
+            <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+              {formatSearchDate(earnings.releaseDate)}
+            </td>
+            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+              <MarketIcon releaseTiming={earnings.releaseTiming} />
+            </td>
+            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+              <div className="flex flex-col">
+                <span
+                  className={`font-medium text-gray-900 ${getColorClass(
+                    earnings.actualEPS,
+                    earnings.forecastEPS,
+                  )}`}
+                >
+                  {earnings.actualEPS || '-'}
+                </span>
+                <span className="text-xs text-gray-500">
+                  예상: {earnings.forecastEPS || '-'}
+                </span>
+              </div>
+            </td>
+            <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+              <div className="flex flex-col">
+                <span
+                  className={`font-medium text-gray-900 ${getColorClass(
+                    earnings.actualRevenue,
+                    earnings.forecastRevenue,
+                  )}`}
+                >
+                  {earnings.actualRevenue || '-'}
+                </span>
+                <span className="text-xs text-gray-500">
+                  예상: {earnings.forecastRevenue || '-'}
+                </span>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </DataTableBase>
   );
 }

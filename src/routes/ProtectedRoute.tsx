@@ -58,7 +58,9 @@ export default function ProtectedRoute({
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-600">로딩 중...</p>
+        <div className="flex items-center justify-center p-8">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+        </div>
       </div>
     );
   }

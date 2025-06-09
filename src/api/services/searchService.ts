@@ -80,62 +80,6 @@ export const getCompanyById = withErrorHandling(
 );
 
 /**
- * 실적 관심 등록 API
- */
-export const addFavoriteCompanyEarnings = withErrorHandling(
-  async (companyId: number): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await apiClient.post(
-      `/api/v1/favorites/earnings/company/${companyId}`,
-    );
-    return response.data;
-  },
-  undefined,
-  'CalendarService.addFavoriteCompanyEarnings',
-);
-
-/**
- * 배당 관심 등록 API
- */
-export const addFavoriteCompanyDividend = withErrorHandling(
-  async (companyId: number): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await apiClient.post(
-      `/api/v1/favorites/dividends/company/${companyId}`,
-    );
-    return response.data;
-  },
-  undefined,
-  'CalendarService.addFavoriteCompanyDividend',
-);
-
-/**
- * 실적 관심 해제 API
- */
-export const removeFavoriteCompanyEarnings = withErrorHandling(
-  async (companyId: number): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await apiClient.delete(
-      `/api/v1/favorites/earnings/company/${companyId}`,
-    );
-    return response.data;
-  },
-  undefined,
-  'CalendarService.removeFavoriteCompanyEarnings',
-);
-
-/**
- * 배당 관심 해제 API
- */
-export const removeFavoriteCompanyDividend = withErrorHandling(
-  async (companyId: number): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await apiClient.delete(
-      `/api/v1/favorites/dividends/company/${companyId}`,
-    );
-    return response.data;
-  },
-  undefined,
-  'CalendarService.removeFavoriteCompanyDividend',
-);
-
-/**
  * 기업 실적 정보 조회 API
  */
 export const getCompanyEarnings = withErrorHandling(

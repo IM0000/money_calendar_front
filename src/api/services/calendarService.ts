@@ -1,5 +1,3 @@
-// src/services/calendarService.ts
-
 import { ApiResponse } from '../../types/api-response';
 import apiClient from '../client';
 import { withErrorHandling } from '../../utils/errorHandler';
@@ -93,7 +91,7 @@ export const getEconomicIndicatorEvents = withErrorHandling(
 );
 
 /**
- * 관심 일정만 조회
+ * 관심 일정만 조회 (즐겨찾기 기반)
  */
 export const getFavoriteCalendarEvents = withErrorHandling(
   async (
@@ -112,121 +110,13 @@ export const getFavoriteCalendarEvents = withErrorHandling(
         dividends: DividendEvent[];
         economicIndicators: EconomicIndicatorEvent[];
       }>
-    >('/api/v1/favorites/calendar', {
+    >('/api/v1/calendar/favorites', {
       params: { startDate, endDate },
     });
     return response.data;
   },
   undefined,
   'CalendarService.getFavoriteCalendarEvents',
-);
-
-/**
- * 실적 정보 관심 목록에 추가
- */
-export const addFavoriteEarnings = withErrorHandling(
-  async (earningsId: number): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await apiClient.post<ApiResponse<{ success: boolean }>>(
-      `/api/v1/favorites/earnings/${earningsId}`,
-    );
-    return response.data;
-  },
-  undefined,
-  'CalendarService.addFavoriteEarnings',
-);
-
-/**
- * 실적 정보 관심 목록에서 제거
- */
-export const removeFavoriteEarnings = withErrorHandling(
-  async (earningsId: number): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await apiClient.delete<ApiResponse<{ success: boolean }>>(
-      `/api/v1/favorites/earnings/${earningsId}`,
-    );
-    return response.data;
-  },
-  undefined,
-  'CalendarService.removeFavoriteEarnings',
-);
-
-/**
- * 배당 정보 관심 목록에 추가
- */
-export const addFavoriteDividend = withErrorHandling(
-  async (dividendId: number): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await apiClient.post<ApiResponse<{ success: boolean }>>(
-      `/api/v1/favorites/dividends/${dividendId}`,
-    );
-    return response.data;
-  },
-  undefined,
-  'CalendarService.addFavoriteDividend',
-);
-
-/**
- * 배당 정보 관심 목록에서 제거
- */
-export const removeFavoriteDividend = withErrorHandling(
-  async (dividendId: number): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await apiClient.delete<ApiResponse<{ success: boolean }>>(
-      `/api/v1/favorites/dividends/${dividendId}`,
-    );
-    return response.data;
-  },
-  undefined,
-  'CalendarService.removeFavoriteDividend',
-);
-
-/**
- * 경제지표 관심 목록에 추가
- */
-export const addFavoriteEconomicIndicator = withErrorHandling(
-  async (indicatorId: number): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await apiClient.post<ApiResponse<{ success: boolean }>>(
-      `/api/v1/favorites/economic-indicators/${indicatorId}`,
-    );
-    return response.data;
-  },
-  undefined,
-  'CalendarService.addFavoriteEconomicIndicator',
-);
-
-/**
- * 경제지표 관심 목록에서 제거
- */
-export const removeFavoriteEconomicIndicator = withErrorHandling(
-  async (indicatorId: number): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await apiClient.delete<ApiResponse<{ success: boolean }>>(
-      `/api/v1/favorites/economic-indicators/${indicatorId}`,
-    );
-    return response.data;
-  },
-  undefined,
-  'CalendarService.removeFavoriteEconomicIndicator',
-);
-
-/**
- * 관심 일정 카운트 조회
- */
-export const getFavoriteCount = withErrorHandling(
-  async (): Promise<
-    ApiResponse<{
-      earnings: number;
-      dividends: number;
-      economicIndicators: number;
-    }>
-  > => {
-    const response = await apiClient.get<
-      ApiResponse<{
-        earnings: number;
-        dividends: number;
-        economicIndicators: number;
-      }>
-    >('/api/v1/favorites/count');
-    return response.data;
-  },
-  undefined,
-  'CalendarService.getFavoriteCount',
 );
 
 /**
@@ -303,4 +193,53 @@ export const getCompanyDividendHistory = withErrorHandling(
   },
   undefined,
   'CalendarService.getCompanyDividendHistory',
+);
+
+/**
+ * 특정 지표 그룹의 경제지표 히스토리 조회
+ */
+export const getIndicatorGroupHistory = withErrorHandling(
+  async (
+    baseName: string,
+    country?: string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<
+    ApiResponse<{
+      items: EconomicIndicatorEvent[];
+      pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+      };
+    }>
+  > => {
+    const params: {
+      baseName: string;
+      page: number;
+      limit: number;
+      country?: string;
+    } = { baseName, page, limit };
+    if (country) {
+      params.country = country;
+    }
+
+    const response = await apiClient.get<
+      ApiResponse<{
+        items: EconomicIndicatorEvent[];
+        pagination: {
+          total: number;
+          page: number;
+          limit: number;
+          totalPages: number;
+        };
+      }>
+    >('/api/v1/calendar/indicators/history', {
+      params,
+    });
+    return response.data;
+  },
+  undefined,
+  'CalendarService.getIndicatorGroupHistory',
 );

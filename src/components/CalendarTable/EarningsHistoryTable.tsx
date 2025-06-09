@@ -22,58 +22,62 @@ export default function EarningsHistoryTable({
   onPageChange,
 }: EarningsHistoryTableProps) {
   if (isLoading) {
-    return <div className="p-4 mt-4 text-center text-gray-500">로딩 중...</div>;
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+      </div>
+    );
   }
 
   if (data.length === 0) {
     return (
-      <div className="p-4 mt-4 text-center text-gray-500">
+      <div className="mt-4 p-4 text-center text-gray-500">
         이전 실적 데이터가 없습니다.
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden bg-white border border-gray-200 rounded-md shadow-sm">
+    <div className="overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th
               scope="col"
-              className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
+              className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
             >
               발표 날짜
             </th>
             <th
               scope="col"
-              className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
+              className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
             >
               시간
             </th>
             <th
               scope="col"
-              className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
+              className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
             >
               EPS / 예측
             </th>
             <th
               scope="col"
-              className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase"
+              className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
             >
               매출 / 예측
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="divide-y divide-gray-200 bg-white">
           {data.map((earning) => (
             <tr key={earning.id}>
-              <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
+              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                 {formatDate(new Date(earning.releaseDate))}
               </td>
-              <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
+              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                 <MarketIcon releaseTiming={earning.releaseTiming} />
               </td>
-              <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
+              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                 <div className="flex items-center space-x-1">
                   <span
                     className={`font-medium ${getColorClass(
@@ -88,7 +92,7 @@ export default function EarningsHistoryTable({
                   </span>
                 </div>
               </td>
-              <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
+              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
                 <div className="flex items-center space-x-1">
                   <span
                     className={`font-medium ${getColorClass(
@@ -109,7 +113,7 @@ export default function EarningsHistoryTable({
       </table>
 
       {/* 페이지네이션 */}
-      <div className="px-4 py-3 bg-white sm:px-6">
+      <div className="bg-white px-4 py-3 sm:px-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-700">

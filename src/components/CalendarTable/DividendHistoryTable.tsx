@@ -20,7 +20,11 @@ export default function DividendHistoryTable({
   onPageChange,
 }: DividendHistoryTableProps) {
   if (isLoading) {
-    return <div className="mt-4 p-4 text-center text-gray-500">로딩 중...</div>;
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+      </div>
+    );
   }
 
   if (data.length === 0) {

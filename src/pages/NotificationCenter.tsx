@@ -9,9 +9,9 @@ import {
   DialogTrigger,
 } from '@/components/UI/dialog';
 import { useState } from 'react';
-import NotificationSettings from '@/components/notification/NotificationSettings';
-import NotificationList from '@/components/notification/NotificationList';
-import MyNotifications from '@/components/notification/MyNotifications';
+import NotificationSettings from '@/components/Notification/NotificationSettings';
+import NotificationList from '@/components/Notification/NotificationList';
+import MySubscriptionList from '@/components/Notification/MySubscriptionList';
 
 export const NotificationCenter = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -29,7 +29,7 @@ export const NotificationCenter = () => {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>알림 방식 설정</DialogTitle>
+                <DialogTitle>추가 알림 설정</DialogTitle>
               </DialogHeader>
               <NotificationSettings />
             </DialogContent>
@@ -40,13 +40,15 @@ export const NotificationCenter = () => {
             <Tabs defaultValue="notificationList" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="notificationList">알림 현황</TabsTrigger>
-                <TabsTrigger value="MyNotification">내 알림 관리</TabsTrigger>
+                <TabsTrigger value="MyNotification">
+                  내 알림구독 관리
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="notificationList">
                 <NotificationList />
               </TabsContent>
               <TabsContent value="MyNotification">
-                <MyNotifications />
+                <MySubscriptionList />
               </TabsContent>
             </Tabs>
           </div>

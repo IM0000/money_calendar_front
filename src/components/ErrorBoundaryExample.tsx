@@ -62,7 +62,12 @@ const ApiErrorHandlingExample = () => {
     }
   }, [error, handleError]);
 
-  if (isLoading) return <div>로딩 중...</div>;
+  if (isLoading)
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+      </div>
+    );
 
   return (
     <div className="rounded-md border p-4">

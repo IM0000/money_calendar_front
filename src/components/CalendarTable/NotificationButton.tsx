@@ -1,5 +1,5 @@
 // NotificationButton.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Tippy from '@tippyjs/react';
 import 'tippy.js/dist/tippy.css';
 import { FaBell, FaBellSlash, FaSpinner } from 'react-icons/fa';
@@ -8,24 +8,27 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import {
-  addEarningsNotification,
-  removeEarningsNotification,
-  addIndicatorNotification,
-  removeIndicatorNotification,
-} from '@/api/services/notificationService';
-
-export type EventType = 'earnings' | 'economicIndicator';
+  subscribeCompany,
+  unsubscribeCompany,
+  subscribeIndicatorGroup,
+  unsubscribeIndicatorGroup,
+} from '@/api/services/subscriptionService';
+import { EventType } from '@/types/event-type';
 
 interface NotificationButtonProps {
-  id: number;
   eventType: EventType;
   isActive: boolean;
+  companyId?: number;
+  baseName?: string;
+  country?: string;
 }
 
 export default function NotificationButton({
-  id,
   eventType,
   isActive: initialIsActive,
+  companyId,
+  baseName,
+  country,
 }: NotificationButtonProps) {
   const { isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
@@ -33,36 +36,49 @@ export default function NotificationButton({
 
   const [isActive, setIsActive] = useState(initialIsActive);
 
-  // 알림 추가 API 호출 함수 선택
-  const getAddNotificationFunction = (eventType: EventType) => {
-    switch (eventType) {
-      case 'earnings':
-        return addEarningsNotification;
-      case 'economicIndicator':
-        return addIndicatorNotification;
-    }
-  };
+  // props 변경 시 내부 상태 동기화
+  useEffect(() => {
+    setIsActive(initialIsActive);
+  }, [initialIsActive]);
 
-  // 알림 제거 API 호출 함수 선택
-  const getRemoveNotificationFunction = (eventType: EventType) => {
-    switch (eventType) {
-      case 'earnings':
-        return removeEarningsNotification;
-      case 'economicIndicator':
-        return removeIndicatorNotification;
-    }
-  };
-
-  // 알림 추가 mutation
-  const addNotificationMutation = useMutation({
-    mutationFn: () => getAddNotificationFunction(eventType)(id),
+  // 구독 추가 mutation
+  const addSubscriptionMutation = useMutation({
+    mutationFn: async () => {
+      if (eventType === 'indicatorGroup') {
+        if (!baseName) {
+          throw new Error('경제지표의 baseName이 필요합니다.');
+        }
+        return subscribeIndicatorGroup(baseName, country);
+      } else {
+        // company
+        if (!companyId) {
+          throw new Error('회사 ID가 필요합니다.');
+        }
+        return subscribeCompany(companyId);
+      }
+    },
     onSuccess: () => {
       setIsActive(true);
       toast.success('알림이 설정되었습니다.');
-      // 캐시 업데이트 - calendarEvents도 무효화
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['calendarEvents'] });
-      queryClient.invalidateQueries({ queryKey: ['notificationCalendar'] });
+
+      // 더 광범위한 캐시 무효화 - prefix 패턴 사용
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey[0] as string;
+          return [
+            'notifications',
+            'calendarEvents',
+            'userSubscriptions',
+            'companySubscriptions',
+            'indicatorGroupSubscriptions',
+            'searchCompanies',
+            'searchIndicators',
+            'companyEarnings',
+            'companyDividends',
+            'indicatorGroupHistory',
+          ].includes(key);
+        },
+      });
     },
     onError: (error) => {
       toast.error(
@@ -71,16 +87,44 @@ export default function NotificationButton({
     },
   });
 
-  // 알림 제거 mutation
-  const removeNotificationMutation = useMutation({
-    mutationFn: () => getRemoveNotificationFunction(eventType)(id),
+  // 구독 제거 mutation
+  const removeSubscriptionMutation = useMutation({
+    mutationFn: async () => {
+      if (eventType === 'indicatorGroup') {
+        if (!baseName) {
+          throw new Error('경제지표의 baseName이 필요합니다.');
+        }
+        return unsubscribeIndicatorGroup(baseName, country);
+      } else {
+        // company
+        if (!companyId) {
+          throw new Error('회사 ID가 필요합니다.');
+        }
+        return unsubscribeCompany(companyId);
+      }
+    },
     onSuccess: () => {
       setIsActive(false);
       toast.success('알림이 해제되었습니다.');
-      // 캐시 업데이트 - calendarEvents도 무효화
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['calendarEvents'] });
-      queryClient.invalidateQueries({ queryKey: ['notificationCalendar'] });
+
+      // 더 광범위한 캐시 무효화 - prefix 패턴 사용
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey[0] as string;
+          return [
+            'notifications',
+            'calendarEvents',
+            'userSubscriptions',
+            'companySubscriptions',
+            'indicatorGroupSubscriptions',
+            'searchCompanies',
+            'searchIndicators',
+            'companyEarnings',
+            'companyDividends',
+            'indicatorGroupHistory',
+          ].includes(key);
+        },
+      });
     },
     onError: (error) => {
       toast.error(
@@ -100,12 +144,22 @@ export default function NotificationButton({
       return;
     }
 
+    if (eventType === 'indicatorGroup' && !baseName) {
+      toast.error('경제지표 정보가 부족합니다.');
+      return;
+    }
+
+    if (eventType === 'company' && !companyId) {
+      toast.error('회사 정보가 부족합니다.');
+      return;
+    }
+
     if (isActive) {
       // 제거 요청
-      removeNotificationMutation.mutate();
+      removeSubscriptionMutation.mutate();
     } else {
       // 추가 요청
-      addNotificationMutation.mutate();
+      addSubscriptionMutation.mutate();
     }
   };
 
@@ -116,7 +170,7 @@ export default function NotificationButton({
 
   // 요청 중인지 여부
   const isLoading =
-    addNotificationMutation.isPending || removeNotificationMutation.isPending;
+    addSubscriptionMutation.isPending || removeSubscriptionMutation.isPending;
 
   return (
     <Tippy content={getTipContent()} delay={[0, 0]} duration={[0, 0]}>
@@ -130,7 +184,10 @@ export default function NotificationButton({
         ) : isActive ? (
           <FaBell size={16} className="text-green-500" />
         ) : (
-          <FaBellSlash size={16} className="text-gray-500" />
+          <FaBellSlash
+            size={16}
+            className="text-gray-500 hover:text-green-300"
+          />
         )}
       </button>
     </Tippy>

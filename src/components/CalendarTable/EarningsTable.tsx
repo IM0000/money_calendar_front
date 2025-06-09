@@ -77,7 +77,7 @@ export default function EarningsTable({
   return (
     <CalendarTableWrapper headerRefs={headerRefs}>
       <table className="min-w-full divide-y divide-gray-200">
-        <thead className="sticky top-0 z-30 calendar-table-header bg-gray-50">
+        <thead className="calendar-table-header sticky top-0 z-30 bg-gray-50">
           <tr className="h-[2.80rem]">
             <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               시간
@@ -85,31 +85,30 @@ export default function EarningsTable({
             <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               국가
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               회사명
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               EPS / 예측
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               매출 / 예측
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               시가총액
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               이전 발표
             </th>
-            <th className="w-10 px-2 py-2 text-sm font-medium text-left text-gray-700"></th>
           </tr>
         </thead>
         <tbody>
           {isLoading ? (
             // 로딩 중일 때 스켈레톤 UI 표시
             <>
-              <TableGroupSkeleton columns={9} rows={3} />
-              <TableGroupSkeleton columns={9} rows={4} />
-              <TableGroupSkeleton columns={9} rows={2} />
+              <TableGroupSkeleton columns={7} rows={3} />
+              <TableGroupSkeleton columns={7} rows={4} />
+              <TableGroupSkeleton columns={7} rows={2} />
             </>
           ) : (
             // 데이터가 있을 때 실제 테이블 내용 표시
@@ -141,8 +140,8 @@ export default function EarningsTable({
                     data-date={groupKey} // data-date를 tr에 직접 부여 (혹은 필요하다면 div로 옮길 수 있음)
                   >
                     <td
-                      colSpan={9}
-                      className="px-4 py-2 text-sm font-semibold sticky-separator-td"
+                      colSpan={7}
+                      className="sticky-separator-td px-4 py-2 text-sm font-semibold"
                     >
                       {formattedGroupDate}
                     </td>
@@ -166,7 +165,7 @@ export default function EarningsTable({
                   ) : (
                     <tr>
                       <td
-                        colSpan={9}
+                        colSpan={7}
                         className="px-4 py-6 text-center text-gray-500"
                       >
                         예약된 일정이 없습니다.
@@ -229,7 +228,23 @@ function EarningRow({
           <CountryFlag countryCode={earning.country} />
         </td>
         <td className="px-4 py-2 text-sm text-gray-700">
-          {earning.company.name} ({earning.company.ticker})
+          <div className="flex items-center justify-between">
+            <span>
+              {earning.company.name} ({earning.company.ticker})
+            </span>
+            <div className="ml-2 flex items-center space-x-1">
+              <FavoriteButton
+                eventType="company"
+                isFavorite={isFavorite}
+                companyId={earning.company.id}
+              />
+              <NotificationButton
+                eventType="company"
+                isActive={earning.hasNotification || false}
+                companyId={earning.company.id}
+              />
+            </div>
+          </div>
         </td>
         <td className="min-w-[10rem] px-4 py-2 text-sm text-gray-700">
           <span
@@ -258,25 +273,11 @@ function EarningRow({
             {showOlderPopup ? '접기' : '상세보기'}
           </button>
         </td>
-        <td className="w-10 px-2 py-2 text-sm text-gray-700">
-          <div className="flex items-center space-x-1">
-            <FavoriteButton
-              id={earning.id}
-              eventType="earnings"
-              isFavorite={isFavorite}
-            />
-            <NotificationButton
-              id={earning.id}
-              eventType="earnings"
-              isActive={earning.hasNotification || false}
-            />
-          </div>
-        </td>
       </tr>
       {showOlderPopup && (
         <tr>
-          <td colSpan={9} className="px-4 py-4 bg-gray-50">
-            <div className="p-4 bg-white border border-gray-200 rounded">
+          <td colSpan={7} className="bg-gray-50 px-4 py-4">
+            <div className="rounded border border-gray-200 bg-white p-4">
               <h3 className="mb-4 text-lg font-medium">
                 {earning.company.name} 이전 실적 정보
               </h3>

@@ -4,6 +4,7 @@ import Layout from '../components/Layout/Layout';
 import EconomicIndicatorTable from '@/components/CalendarTable/EconomicIndicatorTable';
 import EarningsTable from '@/components/CalendarTable/EarningsTable';
 import DividendTable from '@/components/CalendarTable/DividendTable';
+import ImportanceFilter from '@/components/CalendarTable/ImportanceFilter';
 import { formatDate } from '@/utils/dateUtils';
 import useCalendarStore from '@/zustand/useCalendarDateStore';
 import { DateRange } from '@/types/calendar-date-range';
@@ -14,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 export default function MainPage() {
   const [selectedMenu, setSelectedMenu] = useState('경제지표');
   const [isMenuChanging, setIsMenuChanging] = useState(false);
+  const [selectedImportance, setSelectedImportance] = useState<number[]>([]);
 
   const { subSelectedDates } = useCalendarStore();
   const initialDateRange: DateRange = {
@@ -82,34 +84,45 @@ export default function MainPage() {
         {/* {import.meta.env.DEV && <TestErrorButton />} */}
 
         {/* 메뉴 버튼 영역 */}
-        <div className="flex px-8 mt-4 space-x-4 text-sm">
-          <button
-            className={getButtonClass('경제지표')}
-            onClick={() => handleMenuClick('경제지표')}
-          >
-            경제지표
-          </button>
-          <button
-            className={getButtonClass('실적')}
-            onClick={() => handleMenuClick('실적')}
-          >
-            실적
-          </button>
-          <button
-            className={getButtonClass('배당')}
-            onClick={() => handleMenuClick('배당')}
-          >
-            배당
-          </button>
+        <div className="mt-4 flex items-center justify-between px-8 text-sm">
+          <div className="flex space-x-4">
+            <button
+              className={getButtonClass('경제지표')}
+              onClick={() => handleMenuClick('경제지표')}
+            >
+              경제지표
+            </button>
+            <button
+              className={getButtonClass('실적')}
+              onClick={() => handleMenuClick('실적')}
+            >
+              실적
+            </button>
+            <button
+              className={getButtonClass('배당')}
+              onClick={() => handleMenuClick('배당')}
+            >
+              배당
+            </button>
+          </div>
+
+          {/* 경제지표 메뉴일 때만 중요도 필터 표시 */}
+          {selectedMenu === '경제지표' && (
+            <ImportanceFilter
+              selectedImportance={selectedImportance}
+              onImportanceChange={setSelectedImportance}
+            />
+          )}
         </div>
 
         {/* 선택된 메뉴에 따라 테이블 컴포넌트 렌더링 */}
-        <div className="w-full px-8 mt-4 overflow-x-auto border-gray-300">
+        <div className="mt-4 w-full overflow-x-auto border-gray-300 px-8">
           {selectedMenu === '경제지표' && (
             <EconomicIndicatorTable
               events={economicIndicators}
               dateRange={dateRange}
               isLoading={isLoading || isMenuChanging}
+              selectedImportance={selectedImportance}
             />
           )}
           {selectedMenu === '실적' && (

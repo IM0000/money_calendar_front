@@ -1,4 +1,3 @@
-// src/services/AuthService.ts
 import apiClient from '../client';
 import { withErrorHandling } from '../../utils/errorHandler';
 import { ApiResponse } from '../../types/api-response';

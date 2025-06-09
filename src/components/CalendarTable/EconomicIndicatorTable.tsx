@@ -13,6 +13,7 @@ interface EconomicIndicatorTableProps {
   dateRange: DateRange;
   isLoading?: boolean;
   isFavoritePage?: boolean;
+  selectedImportance?: number[];
 }
 
 export default function EconomicIndicatorTable({
@@ -20,7 +21,18 @@ export default function EconomicIndicatorTable({
   dateRange,
   isLoading = false,
   isFavoritePage = false,
+  selectedImportance = [],
 }: EconomicIndicatorTableProps) {
+  // 중요도 필터링된 이벤트
+  const filteredEvents = useMemo(() => {
+    if (selectedImportance.length === 0) {
+      return events; // 필터가 없으면 모든 이벤트 반환
+    }
+    return events.filter((event) =>
+      selectedImportance.includes(event.importance),
+    );
+  }, [events, selectedImportance]);
+
   // dateRange를 활용하여 모든 날짜 생성
   const allDates = useMemo(() => {
     const dates: string[] = [];
@@ -37,8 +49,8 @@ export default function EconomicIndicatorTable({
     return dates;
   }, [dateRange]);
 
-  // releaseDate를 기준으로 "YYYY-MM-DD" 문자열 그룹으로 묶기
-  const groups = events.reduce(
+  // releaseDate를 기준으로 "YYYY-MM-DD" 문자열 그룹으로 묶기 (필터링된 이벤트 사용)
+  const groups = filteredEvents.reduce(
     (acc, indicator) => {
       const dateObj = new Date(indicator.releaseDate);
       const groupKey = formatLocalISOString(dateObj).slice(0, 10);
@@ -69,7 +81,7 @@ export default function EconomicIndicatorTable({
     <CalendarTableWrapper headerRefs={headerRefs}>
       <table className="min-w-full divide-y divide-gray-200">
         {/* 메인 헤더: 스크롤 시 상단에 고정 (헤더 높이 약 2.80rem) */}
-        <thead className="sticky top-0 z-30 calendar-table-header bg-gray-50">
+        <thead className="calendar-table-header sticky top-0 z-30 bg-gray-50">
           <tr className="h-[2.80rem]">
             <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               시간
@@ -77,10 +89,10 @@ export default function EconomicIndicatorTable({
             <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               국가
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               이벤트
             </th>
-            <th className="px-4 py-2 text-sm font-medium text-left text-gray-700">
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
               중요도
             </th>
             <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
@@ -92,17 +104,15 @@ export default function EconomicIndicatorTable({
             <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
               이전
             </th>
-            {/* 알림추가 버튼은 열 너비를 최소화 */}
-            <th className="w-10 px-2 py-2 text-sm font-medium text-left text-gray-700"></th>
           </tr>
         </thead>
         <tbody>
           {isLoading ? (
             // 로딩 중일 때 스켈레톤 UI 표시
             <>
-              <TableGroupSkeleton columns={8} rows={3} />
-              <TableGroupSkeleton columns={8} rows={2} />
-              <TableGroupSkeleton columns={8} rows={4} />
+              <TableGroupSkeleton columns={7} rows={3} />
+              <TableGroupSkeleton columns={7} rows={2} />
+              <TableGroupSkeleton columns={7} rows={4} />
             </>
           ) : (
             // 데이터가 있을 때 실제 테이블 내용 표시
@@ -125,8 +135,8 @@ export default function EconomicIndicatorTable({
                     data-date={groupKey} // data-date를 tr에 직접 부여 (혹은 필요하다면 div로 옮길 수 있음)
                   >
                     <td
-                      colSpan={8}
-                      className="px-4 py-2 text-sm font-semibold border-b sticky-separator-td"
+                      colSpan={7}
+                      className="sticky-separator-td border-b px-4 py-2 text-sm font-semibold"
                     >
                       {formattedGroupDate}
                     </td>
@@ -142,7 +152,7 @@ export default function EconomicIndicatorTable({
                   ) : (
                     <tr>
                       <td
-                        colSpan={8}
+                        colSpan={7}
                         className="px-4 py-6 text-center text-gray-500"
                       >
                         예약된 일정이 없습니다.
@@ -203,7 +213,25 @@ function EconomicIndicatorRow({
       <td className="px-4 py-2 text-sm text-gray-700">
         <CountryFlag countryCode={indicator.country} />
       </td>
-      <td className="px-4 py-2 text-sm text-gray-700">{indicator.name}</td>
+      <td className="px-4 py-2 text-sm text-gray-700">
+        <div className="flex items-center justify-between">
+          <span>{indicator.name}</span>
+          <div className="ml-2 flex items-center space-x-1">
+            <FavoriteButton
+              eventType="indicatorGroup"
+              isFavorite={isFavorite}
+              baseName={indicator.baseName}
+              country={indicator.country}
+            />
+            <NotificationButton
+              eventType="indicatorGroup"
+              isActive={indicator.hasNotification || false}
+              baseName={indicator.baseName}
+              country={indicator.country}
+            />
+          </div>
+        </div>
+      </td>
       <td className="px-4 py-2 text-sm text-gray-700">
         {renderImportanceStars(indicator.importance)}
       </td>
@@ -213,21 +241,6 @@ function EconomicIndicatorRow({
       <td className="px-4 py-2 text-sm text-gray-700">{indicator.forecast}</td>
       <td className="relative px-4 py-2 text-sm text-gray-700">
         {indicator.previous}
-      </td>
-      {/* 이벤트 추가 + 알림 버튼 */}
-      <td className="w-10 px-2 py-2 text-sm text-gray-700">
-        <div className="flex items-center space-x-1">
-          <FavoriteButton
-            id={indicator.id}
-            eventType="economicIndicator"
-            isFavorite={isFavorite}
-          />
-          <NotificationButton
-            id={indicator.id}
-            eventType="economicIndicator"
-            isActive={indicator.hasNotification || false}
-          />
-        </div>
       </td>
     </tr>
   );
