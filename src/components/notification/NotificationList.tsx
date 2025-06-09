@@ -91,8 +91,8 @@ export default function NotificationList() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4 py-8 text-center md:p-6">
-        로딩 중...
+      <div className="flex items-center justify-center p-8">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
       </div>
     );
   }

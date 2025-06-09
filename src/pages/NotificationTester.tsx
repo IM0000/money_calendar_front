@@ -324,7 +324,11 @@ export default function NotificationTester() {
   const isLoading = isCompanyLoading || isIndicatorLoading;
 
   if (isLoading) {
-    return <p className="py-8 text-center">로딩 중...</p>;
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+      </div>
+    );
   }
 
   const earnings = companyEventsData?.data?.earnings || [];

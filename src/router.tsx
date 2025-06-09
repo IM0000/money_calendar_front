@@ -14,7 +14,7 @@ import SearchPage from './pages/SearchPage';
 import { NotificationCenter } from './pages/NotificationCenter';
 import LandingPage from './pages/LandingPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import NotificationTester from './pages/NotificationTester';
+// import NotificationTester from './pages/NotificationTester';
 
 const router = createBrowserRouter([
   {
@@ -102,15 +102,15 @@ const router = createBrowserRouter([
     ),
     errorElement: <ErrorPage />,
   },
-  {
-    path: '/notifications/test',
-    element: (
-      <ProtectedRoute>
-        <NotificationTester />
-      </ProtectedRoute>
-    ),
-    errorElement: <ErrorPage />,
-  },
+  // {
+  //   path: '/notifications/test',
+  //   element: (
+  //     <ProtectedRoute>
+  //       <NotificationTester />
+  //     </ProtectedRoute>
+  //   ),
+  //   errorElement: <ErrorPage />,
+  // },
 ]);
 
 export default router;
