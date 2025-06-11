@@ -15,8 +15,8 @@ import { Notification, NotificationResponse } from '@/types/notification';
 import { useState } from 'react';
 
 const EmptyState = ({ message }: { message: string }) => (
-  <div className="flex flex-col items-center justify-center space-y-2 py-8 text-center">
-    <AlertCircle className="h-8 w-8 text-muted-foreground" />
+  <div className="flex flex-col items-center justify-center py-8 space-y-2 text-center">
+    <AlertCircle className="w-8 h-8 text-muted-foreground" />
     <p className="text-sm text-muted-foreground">{message}</p>
   </div>
 );
@@ -92,7 +92,7 @@ export default function NotificationList() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+        <div className="w-8 h-8 border-2 border-blue-500 rounded-full animate-spin border-t-transparent"></div>
       </div>
     );
   }
@@ -105,7 +105,7 @@ export default function NotificationList() {
 
   if (notifications.length === 0) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="min-h-screen p-4 bg-slate-50 md:p-6">
         <h1 className="mb-6 text-2xl font-bold text-gray-800">알림 현황</h1>
         <EmptyState message="알림이 없습니다." />
       </div>
@@ -149,7 +149,7 @@ export default function NotificationList() {
   };
 
   return (
-    <div className="min-h-screen space-y-6 bg-slate-50 p-4 md:p-6">
+    <div className="min-h-screen p-4 space-y-6 bg-slate-50 md:p-6">
       <h1 className="mb-6 text-2xl font-bold text-gray-800">알림 현황</h1>
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-600">
@@ -195,7 +195,7 @@ export default function NotificationList() {
               }`}
             >
               <CardHeader className="flex items-start justify-between p-0 pb-2">
-                <div className="flex w-full items-start justify-between">
+                <div className="flex items-start justify-between w-full">
                   <div>
                     <CardTitle className="text-lg font-semibold">
                       {title}
@@ -220,7 +220,7 @@ export default function NotificationList() {
                       }}
                       disabled={deleteNotificationMutation.isPending}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>

@@ -45,8 +45,8 @@ export default function MySubscriptionList() {
     companySubscriptions.length + indicatorGroupSubscriptions.length;
 
   return (
-    <div className="min-h-screen space-y-10 bg-slate-50 p-4 md:p-6">
-      <div className="mb-8 flex flex-col items-start justify-between sm:flex-row sm:items-center">
+    <div className="min-h-screen p-4 space-y-10 bg-slate-50 md:p-6">
+      <div className="flex flex-col items-start justify-between mb-8 sm:flex-row sm:items-center">
         <h1 className="mb-2 text-2xl font-bold text-gray-800 sm:mb-0">
           내 알림구독 관리
         </h1>

@@ -164,25 +164,25 @@ const NotificationSettings = () => {
           {isLoading ? (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <Skeleton className="h-5 w-24" />
-                <Skeleton className="h-6 w-10" />
+                <Skeleton className="w-24 h-5" />
+                <Skeleton className="w-10 h-6" />
               </div>
               <div className="flex items-center justify-between">
-                <Skeleton className="h-5 w-24" />
-                <Skeleton className="h-6 w-10" />
+                <Skeleton className="w-24 h-5" />
+                <Skeleton className="w-10 h-6" />
               </div>
               <div className="flex items-center justify-between">
-                <Skeleton className="h-5 w-24" />
-                <Skeleton className="h-6 w-10" />
+                <Skeleton className="w-24 h-5" />
+                <Skeleton className="w-10 h-6" />
               </div>
               <div className="space-y-2">
-                <Skeleton className="h-5 w-32" />
-                <Skeleton className="h-10 w-full" />
+                <Skeleton className="w-32 h-5" />
+                <Skeleton className="w-full h-10" />
               </div>
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between rounded-lg p-5">
+              <div className="flex items-center justify-between p-5 rounded-lg">
                 <div>
                   <Label htmlFor="all-notifications" className="font-medium">
                     전체 알림 허용
@@ -196,7 +196,7 @@ const NotificationSettings = () => {
                 />
               </div>
 
-              <div className="flex items-center justify-between rounded-lg p-5">
+              <div className="flex items-center justify-between p-5 rounded-lg">
                 <Label htmlFor="email-notifications" className="font-medium">
                   이메일 알림
                 </Label>
@@ -208,7 +208,7 @@ const NotificationSettings = () => {
                 />
               </div>
 
-              <div className="flex items-center justify-between rounded-lg p-5">
+              <div className="flex items-center justify-between p-5 rounded-lg">
                 <Label htmlFor="slack-notifications" className="font-medium">
                   Slack 알림
                 </Label>
@@ -221,7 +221,7 @@ const NotificationSettings = () => {
               </div>
 
               {slackEnabled && allEnabled && (
-                <div className="space-y-2 rounded-lg border p-4">
+                <div className="p-4 space-y-2 border rounded-lg">
                   <Label htmlFor="slack-webhook-url" className="font-medium">
                     Slack 웹훅 URL
                   </Label>
@@ -248,7 +248,7 @@ const NotificationSettings = () => {
             </>
           )}
         </CardContent>
-        <CardFooter className="flex justify-end space-x-2 p-4">
+        <CardFooter className="flex justify-end p-4 space-x-2">
           <Button
             onClick={handleSubmit}
             disabled={
