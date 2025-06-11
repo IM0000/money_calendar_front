@@ -6,7 +6,7 @@ import { useAuthStore } from '../../zustand/useAuthStore';
 import { getUnreadNotificationsCount } from '@/api/services/notificationService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { NewNotificationBubble } from '../Notification/NotificationBubble';
+import { NewNotificationBubble } from '@/components/Notification/NotificationBubble';
 import { queueEventSource } from '@/utils/refreshManager';
 import { createRefreshEventSource } from '@/utils/refreshEventSource';
 
