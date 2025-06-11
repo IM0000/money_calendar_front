@@ -20,15 +20,6 @@ interface IndicatorSearchProps {
   onPageChange: (page: number) => void;
 }
 
-// 지표 그룹 타입 정의
-interface IndicatorGroup {
-  baseName: string;
-  country: string;
-  importance: number;
-  isFavorite: boolean;
-  hasNotification: boolean;
-}
-
 export default function IndicatorSearch({
   results,
   pagination,
@@ -47,37 +38,16 @@ export default function IndicatorSearch({
     setLocalResults(results);
   }, [results]);
 
-  // baseName + country로 그룹화
   const indicatorGroups = useMemo(() => {
-    const groupMap = new Map<string, IndicatorGroup>();
-
-    localResults.forEach((indicator) => {
-      const key = `${indicator.baseName || 'unknown'}_${indicator.country}`;
-
-      if (groupMap.has(key)) {
-        const existing = groupMap.get(key)!;
-        // 더 높은 중요도가 있으면 업데이트
-        if (indicator.importance > existing.importance) {
-          existing.importance = indicator.importance;
-        }
-      } else {
-        groupMap.set(key, {
-          baseName: indicator.baseName || 'unknown',
-          country: indicator.country,
-          importance: indicator.importance,
-          isFavorite: indicator.isFavorite || false,
-          hasNotification: indicator.hasNotification || false,
-        });
-      }
-    });
-
-    return Array.from(groupMap.values()).sort((a, b) => {
-      // 중요도 내림차순, 그 다음 baseName 알파벳 순
-      if (a.importance !== b.importance) {
-        return b.importance - a.importance;
-      }
-      return a.baseName.localeCompare(b.baseName);
-    });
+    return localResults
+      .filter((indicator) => indicator.baseName)
+      .map((indicator) => ({
+        baseName: indicator.baseName!,
+        country: indicator.country,
+        importance: indicator.importance,
+        isFavorite: indicator.isFavorite || false,
+        hasNotification: indicator.hasNotification || false,
+      }));
   }, [localResults]);
 
   const renderImportanceStars = (importance: number) => {
