@@ -13,6 +13,7 @@ import { EarningsEvent } from '@/types/calendar-event';
 import MarketIcon from './MarketIcon';
 import { useQuery } from '@tanstack/react-query';
 import { getColorClass } from '@/utils/colorUtils';
+import { FiChevronDown, FiChevronUp, FiBarChart } from 'react-icons/fi';
 
 interface EarningsTableProps {
   events: EarningsEvent[];
@@ -79,25 +80,25 @@ export default function EarningsTable({
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="calendar-table-header sticky top-0 z-30 bg-gray-50">
           <tr className="h-[2.80rem]">
-            <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="w-[60px] min-w-[60px] px-3 py-2 text-center text-sm font-medium text-gray-700">
               시간
             </th>
-            <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="w-[50px] min-w-[50px] px-2 py-2 text-center text-sm font-medium text-gray-700">
               국가
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="w-auto min-w-[200px] px-4 py-2 text-left text-sm font-medium text-gray-700">
               회사명
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="w-[120px] min-w-[120px] px-3 py-2 text-center text-sm font-medium text-gray-700">
               EPS / 예측
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="w-[120px] min-w-[120px] px-3 py-2 text-center text-sm font-medium text-gray-700">
               매출 / 예측
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="w-[100px] min-w-[100px] px-3 py-2 text-right text-sm font-medium text-gray-700">
               시가총액
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="w-[90px] min-w-[90px] px-3 py-2 text-center text-sm font-medium text-gray-700">
               이전 발표
             </th>
           </tr>
@@ -221,10 +222,10 @@ function EarningRow({
   return (
     <>
       <tr className="relative">
-        <td className="px-4 py-2 text-sm text-gray-700">
+        <td className="px-3 py-2 text-center text-sm text-gray-700">
           <MarketIcon releaseTiming={earning.releaseTiming} />
         </td>
-        <td className="px-4 py-2 text-sm text-gray-700">
+        <td className="px-2 py-2 text-center text-sm text-gray-700">
           <CountryFlag countryCode={earning.country} />
         </td>
         <td className="px-4 py-2 text-sm text-gray-700">
@@ -246,7 +247,7 @@ function EarningRow({
             </div>
           </div>
         </td>
-        <td className="min-w-[10rem] px-4 py-2 text-sm text-gray-700">
+        <td className="px-3 py-2 text-center text-sm text-gray-700">
           <span
             className={`${getColorClass(earning.actualEPS, earning.forecastEPS)}`}
           >
@@ -254,7 +255,7 @@ function EarningRow({
           </span>{' '}
           / {earning.forecastEPS}
         </td>
-        <td className="min-w-[10rem] px-4 py-2 text-sm text-gray-700">
+        <td className="px-3 py-2 text-center text-sm text-gray-700">
           <span
             className={`${getColorClass(earning.actualRevenue, earning.forecastRevenue)}`}
           >
@@ -262,15 +263,25 @@ function EarningRow({
           </span>{' '}
           / {earning.forecastRevenue}
         </td>
-        <td className="min-w-[8rem] px-4 py-2 text-sm text-gray-700">
+        <td className="px-3 py-2 text-right text-sm text-gray-700">
           {formatMarketCap(earning.company.marketValue)}
         </td>
-        <td className="px-4 py-2 text-sm text-gray-700 ">
+        <td className="px-3 py-2 text-center text-sm text-gray-700">
           <button
             onClick={toggleOlderPopup}
-            className="min-w-[4rem] text-blue-500 underline hover:text-blue-700 focus:outline-none"
+            className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+              showOlderPopup
+                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800'
+            } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1`}
           >
-            {showOlderPopup ? '접기' : '상세보기'}
+            <FiBarChart className="h-3.5 w-3.5" />
+            <span>{showOlderPopup ? '접기' : '이전 실적'}</span>
+            {showOlderPopup ? (
+              <FiChevronUp className="h-3.5 w-3.5" />
+            ) : (
+              <FiChevronDown className="h-3.5 w-3.5" />
+            )}
           </button>
         </td>
       </tr>

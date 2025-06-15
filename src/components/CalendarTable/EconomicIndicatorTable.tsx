@@ -79,29 +79,29 @@ export default function EconomicIndicatorTable({
 
   return (
     <CalendarTableWrapper headerRefs={headerRefs}>
-      <table className="min-w-full divide-y divide-gray-200">
+      <table className="min-w-full table-fixed divide-y divide-gray-200">
         {/* 메인 헤더: 스크롤 시 상단에 고정 (헤더 높이 약 2.80rem) */}
         <thead className="calendar-table-header sticky top-0 z-30 bg-gray-50">
           <tr className="h-[2.80rem]">
-            <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="w-[70px] min-w-[70px] px-3 py-2 text-center text-sm font-medium text-gray-700">
               시간
             </th>
-            <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="w-[50px] min-w-[50px] px-2 py-2 text-center text-sm font-medium text-gray-700">
               국가
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="w-auto min-w-[160px] px-4 py-2 text-left text-sm font-medium text-gray-700">
               이벤트
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="w-[90px] min-w-[90px] px-3 py-2 text-center text-sm font-medium text-gray-700">
               중요도
             </th>
-            <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="w-[110px] min-w-[110px] px-3 py-2 text-right text-sm font-medium text-gray-700">
               실제
             </th>
-            <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="w-[110px] min-w-[110px] px-3 py-2 text-right text-sm font-medium text-gray-700">
               예측
             </th>
-            <th className="min-w-[3.75rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="w-[110px] min-w-[110px] px-3 py-2 text-right text-sm font-medium text-gray-700">
               이전
             </th>
           </tr>
@@ -207,10 +207,10 @@ function EconomicIndicatorRow({
 
   return (
     <tr className="relative">
-      <td className="px-4 py-2 text-sm text-gray-700">
+      <td className="px-3 py-2 text-center text-sm text-gray-700">
         {formatTime(indicator.releaseDate)}
       </td>
-      <td className="px-4 py-2 text-sm text-gray-700">
+      <td className="px-2 py-2 text-center text-sm text-gray-700">
         <CountryFlag countryCode={indicator.country} />
       </td>
       <td className="px-4 py-2 text-sm text-gray-700">
@@ -232,14 +232,18 @@ function EconomicIndicatorRow({
           </div>
         </div>
       </td>
-      <td className="px-4 py-2 text-sm text-gray-700">
-        {renderImportanceStars(indicator.importance)}
+      <td className="px-3 py-2 text-center text-sm text-gray-700">
+        <div className="flex justify-center">
+          {renderImportanceStars(indicator.importance)}
+        </div>
       </td>
-      <td className="px-4 py-2 text-sm font-bold text-gray-700">
+      <td className="px-3 py-2 text-right text-sm font-bold text-gray-700">
         {indicator.actual}
       </td>
-      <td className="px-4 py-2 text-sm text-gray-700">{indicator.forecast}</td>
-      <td className="relative px-4 py-2 text-sm text-gray-700">
+      <td className="px-3 py-2 text-right text-sm text-gray-700">
+        {indicator.forecast}
+      </td>
+      <td className="px-3 py-2 text-right text-sm text-gray-700">
         {indicator.previous}
       </td>
     </tr>

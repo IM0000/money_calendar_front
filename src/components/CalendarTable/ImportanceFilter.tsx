@@ -1,4 +1,5 @@
 import { FaStar } from 'react-icons/fa';
+import { HiOutlineXMark } from 'react-icons/hi2';
 
 interface ImportanceFilterProps {
   selectedImportance: number[];
@@ -36,9 +37,10 @@ export default function ImportanceFilter({
       {selectedImportance.length > 0 && (
         <button
           onClick={() => onImportanceChange([])}
-          className="text-sm text-blue-600 underline hover:text-blue-800"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 transition-all duration-200 hover:bg-red-100 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
         >
-          초기화
+          <HiOutlineXMark className="h-3.5 w-3.5" />
+          <span>초기화</span>
         </button>
       )}
       <div className="flex space-x-2">

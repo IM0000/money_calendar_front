@@ -11,6 +11,7 @@ import { getFavoriteCalendarEvents } from '@/api/services/calendarService';
 import { useQuery } from '@tanstack/react-query';
 import { useApiErrorHandler } from '@/utils/errorHandler';
 import { useAuthStore } from '@/zustand/useAuthStore';
+import toast from 'react-hot-toast';
 
 export default function FavoriteCalendarPage() {
   // 초기 선택 메뉴를 '경제지표'로 설정
@@ -31,7 +32,6 @@ export default function FavoriteCalendarPage() {
   const endDateObj = new Date(dateRange.endDate);
   const isPastData = endDateObj < today;
 
-  // 관심 일정 데이터를 가져옴
   const { data, isLoading, error } = useQuery({
     queryKey: [
       'favoriteCalendarEvents',
@@ -58,7 +58,6 @@ export default function FavoriteCalendarPage() {
   const dividends = data?.data?.dividends ?? [];
   const economicIndicators = data?.data?.economicIndicators ?? [];
 
-  // 버튼 클릭 시 상태 변경
   const handleMenuClick = (menu: string) => {
     setSelectedMenu(menu);
   };
@@ -71,22 +70,8 @@ export default function FavoriteCalendarPage() {
       : `${baseClass} bg-white text-gray-700 border-gray-300 hover:bg-gray-100`;
   };
 
-  // 에러가 있을 때의 처리 (전체 페이지에 메시지 표시)
   if (error) {
-    return (
-      <Layout>
-        <div className="flex flex-col items-center justify-center p-8 text-red-500">
-          <h3 className="mb-2 text-lg font-semibold">오류 발생</h3>
-          <p>데이터를 불러오는 중 오류가 발생했습니다.</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 mt-4 text-white bg-blue-500 rounded hover:bg-blue-600"
-          >
-            다시 시도
-          </button>
-        </div>
-      </Layout>
-    );
+    toast.error('데이터를 불러오는 중 오류가 발생했습니다.');
   }
 
   // 데이터가 없을 때 표시할 메시지
@@ -110,7 +95,7 @@ export default function FavoriteCalendarPage() {
     <Layout>
       <div className="flex flex-col">
         {/* 페이지 헤더 */}
-        <div className="px-8 mb-4">
+        <div className="mb-4 px-8">
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             관심 일정 보기
           </h1>
@@ -129,7 +114,7 @@ export default function FavoriteCalendarPage() {
         </div>
 
         {/* 메뉴 버튼 영역 */}
-        <div className="flex px-8 mt-4 space-x-4 text-sm">
+        <div className="mt-4 flex space-x-4 px-8 text-sm">
           <button
             className={getButtonClass('경제지표')}
             onClick={() => handleMenuClick('경제지표')}
@@ -154,7 +139,7 @@ export default function FavoriteCalendarPage() {
         {getEmptyMessage()}
 
         {/* 선택된 메뉴에 따라 테이블 컴포넌트 렌더링 */}
-        <div className="w-full px-8 mt-4 overflow-x-auto border-gray-300">
+        <div className="mt-4 w-full overflow-x-auto border-gray-300 px-8">
           {selectedMenu === '경제지표' && (
             <EconomicIndicatorTable
               events={economicIndicators}

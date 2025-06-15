@@ -10,6 +10,7 @@ import useCalendarStore from '@/zustand/useCalendarDateStore';
 import { DateRange } from '@/types/calendar-date-range';
 import { getCalendarEvents } from '@/api/services/calendarService';
 import { useQuery } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 // import TestErrorButton from '@/components/TestErrorButton';
 
 export default function MainPage() {
@@ -63,13 +64,7 @@ export default function MainPage() {
   };
 
   if (error) {
-    return (
-      <Layout>
-        <div className="flex flex-col items-center justify-center p-8 text-red-500">
-          <p>데이터를 불러오는 중 오류가 발생했습니다.</p>
-        </div>
-      </Layout>
-    );
+    toast.error('데이터를 불러오는 중 오류가 발생했습니다.');
   }
 
   return (

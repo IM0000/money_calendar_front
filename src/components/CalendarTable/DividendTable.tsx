@@ -11,6 +11,7 @@ import { CountryFlag } from './CountryFlag';
 import DividendHistoryTable from './DividendHistoryTable';
 import { useQuery } from '@tanstack/react-query';
 import { formatMarketCap } from '@/utils/formatUtils';
+import { FiChevronDown, FiChevronUp, FiDollarSign } from 'react-icons/fi';
 
 interface DividendTableProps {
   events: DividendEvent[];
@@ -72,28 +73,28 @@ export default function DividendTable({
         {/* 테이블 헤더 */}
         <thead className="calendar-table-header sticky top-0 z-30 bg-gray-50">
           <tr className="h-[2.80rem]">
-            <th className="min-w-[4rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="w-[50px] min-w-[50px] px-2 py-2 text-center text-sm font-medium text-gray-700">
               국가
             </th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="w-auto min-w-[180px] px-4 py-2 text-left text-sm font-medium text-gray-700">
               회사명
             </th>
-            <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">
+            <th className="w-[120px] min-w-[120px] px-3 py-2 text-center text-sm font-medium text-gray-700">
               배당락일
             </th>
-            <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">
+            <th className="w-[80px] min-w-[80px] px-3 py-2 text-right text-sm font-medium text-gray-700">
               배당금
             </th>
-            <th className="px-4 py-2 text-center text-sm font-medium text-gray-700">
+            <th className="w-[120px] min-w-[120px] px-3 py-2 text-center text-sm font-medium text-gray-700">
               배당지급일
             </th>
-            <th className="min-w-[7rem] px-4 py-2 text-right text-sm font-medium text-gray-700">
+            <th className="w-[90px] min-w-[90px] px-3 py-2 text-right text-sm font-medium text-gray-700">
               배당수익률
             </th>
-            <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">
+            <th className="w-[100px] min-w-[100px] px-3 py-2 text-right text-sm font-medium text-gray-700">
               시가총액
             </th>
-            <th className="min-w-[5.5rem] px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="w-[90px] min-w-[90px] px-3 py-2 text-center text-sm font-medium text-gray-700">
               이전 발표
             </th>
           </tr>
@@ -102,9 +103,9 @@ export default function DividendTable({
           {isLoading ? (
             // 로딩 중일 때 스켈레톤 UI 표시
             <>
-              <TableGroupSkeleton columns={7} rows={3} />
-              <TableGroupSkeleton columns={7} rows={2} />
-              <TableGroupSkeleton columns={7} rows={2} />
+              <TableGroupSkeleton columns={8} rows={3} />
+              <TableGroupSkeleton columns={8} rows={2} />
+              <TableGroupSkeleton columns={8} rows={2} />
             </>
           ) : (
             // 데이터가 있을 때 실제 테이블 내용 표시
@@ -149,7 +150,7 @@ export default function DividendTable({
                   ) : (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={8}
                         className="px-4 py-6 text-center text-gray-500"
                       >
                         예약된 일정이 없습니다.
@@ -216,7 +217,7 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
     <>
       <tr className="relative">
         {/* 국가 */}
-        <td className="px-4 py-2 text-sm text-gray-700">
+        <td className="px-2 py-2 text-center text-sm text-gray-700">
           <CountryFlag countryCode={dividend.country} />
         </td>
         {/* 회사명(티커) + 관심/알림 버튼 */}
@@ -241,32 +242,42 @@ function DividendRow({ dividend, isFavoritePage = false }: DividendRowProps) {
           </div>
         </td>
         {/* 배당락일 */}
-        <td className="min-w-[9rem] px-4 py-2 text-center text-sm text-gray-700">
+        <td className="whitespace-nowrap px-3 py-2 text-center text-sm text-gray-700">
           {exDividendDisplay}
         </td>
         {/* 배당금 */}
-        <td className="px-4 py-2 text-right text-sm text-gray-700">
+        <td className="px-3 py-2 text-right text-sm text-gray-700">
           ${dividend.dividendAmount}
         </td>
         {/* 배당지급일 */}
-        <td className="min-w-[9rem] px-4 py-2 text-center text-sm text-gray-700">
+        <td className="whitespace-nowrap px-3 py-2 text-center text-sm text-gray-700">
           {paymentDateDisplay}
         </td>
         {/* 배당수익률 */}
-        <td className="px-4 py-2 text-right text-sm text-gray-700">
+        <td className="px-3 py-2 text-right text-sm text-gray-700">
           {dividend.dividendYield ? dividend.dividendYield : '-'}
         </td>
         {/* 회사 시가총액 */}
-        <td className="px-4 py-2 text-right text-sm text-gray-700">
+        <td className="px-3 py-2 text-right text-sm text-gray-700">
           {formatMarketCap(dividend.company?.marketValue)}
         </td>
         {/* 이전 배당금값 (바로 직전 값) + 팝업 */}
-        <td className="relative px-4 py-2 text-sm text-gray-700">
+        <td className="px-3 py-2 text-center text-sm text-gray-700">
           <button
             onClick={toggleOlderPopup}
-            className="min-w-[4rem] text-blue-500 underline hover:text-blue-700 focus:outline-none"
+            className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+              showOlderPopup
+                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800'
+            } focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1`}
           >
-            {showOlderPopup ? '접기' : '상세보기'}
+            <FiDollarSign className="h-3.5 w-3.5" />
+            <span>{showOlderPopup ? '접기' : '이전 배당'}</span>
+            {showOlderPopup ? (
+              <FiChevronUp className="h-3.5 w-3.5" />
+            ) : (
+              <FiChevronDown className="h-3.5 w-3.5" />
+            )}
           </button>
         </td>
       </tr>
