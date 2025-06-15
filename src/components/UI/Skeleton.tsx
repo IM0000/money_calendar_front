@@ -79,7 +79,7 @@ export const CalendarPanelSkeleton: React.FC = () => {
   return (
     <div className="w-full">
       {/* 헤더 */}
-      <div className="mb-2 flex items-center gap-2">
+      <div className="flex items-center gap-2 mb-2">
         <Skeleton width="2.5rem" height="2.5rem" roundedFull />
         <Skeleton width="4rem" height="2rem" className="rounded" />
         <div className="flex items-center gap-1">
@@ -91,14 +91,14 @@ export const CalendarPanelSkeleton: React.FC = () => {
       </div>
 
       {/* 날짜 이벤트 카드들 */}
-      <div className="flex overflow-x-auto pb-2">
+      <div className="flex pb-2 overflow-x-auto">
         {Array(7)
           .fill(0)
           .map((_, i) => (
             <div
               key={i}
-              className="mr-2 flex-shrink-0 rounded border border-gray-300 bg-white p-3 shadow-sm"
-              style={{ width: '9rem' }}
+              className="flex-shrink-0 p-3 mr-2 bg-white border border-gray-300 rounded shadow-sm"
+              style={{ width: '11rem' }}
             >
               <Skeleton width="60%" height="1.25rem" className="mb-2" />
               <div className="space-y-2">
