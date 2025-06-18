@@ -55,7 +55,7 @@ export default function CalendarTableWrapper({
   return (
     <div
       ref={tableContainerRef}
-      className="calendar-table-container relative w-screen max-w-full overflow-y-auto"
+      className="relative w-screen max-w-full overflow-y-auto calendar-table-container"
       style={{ maxHeight: '600px' }}
     >
       {children}

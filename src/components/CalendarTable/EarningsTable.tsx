@@ -86,13 +86,13 @@ export default function EarningsTable({
             <th className="w-[50px] min-w-[50px] px-2 py-2 text-center text-sm font-medium text-gray-700">
               국가
             </th>
-            <th className="w-auto min-w-[200px] px-4 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="w-auto min-w-[150px] px-4 py-2 text-left text-sm font-medium text-gray-700">
               회사명
             </th>
-            <th className="w-[120px] min-w-[120px] px-3 py-2 text-center text-sm font-medium text-gray-700">
+            <th className="w-[140px] min-w-[140px] px-3 py-2 text-center text-sm font-medium text-gray-700">
               EPS / 예측
             </th>
-            <th className="w-[120px] min-w-[120px] px-3 py-2 text-center text-sm font-medium text-gray-700">
+            <th className="w-[140px] min-w-[140px] px-3 py-2 text-center text-sm font-medium text-gray-700">
               매출 / 예측
             </th>
             <th className="w-[100px] min-w-[100px] px-3 py-2 text-right text-sm font-medium text-gray-700">
@@ -248,20 +248,28 @@ function EarningRow({
           </div>
         </td>
         <td className="px-3 py-2 text-center text-sm text-gray-700">
-          <span
-            className={`${getColorClass(earning.actualEPS, earning.forecastEPS)}`}
-          >
-            {earning.actualEPS}
-          </span>{' '}
-          / {earning.forecastEPS}
+          <div className="flex flex-col items-center">
+            <span
+              className={`${getColorClass(earning.actualEPS, earning.forecastEPS)} font-medium`}
+            >
+              {earning.actualEPS || '-'}
+            </span>
+            <span className="text-xs text-gray-500">
+              예측: {earning.forecastEPS || '-'}
+            </span>
+          </div>
         </td>
         <td className="px-3 py-2 text-center text-sm text-gray-700">
-          <span
-            className={`${getColorClass(earning.actualRevenue, earning.forecastRevenue)}`}
-          >
-            {earning.actualRevenue}
-          </span>{' '}
-          / {earning.forecastRevenue}
+          <div className="flex flex-col items-center">
+            <span
+              className={`${getColorClass(earning.actualRevenue, earning.forecastRevenue)} font-medium`}
+            >
+              {earning.actualRevenue || '-'}
+            </span>
+            <span className="text-xs text-gray-500">
+              예측: {earning.forecastRevenue || '-'}
+            </span>
+          </div>
         </td>
         <td className="px-3 py-2 text-right text-sm text-gray-700">
           {formatMarketCap(earning.company.marketValue)}
